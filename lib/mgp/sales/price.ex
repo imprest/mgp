@@ -2,6 +2,7 @@ defmodule Mgp.Sales.Price do
   use Ecto.Schema
   import Ecto.Changeset
   alias Mgp.Sales.Price
+  alias Mgp.Sales.Product
 
   schema "prices" do
     field :cash, :decimal
@@ -11,7 +12,7 @@ defmodule Mgp.Sales.Price do
     field :lmt, :time
     field :lmu, :string
     field :trek, :decimal
-    belongs_to :product, Product
+    belongs_to :product, Product, type: :string
 
     timestamps()
   end
@@ -19,8 +20,8 @@ defmodule Mgp.Sales.Price do
   @doc false
   def changeset(%Price{} = price, attrs) do
     price
-    |> cast(attrs, [:date, :cash, :credit, :trek, :lmu, :lmd, :lmt])
-    |> validate_required([:date, :cash, :credit, :trek, :lmu, :lmd, :lmt])
+    |> cast(attrs, [:date, :product_id, :cash, :credit, :trek, :lmu, :lmd, :lmt])
+    |> validate_required([:date, :product_id, :cash, :credit, :trek, :lmu, :lmd, :lmt])
   end
 
 end

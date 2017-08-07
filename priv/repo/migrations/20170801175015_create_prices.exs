@@ -10,12 +10,12 @@ defmodule Mgp.Repo.Migrations.CreatePrices do
       add :lmu, :string
       add :lmd, :date
       add :lmt, :time
-      add :product_id, references(:products, on_delete: :nothing, type: :string)
+      add :product_id, references(:products, on_update: :update_all, on_delete: :nothing, type: :string)
 
       timestamps()
     end
 
-    create unique_index(:prices, [:id, :date])
+    create unique_index(:prices, [:product_id, :date])
     create index(:prices, [:id])
   end
 end

@@ -71,9 +71,6 @@ defmodule Mgp.ImportData do
     # generate and read the products csv file
     prices = parse_prices_from_dbf();
 
-    price = hd(prices)
-    IO.inspect(price)
-
     # on_conflict update query
     query = from(p in Price,
             where: fragment("p0.lmd <> EXCLUDED.lmd OR p0.lmt <> EXCLUDED.lmt"),
@@ -89,13 +86,20 @@ defmodule Mgp.ImportData do
             ]);
 
     # upsert the records into actual db
-    # TODO change conflict_target to composite primary_key(id, date)
-    Repo.insert_all(Price, [price], on_conflict: query, conflict_target: :date);
+    # TODO There is no support for fragment or constraints in conflict_target
+    # ref: https://github.com/elixir-ecto/ecto/issues/2081
+    # GOOD NEWS: It is fixed in ecto 2.2 due 11th August 2017
+    # Repo.insert_all(Price, prices, on_conflict: query, conflict_target: {:constraint, :prices_product_id_date_index});
+    Repo.insert_all(Price, prices, on_conflict: :nothing);
   end
 
   def parse_prices_from_dbf() do
     {csv, 1} = System.cmd("dbview", ["-d","!","-b","-t", "/home/hvaria/Desktop/MGP16/SIITMPLD.DBF"])
     {:ok, stream} = csv |> StringIO.open()
+
+    query = from p in Product,
+            select: p.id
+    product_ids = Mgp.Repo.all(query)
 
     stream
     |> IO.binstream(:line)
@@ -105,6 +109,7 @@ defmodule Mgp.ImportData do
        Enum.at(x,  2), Enum.at(x,  4),
        Enum.at(x, 10), Enum.at(x, 11), Enum.at(x, 12)]
     end)
+    |> Stream.filter(&Enum.member?(product_ids, hd(&1))) # Need to do this due to possible zombie ids
     |> Stream.map(fn [product_id, date, cash, credit, trek, lmu, lmd, lmt] ->
       %{product_id: product_id, date: to_date(date), cash: to_decimal(cash), credit: to_decimal(credit),
         trek: to_decimal(trek),
@@ -135,9 +140,9 @@ defmodule Mgp.ImportData do
 
   defp to_date("") do nil end
   defp to_date(date) do
-    year = String.slice(date, 0..3);
+    year  = String.slice(date, 0..3);
     month = String.slice(date, 4..5);
-    day = String.slice(date, 6..7);
+    day   = String.slice(date, 6..7);
     [year, "-", month, "-", day]
     |> Enum.join
     |> Ecto.Date.cast!

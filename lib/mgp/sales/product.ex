@@ -3,6 +3,7 @@ defmodule Mgp.Sales.Product do
   import Ecto.Changeset
   alias Mgp.Sales.Product
   alias Mgp.Sales.OpProductStock
+  alias Mgp.Sales.Price
 
   @primary_key {:id, :string, []}
   schema "products" do
