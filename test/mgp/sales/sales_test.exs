@@ -210,4 +210,88 @@ defmodule Mgp.SalesTest do
       assert %Ecto.Changeset{} = Sales.change_price(price)
     end
   end
+
+  describe "customers" do
+    alias Mgp.Sales.Customer
+
+    @valid_attrs %{add1: "some add1", add2: "some add2", add3: "some add3", attn: "some attn", description: "some description", email: "some email", is_gov: "some is_gov", lmd: ~D[2010-04-17], lmt: ~T[14:00:00.000000], lmu: "some lmu", phone: "some phone", region: "some region", resp: "some resp"}
+    @update_attrs %{add1: "some updated add1", add2: "some updated add2", add3: "some updated add3", attn: "some updated attn", description: "some updated description", email: "some updated email", is_gov: "some updated is_gov", lmd: ~D[2011-05-18], lmt: ~T[15:01:01.000000], lmu: "some updated lmu", phone: "some updated phone", region: "some updated region", resp: "some updated resp"}
+    @invalid_attrs %{add1: nil, add2: nil, add3: nil, attn: nil, description: nil, email: nil, is_gov: nil, lmd: nil, lmt: nil, lmu: nil, phone: nil, region: nil, resp: nil}
+
+    def customer_fixture(attrs \\ %{}) do
+      {:ok, customer} =
+        attrs
+        |> Enum.into(@valid_attrs)
+        |> Sales.create_customer()
+
+      customer
+    end
+
+    test "list_customers/0 returns all customers" do
+      customer = customer_fixture()
+      assert Sales.list_customers() == [customer]
+    end
+
+    test "get_customer!/1 returns the customer with given id" do
+      customer = customer_fixture()
+      assert Sales.get_customer!(customer.id) == customer
+    end
+
+    test "create_customer/1 with valid data creates a customer" do
+      assert {:ok, %Customer{} = customer} = Sales.create_customer(@valid_attrs)
+      assert customer.add1 == "some add1"
+      assert customer.add2 == "some add2"
+      assert customer.add3 == "some add3"
+      assert customer.attn == "some attn"
+      assert customer.description == "some description"
+      assert customer.email == "some email"
+      assert customer.is_gov == "some is_gov"
+      assert customer.lmd == ~D[2010-04-17]
+      assert customer.lmt == ~T[14:00:00.000000]
+      assert customer.lmu == "some lmu"
+      assert customer.phone == "some phone"
+      assert customer.region == "some region"
+      assert customer.resp == "some resp"
+    end
+
+    test "create_customer/1 with invalid data returns error changeset" do
+      assert {:error, %Ecto.Changeset{}} = Sales.create_customer(@invalid_attrs)
+    end
+
+    test "update_customer/2 with valid data updates the customer" do
+      customer = customer_fixture()
+      assert {:ok, customer} = Sales.update_customer(customer, @update_attrs)
+      assert %Customer{} = customer
+      assert customer.add1 == "some updated add1"
+      assert customer.add2 == "some updated add2"
+      assert customer.add3 == "some updated add3"
+      assert customer.attn == "some updated attn"
+      assert customer.description == "some updated description"
+      assert customer.email == "some updated email"
+      assert customer.is_gov == "some updated is_gov"
+      assert customer.lmd == ~D[2011-05-18]
+      assert customer.lmt == ~T[15:01:01.000000]
+      assert customer.lmu == "some updated lmu"
+      assert customer.phone == "some updated phone"
+      assert customer.region == "some updated region"
+      assert customer.resp == "some updated resp"
+    end
+
+    test "update_customer/2 with invalid data returns error changeset" do
+      customer = customer_fixture()
+      assert {:error, %Ecto.Changeset{}} = Sales.update_customer(customer, @invalid_attrs)
+      assert customer == Sales.get_customer!(customer.id)
+    end
+
+    test "delete_customer/1 deletes the customer" do
+      customer = customer_fixture()
+      assert {:ok, %Customer{}} = Sales.delete_customer(customer)
+      assert_raise Ecto.NoResultsError, fn -> Sales.get_customer!(customer.id) end
+    end
+
+    test "change_customer/1 returns a customer changeset" do
+      customer = customer_fixture()
+      assert %Ecto.Changeset{} = Sales.change_customer(customer)
+    end
+  end
 end

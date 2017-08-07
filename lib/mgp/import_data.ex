@@ -5,6 +5,7 @@ defmodule Mgp.ImportData do
 
   alias Mgp.Repo
   alias Mgp.Sales.Product
+  alias Mgp.Sales.Customer
   alias Mgp.Sales.Price
 
   NimbleCSV.define(MyParser, separator: "!");
@@ -13,14 +14,17 @@ defmodule Mgp.ImportData do
   @updated_at  Ecto.DateTime.cast!("2016-10-01T08:30:00")
 
   def populate() do
-    with {rows, nil} <- populate_products() do
-      Logger.info fn -> "Product rows changed: #{rows}" end
+    with {products, nil} <- populate_products(),
+         {customers, nil} <- populate_customers() do
+      Logger.info fn -> "Products  upserted: #{products}" end
+      Logger.info fn -> "Customers upserted: #{customers}" end
     else
       unexpected ->
         Logger.error "Error occurred #{inspect(unexpected)}"
     end
   end
 
+  # PRODUCTS
   def populate_products() do
     # generate and read the products csv file
     products = parse_products_from_dbf();
@@ -67,6 +71,60 @@ defmodule Mgp.ImportData do
     |> Enum.to_list
   end
 
+  # CUSTOMERS
+  def populate_customers() do
+    # generate and read the products csv file
+    customers = parse_customers_from_dbf();
+
+    # on_conflict update query
+    query = from(c in Customer,
+            where: fragment("c0.lmd <> EXCLUDED.lmd OR c0.lmt <> EXCLUDED.lmt"),
+            update: [set: [region: fragment("EXCLUDED.region"),
+                           description: fragment("EXCLUDED.description"),
+                           attn: fragment("EXCLUDED.attn"),
+                           add1: fragment("EXCLUDED.add1"),
+                           add2: fragment("EXCLUDED.add2"),
+                           add3: fragment("EXCLUDED.add3"),
+                           phone: fragment("EXCLUDED.phone"),
+                           is_gov: fragment("EXCLUDED.is_gov"),
+                           resp: fragment("EXCLUDED.resp"),
+                           email: fragment("EXCLUDED.email"),
+                           lmu: fragment("EXCLUDED.lmu"),
+                           lmd: fragment("EXCLUDED.lmd"),
+                           lmt: fragment("EXCLUDED.lmt")
+                           ]
+            ]);
+
+    # upsert the records into actual db
+    Repo.insert_all(Customer, customers, on_conflict: query, conflict_target: :id);
+  end
+
+  def parse_customers_from_dbf() do
+    {csv, 1} = System.cmd("dbview", ["-d","!","-b","-t", "/home/hvaria/Desktop/MGP16/FISLMST.DBF"])
+    {:ok, stream} = csv |> StringIO.open()
+
+    stream
+    |> IO.binstream(:line)
+    |> MyParser.parse_stream(headers: false)
+    |> Stream.filter(fn(x) -> hd(x) == "203000" end)
+    |> Stream.map(fn(x) ->
+      [Enum.at(x,  1), Enum.at(x,  2), Enum.at(x,  3), Enum.at(x, 29),
+       Enum.at(x, 30), Enum.at(x, 31), Enum.at(x, 32), Enum.at(x, 33),
+       Enum.at(x, 34), Enum.at(x, 35), Enum.at(x, 36),
+       Enum.at(x, 91), Enum.at(x, 92), Enum.at(x, 93)]
+    end)
+    |> Stream.map(fn [id, region, description, attn, add1, add2, add3,
+                      phone, is_gov, resp, email, lmu, lmd, lmt] ->
+      %{id: id, region: nil?(region), description: description,
+        attn: nil?(attn), add1: nil?(add1), add2: nil?(add2), add3: nil?(add3),
+        phone: nil?(phone), is_gov: nil?(is_gov), resp: nil?(resp),
+        email: nil?(email), lmu: nil?(lmu), lmd: to_date(lmd), lmt: to_time(lmt),
+        inserted_at: @inserted_at, updated_at: @updated_at}
+    end)
+    |> Enum.to_list
+  end
+
+  # PRICES
   def populate_prices() do
     # generate and read the products csv file
     prices = parse_prices_from_dbf();
