@@ -127,7 +127,7 @@ defmodule Mgp.ImportData do
   # PRICES
   def populate_prices() do
     # generate and read the products csv file
-    prices = parse_prices_from_dbf();
+    prices = parse_prices_from_dbf()
 
     # on_conflict update query
     query = from(p in Price,
@@ -147,8 +147,8 @@ defmodule Mgp.ImportData do
     # TODO There is no support for fragment or constraints in conflict_target
     # ref: https://github.com/elixir-ecto/ecto/issues/2081
     # GOOD NEWS: It is fixed in ecto 2.2 due 11th August 2017
-    # Repo.insert_all(Price, prices, on_conflict: query, conflict_target: {:constraint, :prices_product_id_date_index});
-    Repo.insert_all(Price, prices, on_conflict: :nothing);
+    Repo.insert_all(Price, prices, on_conflict: query, conflict_target: {:constraint, :prices_product_id_date_key});
+    # Repo.insert_all(Price, prices, on_conflict: :nothing);
   end
 
   def parse_prices_from_dbf() do

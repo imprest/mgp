@@ -17,5 +17,11 @@ defmodule Mgp.Repo.Migrations.CreatePrices do
 
     create unique_index(:prices, [:product_id, :date])
     create index(:prices, [:id])
+    execute(
+      "ALTER TABLE prices ADD CONSTRAINT prices_product_id_date_key UNIQUE(date, product_id)",
+      "ALTER TABLE prices DROP CONSTRAINT prices_product_id_date_key"
+    )
+
   end
+
 end
