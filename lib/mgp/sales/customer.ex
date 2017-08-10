@@ -19,6 +19,7 @@ defmodule Mgp.Sales.Customer do
     field :phone, :string
     field :region, :string
     field :resp, :string
+    has_many :invoices, Invoice
 
     timestamps()
   end

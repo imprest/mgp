@@ -294,4 +294,84 @@ defmodule Mgp.SalesTest do
       assert %Ecto.Changeset{} = Sales.change_customer(customer)
     end
   end
+
+  describe "invoices" do
+    alias Mgp.Sales.Invoice
+
+    @valid_attrs %{date: ~D[2010-04-17], detail1: "some detail1", detail2: "some detail2", detail3: "some detail3", from_stock: "some from_stock", lmd: ~D[2010-04-17], lmt: ~T[14:00:00.000000], lmu: "some lmu", payment_term: "some payment_term", price_level: "some price_level", value: "120.5"}
+    @update_attrs %{date: ~D[2011-05-18], detail1: "some updated detail1", detail2: "some updated detail2", detail3: "some updated detail3", from_stock: "some updated from_stock", lmd: ~D[2011-05-18], lmt: ~T[15:01:01.000000], lmu: "some updated lmu", payment_term: "some updated payment_term", price_level: "some updated price_level", value: "456.7"}
+    @invalid_attrs %{date: nil, detail1: nil, detail2: nil, detail3: nil, from_stock: nil, lmd: nil, lmt: nil, lmu: nil, payment_term: nil, price_level: nil, value: nil}
+
+    def invoice_fixture(attrs \\ %{}) do
+      {:ok, invoice} =
+        attrs
+        |> Enum.into(@valid_attrs)
+        |> Sales.create_invoice()
+
+      invoice
+    end
+
+    test "list_invoices/0 returns all invoices" do
+      invoice = invoice_fixture()
+      assert Sales.list_invoices() == [invoice]
+    end
+
+    test "get_invoice!/1 returns the invoice with given id" do
+      invoice = invoice_fixture()
+      assert Sales.get_invoice!(invoice.id) == invoice
+    end
+
+    test "create_invoice/1 with valid data creates a invoice" do
+      assert {:ok, %Invoice{} = invoice} = Sales.create_invoice(@valid_attrs)
+      assert invoice.date == ~D[2010-04-17]
+      assert invoice.detail1 == "some detail1"
+      assert invoice.detail2 == "some detail2"
+      assert invoice.detail3 == "some detail3"
+      assert invoice.from_stock == "some from_stock"
+      assert invoice.lmd == ~D[2010-04-17]
+      assert invoice.lmt == ~T[14:00:00.000000]
+      assert invoice.lmu == "some lmu"
+      assert invoice.payment_term == "some payment_term"
+      assert invoice.price_level == "some price_level"
+      assert invoice.value == Decimal.new("120.5")
+    end
+
+    test "create_invoice/1 with invalid data returns error changeset" do
+      assert {:error, %Ecto.Changeset{}} = Sales.create_invoice(@invalid_attrs)
+    end
+
+    test "update_invoice/2 with valid data updates the invoice" do
+      invoice = invoice_fixture()
+      assert {:ok, invoice} = Sales.update_invoice(invoice, @update_attrs)
+      assert %Invoice{} = invoice
+      assert invoice.date == ~D[2011-05-18]
+      assert invoice.detail1 == "some updated detail1"
+      assert invoice.detail2 == "some updated detail2"
+      assert invoice.detail3 == "some updated detail3"
+      assert invoice.from_stock == "some updated from_stock"
+      assert invoice.lmd == ~D[2011-05-18]
+      assert invoice.lmt == ~T[15:01:01.000000]
+      assert invoice.lmu == "some updated lmu"
+      assert invoice.payment_term == "some updated payment_term"
+      assert invoice.price_level == "some updated price_level"
+      assert invoice.value == Decimal.new("456.7")
+    end
+
+    test "update_invoice/2 with invalid data returns error changeset" do
+      invoice = invoice_fixture()
+      assert {:error, %Ecto.Changeset{}} = Sales.update_invoice(invoice, @invalid_attrs)
+      assert invoice == Sales.get_invoice!(invoice.id)
+    end
+
+    test "delete_invoice/1 deletes the invoice" do
+      invoice = invoice_fixture()
+      assert {:ok, %Invoice{}} = Sales.delete_invoice(invoice)
+      assert_raise Ecto.NoResultsError, fn -> Sales.get_invoice!(invoice.id) end
+    end
+
+    test "change_invoice/1 returns a invoice changeset" do
+      invoice = invoice_fixture()
+      assert %Ecto.Changeset{} = Sales.change_invoice(invoice)
+    end
+  end
 end

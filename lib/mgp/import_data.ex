@@ -6,6 +6,7 @@ defmodule Mgp.ImportData do
   alias Mgp.Repo
   alias Mgp.Sales.Product
   alias Mgp.Sales.Customer
+  alias Mgp.Sales.Invoice
   alias Mgp.Sales.Price
 
   NimbleCSV.define(MyParser, separator: "!");
@@ -14,9 +15,11 @@ defmodule Mgp.ImportData do
   @updated_at  Ecto.DateTime.cast!("2016-10-01T08:30:00")
 
   def populate() do
-    with {products, nil} <- populate_products(),
+    with {products , nil} <- populate_products(),
+         {prices   , nil} <- populate_prices(),
          {customers, nil} <- populate_customers() do
       Logger.info fn -> "Products  upserted: #{products}" end
+      Logger.info fn -> "Prices    upserted: #{prices}" end
       Logger.info fn -> "Customers upserted: #{customers}" end
     else
       unexpected ->
@@ -26,7 +29,7 @@ defmodule Mgp.ImportData do
 
   # PRODUCTS
   def populate_products() do
-    # generate and read the products csv file
+
     products = parse_products_from_dbf();
 
     # on_conflict update query
@@ -73,7 +76,7 @@ defmodule Mgp.ImportData do
 
   # CUSTOMERS
   def populate_customers() do
-    # generate and read the products csv file
+
     customers = parse_customers_from_dbf();
 
     # on_conflict update query
@@ -126,7 +129,7 @@ defmodule Mgp.ImportData do
 
   # PRICES
   def populate_prices() do
-    # generate and read the products csv file
+
     prices = parse_prices_from_dbf()
 
     # on_conflict update query
@@ -144,11 +147,7 @@ defmodule Mgp.ImportData do
             ]);
 
     # upsert the records into actual db
-    # TODO There is no support for fragment or constraints in conflict_target
-    # ref: https://github.com/elixir-ecto/ecto/issues/2081
-    # GOOD NEWS: It is fixed in ecto 2.2 due 11th August 2017
     Repo.insert_all(Price, prices, on_conflict: query, conflict_target: {:constraint, :prices_product_id_date_key});
-    # Repo.insert_all(Price, prices, on_conflict: :nothing);
   end
 
   def parse_prices_from_dbf() do
@@ -177,9 +176,92 @@ defmodule Mgp.ImportData do
     |> Enum.to_list
   end
 
+  # INVOICES
+  def populate_invoices() do
+    rows = parse_invoices_from_dbf()
+      |> Enum.chunk_every(1000)
+      |> Enum.map(fn (x) -> populate_invoices_partial(x) end)
+      |> Enum.reduce(0, fn(x, acc) -> elem(x, 0) + acc end)
+
+    {rows, nil}
+  end
+
+  def populate_invoices_partial(invoices) do
+    # on_conflict update query
+    query = from(i in Invoice,
+            where: fragment("i0.lmd <> EXCLUDED.lmd OR i0.lmt <> EXCLUDED.lmt"),
+            update: [set: [customer_id: fragment("EXCLUDED.customer_id"),
+                           date: fragment("EXCLUDED.date"),
+                           detail1: fragment("EXCLUDED.detail1"),
+                           detail2: fragment("EXCLUDED.detail2"),
+                           detail3: fragment("EXCLUDED.detail3"),
+                           from_stock: fragment("EXCLUDED.from_stock"),
+                           id: fragment("EXCLUDED.id"),
+                           payment_term: fragment("EXCLUDED.payment_term"),
+                           price_level: fragment("EXCLUDED.price_level"),
+                           value: fragment("EXCLUDED.value"),
+                           lmu: fragment("EXCLUDED.lmu"),
+                           lmd: fragment("EXCLUDED.lmd"),
+                           lmt: fragment("EXCLUDED.lmt")
+                           ]
+            ]);
+
+    # upsert the records into actual db
+    Repo.insert_all(Invoice, invoices, on_conflict: query, conflict_target: :id);
+  end
+
+  def parse_invoices_from_dbf() do
+    {csv, 1} = System.cmd("dbview", ["-d","!","-b","-t", "/home/hvaria/Desktop/MGP16/SIINV.DBF"])
+    {:ok, stream} = csv |> StringIO.open()
+
+    stream
+    |> IO.binstream(:line)
+    |> MyParser.parse_stream(headers: false)
+    |> Stream.filter(fn(x) -> hd(x) != "B" end)
+    |> Stream.map(fn(x) ->
+      [to_invoice_id(Enum.at(x,  0), Enum.at(x,  1)),
+       Enum.at(x,  2), Enum.at(x,  3), Enum.at(x, 21), Enum.at(x, 23),
+       Enum.at(x, 25),
+       to_payment_term(Enum.at(x, 38), Enum.at(x, 39), Enum.at(x, 40)),
+       Enum.at(x, 42), Enum.at(x, 43), Enum.at(x, 44),
+       Enum.at(x, 52), Enum.at(x, 53), Enum.at(x, 54)]
+    end)
+    |> Stream.map(fn [id, date, customer_id, value, price_level, from_stock,
+                      payment_term, detail1, detail2, detail3, lmu, lmd, lmt] ->
+      %{id: id, date: to_date(date), customer_id: customer_id,
+        value: to_decimal(value), price_level: nil?(price_level),
+        from_stock: nil?(from_stock), payment_term: payment_term,
+        detail1: nil?(detail1), detail2: nil?(clean_string(detail2)), detail3: nil?(detail3),
+        lmu: nil?(lmu), lmd: to_date(lmd), lmt: to_time(lmt),
+        inserted_at: @inserted_at, updated_at: @updated_at}
+    end)
+    |> Enum.to_list
+  end
+
+  def to_invoice_id(code, num) do
+    code <> String.duplicate(" ", (9 - String.length(num))) <> num
+  end
+
+  def to_payment_term(cash, chq, credit) do
+    case {cash, chq, credit} do
+      {"0.00", "0.00",      _} -> "credit"
+      {     _, "0.00", "0.00"} -> "cash"
+      {"0.00",      _, "0.00"} -> "cheque"
+      {     _,      _,      _} -> "credit"
+    end
+
+  end
+
   ### Private Functions ###
   defp nil?("") do nil end
   defp nil?(string) do string end
+
+  defp clean_string(bin) do
+    case String.valid?(bin) do
+      true -> bin
+      false -> String.codepoints(bin) |> Enum.filter(&String.valid?(&1)) |> Enum.join
+    end
+  end
 
   defp to_integer("") do nil end
   defp to_integer(int) do
