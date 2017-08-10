@@ -2,6 +2,7 @@ defmodule Mgp.Sales.Customer do
   use Ecto.Schema
   import Ecto.Changeset
   alias Mgp.Sales.Customer
+  alias Mgp.Sales.Invoice
 
 
   @primary_key {:id, :string, []}

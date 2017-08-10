@@ -2,6 +2,7 @@ defmodule Mgp.Sales.Invoice do
   use Ecto.Schema
   import Ecto.Changeset
   alias Mgp.Sales.Invoice
+  alias Mgp.Sales.InvoiceDetail
   alias Mgp.Sales.Customer
 
 
@@ -11,7 +12,7 @@ defmodule Mgp.Sales.Invoice do
     field :detail1, :string
     field :detail2, :string
     field :detail3, :string
-    field :from_stock, :string
+    field :from_stock, :string # TODO remove duplicated data
     field :lmd, :date
     field :lmt, :time
     field :lmu, :string
@@ -19,6 +20,7 @@ defmodule Mgp.Sales.Invoice do
     field :price_level, :string
     field :value, :decimal
     belongs_to :customer, Customer, type: :string
+    has_many :invoice_details, InvoiceDetail
 
     timestamps()
   end

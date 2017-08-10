@@ -21,6 +21,7 @@ defmodule MgpWeb.Router do
     resources "/op_product_stocks", OpProductStockController, except: [:new, :edit]
     resources "/prices", PriceController, except: [:new, :edit]
     resources "/invoices", InvoiceController, except: [:new, :edit]
+    resources "/invoice_details", InvoiceDetailController, except: [:new, :edit]
     get "/", PageController, :index
   end
 

@@ -374,4 +374,84 @@ defmodule Mgp.SalesTest do
       assert %Ecto.Changeset{} = Sales.change_invoice(invoice)
     end
   end
+
+  describe "invoice_details" do
+    alias Mgp.Sales.InvoiceDetail
+
+    @valid_attrs %{description: "some description", from_stock: "some from_stock", lmd: ~D[2010-04-17], lmt: ~T[14:00:00.000000], lmu: "some lmu", qty: 42, rate: "120.5", sr_no: 42, sub_qty: 42, tax_rate: "some tax_rate", total: "120.5"}
+    @update_attrs %{description: "some updated description", from_stock: "some updated from_stock", lmd: ~D[2011-05-18], lmt: ~T[15:01:01.000000], lmu: "some updated lmu", qty: 43, rate: "456.7", sr_no: 43, sub_qty: 43, tax_rate: "some updated tax_rate", total: "456.7"}
+    @invalid_attrs %{description: nil, from_stock: nil, lmd: nil, lmt: nil, lmu: nil, qty: nil, rate: nil, sr_no: nil, sub_qty: nil, tax_rate: nil, total: nil}
+
+    def invoice_detail_fixture(attrs \\ %{}) do
+      {:ok, invoice_detail} =
+        attrs
+        |> Enum.into(@valid_attrs)
+        |> Sales.create_invoice_detail()
+
+      invoice_detail
+    end
+
+    test "list_invoice_details/0 returns all invoice_details" do
+      invoice_detail = invoice_detail_fixture()
+      assert Sales.list_invoice_details() == [invoice_detail]
+    end
+
+    test "get_invoice_detail!/1 returns the invoice_detail with given id" do
+      invoice_detail = invoice_detail_fixture()
+      assert Sales.get_invoice_detail!(invoice_detail.id) == invoice_detail
+    end
+
+    test "create_invoice_detail/1 with valid data creates a invoice_detail" do
+      assert {:ok, %InvoiceDetail{} = invoice_detail} = Sales.create_invoice_detail(@valid_attrs)
+      assert invoice_detail.description == "some description"
+      assert invoice_detail.from_stock == "some from_stock"
+      assert invoice_detail.lmd == ~D[2010-04-17]
+      assert invoice_detail.lmt == ~T[14:00:00.000000]
+      assert invoice_detail.lmu == "some lmu"
+      assert invoice_detail.qty == 42
+      assert invoice_detail.rate == Decimal.new("120.5")
+      assert invoice_detail.sr_no == 42
+      assert invoice_detail.sub_qty == 42
+      assert invoice_detail.tax_rate == "some tax_rate"
+      assert invoice_detail.total == Decimal.new("120.5")
+    end
+
+    test "create_invoice_detail/1 with invalid data returns error changeset" do
+      assert {:error, %Ecto.Changeset{}} = Sales.create_invoice_detail(@invalid_attrs)
+    end
+
+    test "update_invoice_detail/2 with valid data updates the invoice_detail" do
+      invoice_detail = invoice_detail_fixture()
+      assert {:ok, invoice_detail} = Sales.update_invoice_detail(invoice_detail, @update_attrs)
+      assert %InvoiceDetail{} = invoice_detail
+      assert invoice_detail.description == "some updated description"
+      assert invoice_detail.from_stock == "some updated from_stock"
+      assert invoice_detail.lmd == ~D[2011-05-18]
+      assert invoice_detail.lmt == ~T[15:01:01.000000]
+      assert invoice_detail.lmu == "some updated lmu"
+      assert invoice_detail.qty == 43
+      assert invoice_detail.rate == Decimal.new("456.7")
+      assert invoice_detail.sr_no == 43
+      assert invoice_detail.sub_qty == 43
+      assert invoice_detail.tax_rate == "some updated tax_rate"
+      assert invoice_detail.total == Decimal.new("456.7")
+    end
+
+    test "update_invoice_detail/2 with invalid data returns error changeset" do
+      invoice_detail = invoice_detail_fixture()
+      assert {:error, %Ecto.Changeset{}} = Sales.update_invoice_detail(invoice_detail, @invalid_attrs)
+      assert invoice_detail == Sales.get_invoice_detail!(invoice_detail.id)
+    end
+
+    test "delete_invoice_detail/1 deletes the invoice_detail" do
+      invoice_detail = invoice_detail_fixture()
+      assert {:ok, %InvoiceDetail{}} = Sales.delete_invoice_detail(invoice_detail)
+      assert_raise Ecto.NoResultsError, fn -> Sales.get_invoice_detail!(invoice_detail.id) end
+    end
+
+    test "change_invoice_detail/1 returns a invoice_detail changeset" do
+      invoice_detail = invoice_detail_fixture()
+      assert %Ecto.Changeset{} = Sales.change_invoice_detail(invoice_detail)
+    end
+  end
 end

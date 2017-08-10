@@ -485,4 +485,100 @@ defmodule Mgp.Sales do
   def change_invoice(%Invoice{} = invoice) do
     Invoice.changeset(invoice, %{})
   end
+
+  alias Mgp.Sales.InvoiceDetail
+
+  @doc """
+  Returns the list of invoice_details.
+
+  ## Examples
+
+      iex> list_invoice_details()
+      [%InvoiceDetail{}, ...]
+
+  """
+  def list_invoice_details do
+    Repo.all(InvoiceDetail)
+  end
+
+  @doc """
+  Gets a single invoice_detail.
+
+  Raises `Ecto.NoResultsError` if the Invoice detail does not exist.
+
+  ## Examples
+
+      iex> get_invoice_detail!(123)
+      %InvoiceDetail{}
+
+      iex> get_invoice_detail!(456)
+      ** (Ecto.NoResultsError)
+
+  """
+  def get_invoice_detail!(id), do: Repo.get!(InvoiceDetail, id)
+
+  @doc """
+  Creates a invoice_detail.
+
+  ## Examples
+
+      iex> create_invoice_detail(%{field: value})
+      {:ok, %InvoiceDetail{}}
+
+      iex> create_invoice_detail(%{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def create_invoice_detail(attrs \\ %{}) do
+    %InvoiceDetail{}
+    |> InvoiceDetail.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  @doc """
+  Updates a invoice_detail.
+
+  ## Examples
+
+      iex> update_invoice_detail(invoice_detail, %{field: new_value})
+      {:ok, %InvoiceDetail{}}
+
+      iex> update_invoice_detail(invoice_detail, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_invoice_detail(%InvoiceDetail{} = invoice_detail, attrs) do
+    invoice_detail
+    |> InvoiceDetail.changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Deletes a InvoiceDetail.
+
+  ## Examples
+
+      iex> delete_invoice_detail(invoice_detail)
+      {:ok, %InvoiceDetail{}}
+
+      iex> delete_invoice_detail(invoice_detail)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def delete_invoice_detail(%InvoiceDetail{} = invoice_detail) do
+    Repo.delete(invoice_detail)
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for tracking invoice_detail changes.
+
+  ## Examples
+
+      iex> change_invoice_detail(invoice_detail)
+      %Ecto.Changeset{source: %InvoiceDetail{}}
+
+  """
+  def change_invoice_detail(%InvoiceDetail{} = invoice_detail) do
+    InvoiceDetail.changeset(invoice_detail, %{})
+  end
 end

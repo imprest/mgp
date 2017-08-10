@@ -5,9 +5,10 @@ defmodule Mgp.ImportData do
 
   alias Mgp.Repo
   alias Mgp.Sales.Product
+  alias Mgp.Sales.Price
   alias Mgp.Sales.Customer
   alias Mgp.Sales.Invoice
-  alias Mgp.Sales.Price
+  alias Mgp.Sales.InvoiceDetail
 
   NimbleCSV.define(MyParser, separator: "!");
 
@@ -17,10 +18,12 @@ defmodule Mgp.ImportData do
   def populate() do
     with {products , nil} <- populate_products(),
          {prices   , nil} <- populate_prices(),
-         {customers, nil} <- populate_customers() do
+         {customers, nil} <- populate_customers(),
+         {invoices , nil} <- populate_invoices() do
       Logger.info fn -> "Products  upserted: #{products}" end
       Logger.info fn -> "Prices    upserted: #{prices}" end
       Logger.info fn -> "Customers upserted: #{customers}" end
+      Logger.info fn -> "Invoices  upserted: #{invoices}" end
     else
       unexpected ->
         Logger.error "Error occurred #{inspect(unexpected)}"
@@ -129,15 +132,19 @@ defmodule Mgp.ImportData do
 
   # PRICES
   def populate_prices() do
+    rows = parse_prices_from_dbf()
+      |> Enum.chunk_every(200)
+      |> Enum.map(fn (x) -> populate_prices_partial(x) end)
+      |> Enum.reduce(0, fn(x, acc) -> elem(x, 0) + acc end)
 
-    prices = parse_prices_from_dbf()
+    {rows, nil}
+  end
 
+  def populate_prices_partial(prices) do
     # on_conflict update query
     query = from(p in Price,
             where: fragment("p0.lmd <> EXCLUDED.lmd OR p0.lmt <> EXCLUDED.lmt"),
-            update: [set: [date: fragment("EXCLUDED.date"),
-                           product_id: fragment("EXCLUDED.product_id"),
-                           cash: fragment("EXCLUDED.cash"),
+            update: [set: [cash: fragment("EXCLUDED.cash"),
                            credit: fragment("EXCLUDED.credit"),
                            trek: fragment("EXCLUDED.trek"),
                            lmu: fragment("EXCLUDED.lmu"),
@@ -146,8 +153,8 @@ defmodule Mgp.ImportData do
                            ]
             ]);
 
-    # upsert the records into actual db
-    Repo.insert_all(Price, prices, on_conflict: query, conflict_target: {:constraint, :prices_product_id_date_key});
+    Repo.insert_all(Price, prices, on_conflict: query,
+      conflict_target: {:constraint, :prices_product_id_date_key});
   end
 
   def parse_prices_from_dbf() do
@@ -242,6 +249,7 @@ defmodule Mgp.ImportData do
     code <> String.duplicate(" ", (9 - String.length(num))) <> num
   end
 
+  # TODO split this to individual columns in database
   def to_payment_term(cash, chq, credit) do
     case {cash, chq, credit} do
       {"0.00", "0.00",      _} -> "credit"
@@ -250,6 +258,65 @@ defmodule Mgp.ImportData do
       {     _,      _,      _} -> "credit"
     end
 
+  end
+
+  # INVOICE_DETAILS
+  def populate_invoice_details() do
+    rows = parse_invoice_details_from_dbf()
+      |> Enum.chunk_every(1000)
+      |> Enum.map(fn (x) -> populate_invoice_details_partial(x) end)
+      |> Enum.reduce(0, fn(x, acc) -> elem(x, 0) + acc end)
+
+    {rows, nil}
+  end
+
+  def populate_invoice_details_partial(invoices) do
+    # on_conflict update query
+    query = from(i in InvoiceDetail,
+            where: fragment("i0.lmd <> EXCLUDED.lmd OR i0.lmt <> EXCLUDED.lmt"),
+            update: [set: [product_id: fragment("EXCLUDED.product_id"),
+                           description: fragment("EXCLUDED.description"),
+                           from_stock: fragment("EXCLUDED.from_stock"),
+                           sub_qty: fragment("EXCLUDED.sub_qty"),
+                           qty: fragment("EXCLUDED.qty"),
+                           rate: fragment("EXCLUDED.rate"),
+                           total: fragment("EXCLUDED.total"),
+                           tax_rate: fragment("EXCLUDED.tax_rate"),
+                           lmu: fragment("EXCLUDED.lmu"),
+                           lmd: fragment("EXCLUDED.lmd"),
+                           lmt: fragment("EXCLUDED.lmt")
+                           ]
+            ]);
+
+    # upsert the records into actual db
+    Repo.insert_all(InvoiceDetail, invoices, on_conflict: query,
+      conflict_target: {:constraint, :invoice_details_invoice_id_no_key});
+  end
+
+  def parse_invoice_details_from_dbf() do
+    {csv, 1} = System.cmd("dbview", ["-d","!","-b","-t", "/home/hvaria/Desktop/MGP16/SIDETINV.DBF"])
+    {:ok, stream} = csv |> StringIO.open()
+
+    stream
+    |> IO.binstream(:line)
+    |> MyParser.parse_stream(headers: false)
+    |> Stream.filter(fn(x) -> !String.starts_with?(hd(x), "B") end)
+    |> Stream.map(fn(x) ->
+      [Enum.at(x,  0), Enum.at(x,  3), Enum.at(x,  5), Enum.at(x,  6),
+       Enum.at(x, 18), Enum.at(x, 24), Enum.at(x,  8), Enum.at(x, 11),
+       Enum.at(x, 13), Enum.at(x, 15),
+       Enum.at(x, 32), Enum.at(x, 33), Enum.at(x, 34)]
+    end)
+    |> Stream.map(fn [invoice_id, sr_no, product_id, description, from_stock,
+                      sub_qty, qty, rate, total, tax_rate, lmu, lmd, lmt] ->
+      %{invoice_id: invoice_id, sr_no: to_integer(sr_no), product_id: product_id,
+        description: description, from_stock: from_stock,
+        sub_qty: to_integer(sub_qty), qty: to_integer(qty),
+        rate: to_decimal(rate), total: to_decimal(total), tax_rate: tax_rate,
+        lmu: nil?(lmu), lmd: to_date(lmd), lmt: to_time(lmt),
+        inserted_at: @inserted_at, updated_at: @updated_at}
+    end)
+    |> Enum.to_list
   end
 
   ### Private Functions ###
