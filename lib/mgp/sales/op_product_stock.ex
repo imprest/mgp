@@ -11,7 +11,6 @@ defmodule Mgp.Sales.OpProductStock do
     field :qty, :integer
     belongs_to :product, Product, type: :string
 
-    timestamps()
   end
 
   @doc false

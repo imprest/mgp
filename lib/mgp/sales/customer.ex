@@ -22,7 +22,6 @@ defmodule Mgp.Sales.Customer do
     field :resp, :string
     has_many :invoices, Invoice
 
-    timestamps()
   end
 
   @doc false

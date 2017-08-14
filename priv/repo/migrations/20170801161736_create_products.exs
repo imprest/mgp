@@ -16,7 +16,6 @@ defmodule Mgp.Repo.Migrations.CreateProducts do
       add :lmd, :date
       add :lmt, :time
 
-      timestamps()
     end
 
   end

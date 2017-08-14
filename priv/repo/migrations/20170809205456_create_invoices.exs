@@ -8,7 +8,9 @@ defmodule Mgp.Repo.Migrations.CreateInvoices do
       add :value, :decimal
       add :price_level, :string
       add :from_stock, :string
-      add :payment_term, :string
+      add :cash, :decimal
+      add :credit, :decimal
+      add :cheque, :decimal
       add :detail1, :string
       add :detail2, :string
       add :detail3, :string
@@ -17,7 +19,6 @@ defmodule Mgp.Repo.Migrations.CreateInvoices do
       add :lmt, :time
       add :customer_id, references(:customers, on_delete: :nothing, type: :string)
 
-      timestamps()
     end
 
     create index(:invoices, [:customer_id])

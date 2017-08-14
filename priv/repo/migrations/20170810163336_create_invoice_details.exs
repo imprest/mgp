@@ -10,14 +10,12 @@ defmodule Mgp.Repo.Migrations.CreateInvoiceDetails do
       add :total, :decimal
       add :sub_qty, :integer
       add :tax_rate, :string
-      add :from_stock, :string
       add :lmu, :string
       add :lmd, :date
       add :lmt, :time
       add :invoice_id, references(:invoices, on_delete: :nothing, type: :string)
       add :product_id, references(:products, on_delete: :nothing, type: :string)
 
-      timestamps()
     end
 
     create index(:invoice_details, [:invoice_id])

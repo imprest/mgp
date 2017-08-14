@@ -1,4 +1,6 @@
 defmodule Mgp.ImportData do
+  @moduledoc "Tools to import data from dbf files"
+
   require Logger
 
   import Ecto.Query, warn: false
@@ -10,20 +12,54 @@ defmodule Mgp.ImportData do
   alias Mgp.Sales.Invoice
   alias Mgp.Sales.InvoiceDetail
 
-  NimbleCSV.define(MyParser, separator: "!");
+  NimbleCSV.define(MyParser, separator: "!")
 
-  @inserted_at Ecto.DateTime.cast!("2016-10-01T08:30:00")
-  @updated_at  Ecto.DateTime.cast!("2016-10-01T08:30:00")
+  # @inserted_at Ecto.DateTime.cast!("2016-10-01T08:30:00")
+  # @updated_at  Ecto.DateTime.cast!("2016-10-01T08:30:00")
+  @root_folder         "/home/hvaria/Desktop"
+  @folder_prefix       "MGP"
+  @product_dbf         "SIITM.DBF"
+  @prices_dbf          "SIITMPLD.DBF"
+  @customers_dbf       "FISLMST.DBF"
+  @invoices_dbf        "SIINV.DBF"
+  @invoice_details_dbf "SIDETINV.DBF"
 
-  def populate() do
-    with {products , nil} <- populate_products(),
-         {prices   , nil} <- populate_prices(),
-         {customers, nil} <- populate_customers(),
-         {invoices , nil} <- populate_invoices() do
+  def generate_file_paths(root_folder, parent_folder) do
+    full_path = Path.join(root_folder, parent_folder)
+
+    %{:product_dbf         => Path.join(full_path, @product_dbf),
+      :prices_dbf          => Path.join(full_path, @prices_dbf),
+      :customers_dbf       => Path.join(full_path, @customers_dbf),
+      :invoices_dbf        => Path.join(full_path, @invoices_dbf),
+      :invoice_details_dbf => Path.join(full_path, @invoice_details_dbf),
+    }
+  end
+
+  def check_files(files) do
+    result = Enum.reduce(files, fn ({_, v}, acc) -> acc && File.exists?(v) end)
+    case result do
+      true -> :ok
+      false -> {:error , "Could not find all necessary DBF files!!"}
+    end
+  end
+
+  def populate(year) do
+    y = to_string(year)
+    year_suffix = String.slice(y, 2..3)
+    files = generate_file_paths(@root_folder, @folder_prefix <> year_suffix)
+
+    with :ok <- check_files(files),
+         {products , nil} <- populate_products(files.product_dbf),
+         {prices   , nil} <- populate_prices(files.prices_dbf),
+         {customers, nil} <- populate_customers(files.customers_dbf),
+         {invoices , nil} <- populate_invoices(files.invoices_dbf),
+         {inv_details, nil} <-
+           populate_invoice_details(files.invoice_details_dbf) do
       Logger.info fn -> "Products  upserted: #{products}" end
       Logger.info fn -> "Prices    upserted: #{prices}" end
       Logger.info fn -> "Customers upserted: #{customers}" end
       Logger.info fn -> "Invoices  upserted: #{invoices}" end
+      Logger.info fn -> "InvDetail upserted: #{inv_details}" end
     else
       unexpected ->
         Logger.error "Error occurred #{inspect(unexpected)}"
@@ -31,9 +67,9 @@ defmodule Mgp.ImportData do
   end
 
   # PRODUCTS
-  def populate_products() do
+  def populate_products(dbf) do
 
-    products = parse_products_from_dbf();
+    products = parse_products_from_dbf(dbf)
 
     # on_conflict update query
     query = from(p in Product,
@@ -50,37 +86,41 @@ defmodule Mgp.ImportData do
                            lmd: fragment("EXCLUDED.lmd"),
                            lmt: fragment("EXCLUDED.lmt")
                            ]
-            ]);
+            ])
 
     # upsert the records into actual db
-    Repo.insert_all(Product, products, on_conflict: query, conflict_target: :id);
+    Repo.insert_all(Product, products, on_conflict: query, conflict_target: :id)
   end
 
-  def parse_products_from_dbf() do
-    {csv, 1} = System.cmd("dbview", ["-d","!","-b","-t", "/home/hvaria/Desktop/MGP16/SIITM.DBF"])
+  def parse_products_from_dbf(dbf) do
+    {csv, 1} = dbf_to_csv(dbf)
     {:ok, stream} = csv |> StringIO.open()
 
     stream
     |> IO.binstream(:line)
     |> MyParser.parse_stream(headers: false)
     |> Stream.map(fn(x) ->
-      [Enum.at(x, 1), Enum.at(x, 0), Enum.at(x, 2), Enum.at(x, 22), Enum.at(x, 23),
-       Enum.at(x, 4), Enum.at(x, 5), Enum.at(x, 6), Enum.at(x, 47), Enum.at(x, 95),
-       Enum.at(x, 96), Enum.at(x, 97)]
+      [Enum.at(x,  1), Enum.at(x,  0), Enum.at(x,  2), Enum.at(x, 22),
+       Enum.at(x, 23), Enum.at(x,  4), Enum.at(x,  5), Enum.at(x,  6),
+       Enum.at(x, 47), Enum.at(x, 95), Enum.at(x, 96), Enum.at(x, 97)]
     end)
-    |> Stream.map(fn [id, group, description, tax_type, tax_tat, cash_price, credit_price, trek_price, sub_qty, lmu, lmd, lmt] ->
-      %{id: id, group: group, description: description, tax_type: tax_type, tax_tat: tax_tat,
-        cash_price: to_decimal(cash_price), credit_price: to_decimal(credit_price), trek_price: to_decimal(trek_price),
-        sub_qty: to_integer(sub_qty), lmu: nil?(lmu), lmd: to_date(lmd), lmt: to_time(lmt),
-        inserted_at: @inserted_at, updated_at: @updated_at}
+    |> Stream.map(fn [id, group, description, tax_type, tax_tat, cash_price,
+                      credit_price, trek_price, sub_qty, lmu, lmd, lmt] ->
+      %{id: id, group: group, description: description, tax_type: tax_type,
+        tax_tat: tax_tat, cash_price: to_decimal(cash_price),
+        credit_price: to_decimal(credit_price),
+        trek_price: to_decimal(trek_price),
+        sub_qty: to_integer(sub_qty), lmu: nil?(lmu), lmd: to_date(lmd),
+        lmt: to_time(lmt)
+      }
     end)
     |> Enum.to_list
   end
 
   # CUSTOMERS
-  def populate_customers() do
+  def populate_customers(dbf) do
 
-    customers = parse_customers_from_dbf();
+    customers = parse_customers_from_dbf(dbf)
 
     # on_conflict update query
     query = from(c in Customer,
@@ -99,14 +139,16 @@ defmodule Mgp.ImportData do
                            lmd: fragment("EXCLUDED.lmd"),
                            lmt: fragment("EXCLUDED.lmt")
                            ]
-            ]);
+            ])
 
     # upsert the records into actual db
-    Repo.insert_all(Customer, customers, on_conflict: query, conflict_target: :id);
+    Repo.insert_all(Customer, customers,
+                    on_conflict: query,
+                    conflict_target: :id)
   end
 
-  def parse_customers_from_dbf() do
-    {csv, 1} = System.cmd("dbview", ["-d","!","-b","-t", "/home/hvaria/Desktop/MGP16/FISLMST.DBF"])
+  def parse_customers_from_dbf(dbf) do
+    {csv, 1} = dbf_to_csv(dbf)
     {:ok, stream} = csv |> StringIO.open()
 
     stream
@@ -124,15 +166,16 @@ defmodule Mgp.ImportData do
       %{id: id, region: nil?(region), description: description,
         attn: nil?(attn), add1: nil?(add1), add2: nil?(add2), add3: nil?(add3),
         phone: nil?(phone), is_gov: nil?(is_gov), resp: nil?(resp),
-        email: nil?(email), lmu: nil?(lmu), lmd: to_date(lmd), lmt: to_time(lmt),
-        inserted_at: @inserted_at, updated_at: @updated_at}
+        email: nil?(email), lmu: nil?(lmu), lmd: to_date(lmd), lmt: to_time(lmt)
+      }
     end)
     |> Enum.to_list
   end
 
   # PRICES
-  def populate_prices() do
-    rows = parse_prices_from_dbf()
+  def populate_prices(dbf) do
+    rows = dbf
+      |> parse_prices_from_dbf
       |> Enum.chunk_every(200)
       |> Enum.map(fn (x) -> populate_prices_partial(x) end)
       |> Enum.reduce(0, fn(x, acc) -> elem(x, 0) + acc end)
@@ -151,19 +194,18 @@ defmodule Mgp.ImportData do
                            lmd: fragment("EXCLUDED.lmd"),
                            lmt: fragment("EXCLUDED.lmt")
                            ]
-            ]);
+            ])
 
     Repo.insert_all(Price, prices, on_conflict: query,
-      conflict_target: {:constraint, :prices_product_id_date_key});
+      conflict_target: {:constraint, :prices_product_id_date_key})
   end
 
-  def parse_prices_from_dbf() do
-    {csv, 1} = System.cmd("dbview", ["-d","!","-b","-t", "/home/hvaria/Desktop/MGP16/SIITMPLD.DBF"])
+  def parse_prices_from_dbf(dbf) do
+    {csv, 1} = dbf_to_csv(dbf)
     {:ok, stream} = csv |> StringIO.open()
 
-    query = from p in Product,
-            select: p.id
-    product_ids = Mgp.Repo.all(query)
+    query = from p in Product, select: p.id
+    product_ids = Repo.all(query)
 
     stream
     |> IO.binstream(:line)
@@ -173,19 +215,21 @@ defmodule Mgp.ImportData do
        Enum.at(x,  2), Enum.at(x,  4),
        Enum.at(x, 10), Enum.at(x, 11), Enum.at(x, 12)]
     end)
-    |> Stream.filter(&Enum.member?(product_ids, hd(&1))) # Need to do this due to possible zombie ids
+    # Need to do this due to possible zombie ids
+    |> Stream.filter(&Enum.member?(product_ids, hd(&1)))
     |> Stream.map(fn [product_id, date, cash, credit, trek, lmu, lmd, lmt] ->
-      %{product_id: product_id, date: to_date(date), cash: to_decimal(cash), credit: to_decimal(credit),
+      %{product_id: product_id, date: to_date(date), cash: to_decimal(cash),
+        credit: to_decimal(credit),
         trek: to_decimal(trek),
-        lmu: nil?(lmu), lmd: to_date(lmd), lmt: to_time(lmt),
-        inserted_at: @inserted_at, updated_at: @updated_at}
+        lmu: nil?(lmu), lmd: to_date(lmd), lmt: to_time(lmt)}
     end)
     |> Enum.to_list
   end
 
   # INVOICES
-  def populate_invoices() do
-    rows = parse_invoices_from_dbf()
+  def populate_invoices(dbf) do
+    rows = dbf
+      |> parse_invoices_from_dbf
       |> Enum.chunk_every(1000)
       |> Enum.map(fn (x) -> populate_invoices_partial(x) end)
       |> Enum.reduce(0, fn(x, acc) -> elem(x, 0) + acc end)
@@ -203,22 +247,24 @@ defmodule Mgp.ImportData do
                            detail2: fragment("EXCLUDED.detail2"),
                            detail3: fragment("EXCLUDED.detail3"),
                            from_stock: fragment("EXCLUDED.from_stock"),
-                           id: fragment("EXCLUDED.id"),
-                           payment_term: fragment("EXCLUDED.payment_term"),
+                           cash: fragment("EXCLUDED.cash"),
+                           credit: fragment("EXCLUDED.credit"),
+                           cheque: fragment("EXCLUDED.cheque"),
                            price_level: fragment("EXCLUDED.price_level"),
                            value: fragment("EXCLUDED.value"),
                            lmu: fragment("EXCLUDED.lmu"),
                            lmd: fragment("EXCLUDED.lmd"),
                            lmt: fragment("EXCLUDED.lmt")
                            ]
-            ]);
+            ])
 
     # upsert the records into actual db
-    Repo.insert_all(Invoice, invoices, on_conflict: query, conflict_target: :id);
+    Repo.insert_all(Invoice, invoices, on_conflict: query,
+      conflict_target: :id)
   end
 
-  def parse_invoices_from_dbf() do
-    {csv, 1} = System.cmd("dbview", ["-d","!","-b","-t", "/home/hvaria/Desktop/MGP16/SIINV.DBF"])
+  def parse_invoices_from_dbf(dbf) do
+    {csv, 1} = dbf_to_csv(dbf)
     {:ok, stream} = csv |> StringIO.open()
 
     stream
@@ -228,19 +274,20 @@ defmodule Mgp.ImportData do
     |> Stream.map(fn(x) ->
       [to_invoice_id(Enum.at(x,  0), Enum.at(x,  1)),
        Enum.at(x,  2), Enum.at(x,  3), Enum.at(x, 21), Enum.at(x, 23),
-       Enum.at(x, 25),
-       to_payment_term(Enum.at(x, 38), Enum.at(x, 39), Enum.at(x, 40)),
-       Enum.at(x, 42), Enum.at(x, 43), Enum.at(x, 44),
-       Enum.at(x, 52), Enum.at(x, 53), Enum.at(x, 54)]
+       Enum.at(x, 25), Enum.at(x, 38), Enum.at(x, 39), Enum.at(x, 40),
+       Enum.at(x, 42), Enum.at(x, 43), Enum.at(x, 44), Enum.at(x, 52),
+       Enum.at(x, 53), Enum.at(x, 54)]
     end)
     |> Stream.map(fn [id, date, customer_id, value, price_level, from_stock,
-                      payment_term, detail1, detail2, detail3, lmu, lmd, lmt] ->
+                      cash, cheque, credit, detail1, detail2, detail3,
+                      lmu, lmd, lmt] ->
       %{id: id, date: to_date(date), customer_id: customer_id,
         value: to_decimal(value), price_level: nil?(price_level),
-        from_stock: nil?(from_stock), payment_term: payment_term,
-        detail1: nil?(detail1), detail2: nil?(clean_string(detail2)), detail3: nil?(detail3),
-        lmu: nil?(lmu), lmd: to_date(lmd), lmt: to_time(lmt),
-        inserted_at: @inserted_at, updated_at: @updated_at}
+        from_stock: nil?(from_stock), cash: to_decimal(cash),
+        cheque: to_decimal(cheque), credit: to_decimal(credit),
+        detail1: nil?(detail1), detail2: nil?(clean_string(detail2)),
+        detail3: nil?(detail3),
+        lmu: nil?(lmu), lmd: to_date(lmd), lmt: to_time(lmt)}
     end)
     |> Enum.to_list
   end
@@ -249,20 +296,10 @@ defmodule Mgp.ImportData do
     code <> String.duplicate(" ", (9 - String.length(num))) <> num
   end
 
-  # TODO split this to individual columns in database
-  def to_payment_term(cash, chq, credit) do
-    case {cash, chq, credit} do
-      {"0.00", "0.00",      _} -> "credit"
-      {     _, "0.00", "0.00"} -> "cash"
-      {"0.00",      _, "0.00"} -> "cheque"
-      {     _,      _,      _} -> "credit"
-    end
-
-  end
-
   # INVOICE_DETAILS
-  def populate_invoice_details() do
-    rows = parse_invoice_details_from_dbf()
+  def populate_invoice_details(dbf) do
+    rows = dbf
+      |> parse_invoice_details_from_dbf
       |> Enum.chunk_every(1000)
       |> Enum.map(fn (x) -> populate_invoice_details_partial(x) end)
       |> Enum.reduce(0, fn(x, acc) -> elem(x, 0) + acc end)
@@ -276,7 +313,6 @@ defmodule Mgp.ImportData do
             where: fragment("i0.lmd <> EXCLUDED.lmd OR i0.lmt <> EXCLUDED.lmt"),
             update: [set: [product_id: fragment("EXCLUDED.product_id"),
                            description: fragment("EXCLUDED.description"),
-                           from_stock: fragment("EXCLUDED.from_stock"),
                            sub_qty: fragment("EXCLUDED.sub_qty"),
                            qty: fragment("EXCLUDED.qty"),
                            rate: fragment("EXCLUDED.rate"),
@@ -286,15 +322,15 @@ defmodule Mgp.ImportData do
                            lmd: fragment("EXCLUDED.lmd"),
                            lmt: fragment("EXCLUDED.lmt")
                            ]
-            ]);
+            ])
 
     # upsert the records into actual db
     Repo.insert_all(InvoiceDetail, invoices, on_conflict: query,
-      conflict_target: {:constraint, :invoice_details_invoice_id_no_key});
+      conflict_target: {:constraint, :invoice_details_invoice_id_no_key})
   end
 
-  def parse_invoice_details_from_dbf() do
-    {csv, 1} = System.cmd("dbview", ["-d","!","-b","-t", "/home/hvaria/Desktop/MGP16/SIDETINV.DBF"])
+  def parse_invoice_details_from_dbf(dbf) do
+    {csv, 1} = dbf_to_csv(dbf)
     {:ok, stream} = csv |> StringIO.open()
 
     stream
@@ -303,30 +339,34 @@ defmodule Mgp.ImportData do
     |> Stream.filter(fn(x) -> !String.starts_with?(hd(x), "B") end)
     |> Stream.map(fn(x) ->
       [Enum.at(x,  0), Enum.at(x,  3), Enum.at(x,  5), Enum.at(x,  6),
-       Enum.at(x, 18), Enum.at(x, 24), Enum.at(x,  8), Enum.at(x, 11),
-       Enum.at(x, 13), Enum.at(x, 15),
-       Enum.at(x, 32), Enum.at(x, 33), Enum.at(x, 34)]
+       Enum.at(x, 24), Enum.at(x,  8), Enum.at(x, 11), Enum.at(x, 13),
+       Enum.at(x, 15), Enum.at(x, 32), Enum.at(x, 33), Enum.at(x, 34)]
     end)
-    |> Stream.map(fn [invoice_id, sr_no, product_id, description, from_stock,
+    |> Stream.map(fn [invoice_id, sr_no, product_id, description,
                       sub_qty, qty, rate, total, tax_rate, lmu, lmd, lmt] ->
-      %{invoice_id: invoice_id, sr_no: to_integer(sr_no), product_id: product_id,
-        description: description, from_stock: from_stock,
+      %{invoice_id: invoice_id, sr_no: to_integer(sr_no),
+        product_id: product_id, description: description,
         sub_qty: to_integer(sub_qty), qty: to_integer(qty),
         rate: to_decimal(rate), total: to_decimal(total), tax_rate: tax_rate,
-        lmu: nil?(lmu), lmd: to_date(lmd), lmt: to_time(lmt),
-        inserted_at: @inserted_at, updated_at: @updated_at}
+        lmu: nil?(lmu), lmd: to_date(lmd), lmt: to_time(lmt)}
     end)
     |> Enum.to_list
   end
 
   ### Private Functions ###
+  defp dbf_to_csv(dbf_file) do
+    System.cmd("dbview", ["-d", "!", "-b", "-t", dbf_file])
+  end
+
   defp nil?("") do nil end
   defp nil?(string) do string end
 
   defp clean_string(bin) do
     case String.valid?(bin) do
       true -> bin
-      false -> String.codepoints(bin) |> Enum.filter(&String.valid?(&1)) |> Enum.join
+      false ->
+        bin
+        |> String.codepoints |> Enum.filter(&String.valid?(&1)) |> Enum.join
     end
   end
 
@@ -347,9 +387,9 @@ defmodule Mgp.ImportData do
 
   defp to_date("") do nil end
   defp to_date(date) do
-    year  = String.slice(date, 0..3);
-    month = String.slice(date, 4..5);
-    day   = String.slice(date, 6..7);
+    year  = String.slice(date, 0..3)
+    month = String.slice(date, 4..5)
+    day   = String.slice(date, 6..7)
     [year, "-", month, "-", day]
     |> Enum.join
     |> Ecto.Date.cast!

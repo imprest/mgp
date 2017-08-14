@@ -21,7 +21,6 @@ defmodule Mgp.Sales.Product do
     has_many :op_product_stocks, OpProductStock
     has_many :prices, Price
 
-    timestamps()
   end
 
   @doc false

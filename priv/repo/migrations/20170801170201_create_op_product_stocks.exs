@@ -8,7 +8,6 @@ defmodule Mgp.Repo.Migrations.CreateOpProductStocks do
       add :location, :string
       add :product_id, references(:products, on_delete: :nothing, type: :string)
 
-      timestamps()
     end
 
     create unique_index(:op_product_stocks, [:date, :product_id])

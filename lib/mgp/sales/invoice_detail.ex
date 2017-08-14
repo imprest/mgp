@@ -8,7 +8,6 @@ defmodule Mgp.Sales.InvoiceDetail do
 
   schema "invoice_details" do
     field :description, :string
-    field :from_stock, :string
     field :lmd, :date
     field :lmt, :time
     field :lmu, :string
@@ -21,7 +20,6 @@ defmodule Mgp.Sales.InvoiceDetail do
     belongs_to :invoice, Invoice, type: :string
     belongs_to :product, Product, type: :string
 
-    timestamps()
   end
 
   @doc false

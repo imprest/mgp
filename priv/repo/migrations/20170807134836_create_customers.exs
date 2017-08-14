@@ -18,7 +18,6 @@ defmodule Mgp.Repo.Migrations.CreateCustomers do
       add :lmd, :date
       add :lmt, :time
 
-      timestamps()
     end
 
   end

@@ -14,7 +14,6 @@ defmodule Mgp.Sales.Price do
     field :trek, :decimal
     belongs_to :product, Product, type: :string
 
-    timestamps()
   end
 
   @doc false
