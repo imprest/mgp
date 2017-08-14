@@ -1,9 +1,10 @@
 defmodule Mgp.Sales.Customer do
+  @moduledoc "Customer schema"
   use Ecto.Schema
   import Ecto.Changeset
   alias Mgp.Sales.Customer
   alias Mgp.Sales.Invoice
-
+  alias Mgp.Accounts.Pdc
 
   @primary_key {:id, :string, []}
   schema "customers" do
@@ -21,13 +22,16 @@ defmodule Mgp.Sales.Customer do
     field :region, :string
     field :resp, :string
     has_many :invoices, Invoice
+    has_many :pdcs, Pdc
 
   end
 
   @doc false
   def changeset(%Customer{} = customer, attrs) do
     customer
-    |> cast(attrs, [:region, :description, :attn, :add1, :add2, :add3, :phone, :is_gov, :resp, :email, :lmu, :lmd, :lmt])
-    |> validate_required([:region, :description, :attn, :add1, :add2, :add3, :phone, :is_gov, :resp, :email, :lmu, :lmd, :lmt])
+    |> cast(attrs, [:region, :description, :attn, :add1, :add2, :add3, :phone,
+                    :is_gov, :resp, :email, :lmu, :lmd, :lmt])
+    |> validate_required([:region, :description, :attn, :add1, :add2, :add3,
+                          :phone, :is_gov, :resp, :email, :lmu, :lmd, :lmt])
   end
 end

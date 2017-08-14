@@ -11,6 +11,7 @@ defmodule Mgp.ImportData do
   alias Mgp.Sales.Customer
   alias Mgp.Sales.Invoice
   alias Mgp.Sales.InvoiceDetail
+  alias Mgp.Accounts.Pdc
 
   NimbleCSV.define(MyParser, separator: "!")
 
@@ -18,20 +19,24 @@ defmodule Mgp.ImportData do
   # @updated_at  Ecto.DateTime.cast!("2016-10-01T08:30:00")
   @root_folder         "/home/hvaria/Desktop"
   @folder_prefix       "MGP"
-  @product_dbf         "SIITM.DBF"
+  @products_dbf        "SIITM.DBF"
   @prices_dbf          "SIITMPLD.DBF"
   @customers_dbf       "FISLMST.DBF"
   @invoices_dbf        "SIINV.DBF"
   @invoice_details_dbf "SIDETINV.DBF"
+  @pdcs_dbf            "FIPDC.DBF"
+  @postings_dbf        "FIT1610.dbf"
 
   def generate_file_paths(root_folder, parent_folder) do
     full_path = Path.join(root_folder, parent_folder)
 
-    %{:product_dbf         => Path.join(full_path, @product_dbf),
+    %{:products_dbf        => Path.join(full_path, @products_dbf),
       :prices_dbf          => Path.join(full_path, @prices_dbf),
       :customers_dbf       => Path.join(full_path, @customers_dbf),
       :invoices_dbf        => Path.join(full_path, @invoices_dbf),
       :invoice_details_dbf => Path.join(full_path, @invoice_details_dbf),
+      :pdcs_dbf            => Path.join(full_path, @pdcs_dbf),
+      :postings_dbf        => Path.join(full_path, @postings_dbf),
     }
   end
 
@@ -49,17 +54,19 @@ defmodule Mgp.ImportData do
     files = generate_file_paths(@root_folder, @folder_prefix <> year_suffix)
 
     with :ok <- check_files(files),
-         {products , nil} <- populate_products(files.product_dbf),
+         {products , nil} <- populate_products(files.products_dbf),
          {prices   , nil} <- populate_prices(files.prices_dbf),
          {customers, nil} <- populate_customers(files.customers_dbf),
          {invoices , nil} <- populate_invoices(files.invoices_dbf),
          {inv_details, nil} <-
-           populate_invoice_details(files.invoice_details_dbf) do
+           populate_invoice_details(files.invoice_details_dbf),
+         {pdcs, nil} <- populate_pdcs(files.pdcs_dbf) do
       Logger.info fn -> "Products  upserted: #{products}" end
       Logger.info fn -> "Prices    upserted: #{prices}" end
       Logger.info fn -> "Customers upserted: #{customers}" end
       Logger.info fn -> "Invoices  upserted: #{invoices}" end
       Logger.info fn -> "InvDetail upserted: #{inv_details}" end
+      Logger.info fn -> "Pdcs      upserted: #{pdcs}" end
     else
       unexpected ->
         Logger.error "Error occurred #{inspect(unexpected)}"
@@ -351,6 +358,128 @@ defmodule Mgp.ImportData do
         lmu: nil?(lmu), lmd: to_date(lmd), lmt: to_time(lmt)}
     end)
     |> Enum.to_list
+  end
+
+  # PDCS
+  def populate_pdcs(dbf) do
+    rows = dbf
+      |> parse_pdcs_from_dbf
+      |> Enum.chunk_every(1000)
+      |> Enum.map(fn (x) -> populate_pdcs_partial(x) end)
+      |> Enum.reduce(0, fn(x, acc) -> elem(x, 0) + acc end)
+
+    {rows, nil}
+  end
+
+  def populate_pdcs_partial(pdcs) do
+    # on_conflict update query
+    query = from(p in Pdc,
+            where: fragment("p0.lmd <> EXCLUDED.lmd OR p0.lmt <> EXCLUDED.lmt"),
+            update: [set: [customer_id: fragment("EXCLUDED.customer_id"),
+                           date: fragment("EXCLUDED.date"),
+                           cheque: fragment("EXCLUDED.cheque"),
+                           amount: fragment("EXCLUDED.amount"),
+                           lmu: fragment("EXCLUDED.lmu"),
+                           lmd: fragment("EXCLUDED.lmd"),
+                           lmt: fragment("EXCLUDED.lmt")
+                           ]
+            ])
+
+    # upsert the records into actual db
+    Repo.insert_all(Pdc, pdcs, on_conflict: query, conflict_target: :id)
+  end
+
+  def parse_pdcs_from_dbf(dbf) do
+    {csv, 1} = dbf_to_csv(dbf)
+    {:ok, stream} = csv |> StringIO.open()
+
+    query = from c in Customer, select: c.id
+    customer_ids = Repo.all(query)
+
+    stream
+    |> IO.binstream(:line)
+    |> MyParser.parse_stream(headers: false)
+    |> Stream.filter(fn(x) -> Enum.at(x, 4) == "203000" end)
+    |> Stream.map(fn(x) ->
+      [(Enum.at(x, 0) <> Enum.at(x, 1)), Enum.at(x,  2), Enum.at(x,  5),
+       Enum.at(x,  6), Enum.at(x,  3), Enum.at(x, 13), Enum.at(x, 14),
+       Enum.at(x, 15)]
+    end)
+    # Need to do this due to possible zombie ids
+    |> Stream.filter(fn(x) -> Enum.member?(customer_ids, Enum.at(x, 2)) end)
+    |> Stream.map(fn [id, date, customer_id, amount, cheque,
+                      lmu, lmd, lmt] ->
+      %{id: id, date: to_date(date), customer_id: customer_id,
+        amount: to_decimal(amount), cheque: clean_string(cheque),
+        lmu: nil?(lmu), lmd: to_date(lmd), lmt: to_time(lmt)}
+    end)
+    |> Enum.to_list
+  end
+
+  # POSTINGS
+  def populate_postings(dbf) do
+    rows = dbf
+      |> parse_postings_from_dbf
+      |> Enum.chunk_every(1000)
+      |> Enum.map(fn (x) -> populate_postings_partial(x) end)
+      |> Enum.reduce(0, fn(x, acc) -> elem(x, 0) + acc end)
+
+    {rows, nil}
+  end
+
+  def populate_postings_partial(postings) do
+    # on_conflict update query
+    query = from(p in Pdc,
+            where: fragment("p0.lmd <> EXCLUDED.lmd OR p0.lmt <> EXCLUDED.lmt"),
+            update: [set: [customer_id: fragment("EXCLUDED.customer_id"),
+                           date: fragment("EXCLUDED.date"),
+                           cheque: fragment("EXCLUDED.cheque"),
+                           amount: fragment("EXCLUDED.amount"),
+                           lmu: fragment("EXCLUDED.lmu"),
+                           lmd: fragment("EXCLUDED.lmd"),
+                           lmt: fragment("EXCLUDED.lmt")
+                           ]
+            ])
+
+    # upsert the records into actual db
+    Repo.insert_all(Pdc, postings, on_conflict: query, conflict_target: :id)
+  end
+
+  def parse_postings_from_dbf(dbf) do
+    {csv, 1} = dbf_to_csv(dbf)
+    {:ok, stream} = csv |> StringIO.open()
+
+    stream
+    |> IO.binstream(:line)
+    |> MyParser.parse_stream(headers: false)
+    |> Stream.filter(fn(x) -> Enum.at(x, 6) == "203000" end)
+    |> Stream.map(fn(x) ->
+      case Enum.at(x, 9) do
+        "D" ->
+          [Enum.at(x, 10),
+           Enum.at(x,  5), Enum.at(x,  7),
+           String.slice(Enum.at(x, 10), 4..14),
+           Enum.at(x, 11),
+           Enum.at(x, 54), Enum.at(x, 55), Enum.at(x, 56)]
+        "C" ->
+          [credit_id(Enum.at(x,  0), Enum.at(x,  1),
+                     Enum.at(x,  3), Enum.at(x,  2)),
+           Enum.at(x,  5), Enum.at(x,  7), Enum.at(x, 28),
+           "-" <> Enum.at(x, 11),
+           Enum.at(x, 54), Enum.at(x, 55), Enum.at(x, 56)]
+      end
+    end)
+    |> Stream.map(fn [id, date, customer_id, description, amount,
+                      lmu, lmd, lmt] ->
+      %{id: id, date: to_date(date), customer_id: customer_id,
+        description: description, amount: to_decimal(amount),
+        lmu: nil?(lmu), lmd: to_date(lmd), lmt: to_time(lmt)}
+    end)
+    |> Enum.to_list
+  end
+
+  def credit_id(type, code, noc, non) do
+    type <> " " <> code <> " " <> noc <> "/" <> non
   end
 
   ### Private Functions ###
