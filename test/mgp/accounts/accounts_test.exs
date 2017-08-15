@@ -72,4 +72,136 @@ defmodule Mgp.AccountsTest do
       assert %Ecto.Changeset{} = Accounts.change_pdc(pdc)
     end
   end
+
+  describe "postings" do
+    alias Mgp.Accounts.Posting
+
+    @valid_attrs %{amount: "some amount", date: ~D[2010-04-17], description: "some description", lmd: ~D[2010-04-17], lmt: ~T[14:00:00.000000], lmu: "some lmu"}
+    @update_attrs %{amount: "some updated amount", date: ~D[2011-05-18], description: "some updated description", lmd: ~D[2011-05-18], lmt: ~T[15:01:01.000000], lmu: "some updated lmu"}
+    @invalid_attrs %{amount: nil, date: nil, description: nil, lmd: nil, lmt: nil, lmu: nil}
+
+    def posting_fixture(attrs \\ %{}) do
+      {:ok, posting} =
+        attrs
+        |> Enum.into(@valid_attrs)
+        |> Accounts.create_posting()
+
+      posting
+    end
+
+    test "list_postings/0 returns all postings" do
+      posting = posting_fixture()
+      assert Accounts.list_postings() == [posting]
+    end
+
+    test "get_posting!/1 returns the posting with given id" do
+      posting = posting_fixture()
+      assert Accounts.get_posting!(posting.id) == posting
+    end
+
+    test "create_posting/1 with valid data creates a posting" do
+      assert {:ok, %Posting{} = posting} = Accounts.create_posting(@valid_attrs)
+      assert posting.amount == "some amount"
+      assert posting.date == ~D[2010-04-17]
+      assert posting.description == "some description"
+      assert posting.lmd == ~D[2010-04-17]
+      assert posting.lmt == ~T[14:00:00.000000]
+      assert posting.lmu == "some lmu"
+    end
+
+    test "create_posting/1 with invalid data returns error changeset" do
+      assert {:error, %Ecto.Changeset{}} = Accounts.create_posting(@invalid_attrs)
+    end
+
+    test "update_posting/2 with valid data updates the posting" do
+      posting = posting_fixture()
+      assert {:ok, posting} = Accounts.update_posting(posting, @update_attrs)
+      assert %Posting{} = posting
+      assert posting.amount == "some updated amount"
+      assert posting.date == ~D[2011-05-18]
+      assert posting.description == "some updated description"
+      assert posting.lmd == ~D[2011-05-18]
+      assert posting.lmt == ~T[15:01:01.000000]
+      assert posting.lmu == "some updated lmu"
+    end
+
+    test "update_posting/2 with invalid data returns error changeset" do
+      posting = posting_fixture()
+      assert {:error, %Ecto.Changeset{}} = Accounts.update_posting(posting, @invalid_attrs)
+      assert posting == Accounts.get_posting!(posting.id)
+    end
+
+    test "delete_posting/1 deletes the posting" do
+      posting = posting_fixture()
+      assert {:ok, %Posting{}} = Accounts.delete_posting(posting)
+      assert_raise Ecto.NoResultsError, fn -> Accounts.get_posting!(posting.id) end
+    end
+
+    test "change_posting/1 returns a posting changeset" do
+      posting = posting_fixture()
+      assert %Ecto.Changeset{} = Accounts.change_posting(posting)
+    end
+  end
+
+  describe "op_balances" do
+    alias Mgp.Accounts.OpBalance
+
+    @valid_attrs %{op_bal: "120.5", year: 42}
+    @update_attrs %{op_bal: "456.7", year: 43}
+    @invalid_attrs %{op_bal: nil, year: nil}
+
+    def op_balance_fixture(attrs \\ %{}) do
+      {:ok, op_balance} =
+        attrs
+        |> Enum.into(@valid_attrs)
+        |> Accounts.create_op_balance()
+
+      op_balance
+    end
+
+    test "list_op_balances/0 returns all op_balances" do
+      op_balance = op_balance_fixture()
+      assert Accounts.list_op_balances() == [op_balance]
+    end
+
+    test "get_op_balance!/1 returns the op_balance with given id" do
+      op_balance = op_balance_fixture()
+      assert Accounts.get_op_balance!(op_balance.id) == op_balance
+    end
+
+    test "create_op_balance/1 with valid data creates a op_balance" do
+      assert {:ok, %OpBalance{} = op_balance} = Accounts.create_op_balance(@valid_attrs)
+      assert op_balance.op_bal == Decimal.new("120.5")
+      assert op_balance.year == 42
+    end
+
+    test "create_op_balance/1 with invalid data returns error changeset" do
+      assert {:error, %Ecto.Changeset{}} = Accounts.create_op_balance(@invalid_attrs)
+    end
+
+    test "update_op_balance/2 with valid data updates the op_balance" do
+      op_balance = op_balance_fixture()
+      assert {:ok, op_balance} = Accounts.update_op_balance(op_balance, @update_attrs)
+      assert %OpBalance{} = op_balance
+      assert op_balance.op_bal == Decimal.new("456.7")
+      assert op_balance.year == 43
+    end
+
+    test "update_op_balance/2 with invalid data returns error changeset" do
+      op_balance = op_balance_fixture()
+      assert {:error, %Ecto.Changeset{}} = Accounts.update_op_balance(op_balance, @invalid_attrs)
+      assert op_balance == Accounts.get_op_balance!(op_balance.id)
+    end
+
+    test "delete_op_balance/1 deletes the op_balance" do
+      op_balance = op_balance_fixture()
+      assert {:ok, %OpBalance{}} = Accounts.delete_op_balance(op_balance)
+      assert_raise Ecto.NoResultsError, fn -> Accounts.get_op_balance!(op_balance.id) end
+    end
+
+    test "change_op_balance/1 returns a op_balance changeset" do
+      op_balance = op_balance_fixture()
+      assert %Ecto.Changeset{} = Accounts.change_op_balance(op_balance)
+    end
+  end
 end

@@ -11,6 +11,8 @@ defmodule Mgp.ImportData do
   alias Mgp.Sales.Customer
   alias Mgp.Sales.Invoice
   alias Mgp.Sales.InvoiceDetail
+  alias Mgp.Accounts.OpBalance
+  alias Mgp.Accounts.Posting
   alias Mgp.Accounts.Pdc
 
   NimbleCSV.define(MyParser, separator: "!")
@@ -27,17 +29,37 @@ defmodule Mgp.ImportData do
   @pdcs_dbf            "FIPDC.DBF"
   @postings_dbf        "FIT1610.dbf"
 
-  def generate_file_paths(root_folder, parent_folder) do
-    full_path = Path.join(root_folder, parent_folder)
+  def generate_file_paths(root_folder, year) do
+    year_suffix = year |> to_string |> String.slice(2..3)
+    full_path = Path.join(root_folder, @folder_prefix <> year_suffix)
 
     %{:products_dbf        => Path.join(full_path, @products_dbf),
       :prices_dbf          => Path.join(full_path, @prices_dbf),
       :customers_dbf       => Path.join(full_path, @customers_dbf),
       :invoices_dbf        => Path.join(full_path, @invoices_dbf),
       :invoice_details_dbf => Path.join(full_path, @invoice_details_dbf),
-      :pdcs_dbf            => Path.join(full_path, @pdcs_dbf),
-      :postings_dbf        => Path.join(full_path, @postings_dbf),
+      :pdcs_dbf            => Path.join(full_path, @pdcs_dbf)
     }
+  end
+
+  def generate_postings_file_paths(root_folder, year) do
+    y1_suffix = year |> to_string |> String.slice(2..3)
+    y2_suffix = year |> Kernel.+(1) |> to_string |> String.slice(2..3)
+    full_path = Path.join(root_folder, @folder_prefix <> y1_suffix)
+
+    [Path.join(full_path, "FIN" <> y1_suffix <> "10.dbf"),
+     Path.join(full_path, "FIN" <> y1_suffix <> "11.dbf"),
+     Path.join(full_path, "FIN" <> y1_suffix <> "12.dbf"),
+     Path.join(full_path, "FIN" <> y2_suffix <> "01.dbf"),
+     Path.join(full_path, "FIN" <> y2_suffix <> "02.dbf"),
+     Path.join(full_path, "FIN" <> y2_suffix <> "03.dbf"),
+     Path.join(full_path, "FIN" <> y2_suffix <> "04.dbf"),
+     Path.join(full_path, "FIN" <> y2_suffix <> "05.dbf"),
+     Path.join(full_path, "FIN" <> y2_suffix <> "06.dbf"),
+     Path.join(full_path, "FIN" <> y2_suffix <> "07.dbf"),
+     Path.join(full_path, "FIN" <> y2_suffix <> "08.dbf"),
+     Path.join(full_path, "FIN" <> y2_suffix <> "09.dbf"),
+     ]
   end
 
   def check_files(files) do
@@ -49,14 +71,14 @@ defmodule Mgp.ImportData do
   end
 
   def populate(year) do
-    y = to_string(year)
-    year_suffix = String.slice(y, 2..3)
-    files = generate_file_paths(@root_folder, @folder_prefix <> year_suffix)
+    files = generate_file_paths(@root_folder, year)
 
     with :ok <- check_files(files),
          {products , nil} <- populate_products(files.products_dbf),
          {prices   , nil} <- populate_prices(files.prices_dbf),
          {customers, nil} <- populate_customers(files.customers_dbf),
+         {op_bals  , nil} <-
+           populate_customer_op_bals(files.customers_dbf, year),
          {invoices , nil} <- populate_invoices(files.invoices_dbf),
          {inv_details, nil} <-
            populate_invoice_details(files.invoice_details_dbf),
@@ -64,6 +86,7 @@ defmodule Mgp.ImportData do
       Logger.info fn -> "Products  upserted: #{products}" end
       Logger.info fn -> "Prices    upserted: #{prices}" end
       Logger.info fn -> "Customers upserted: #{customers}" end
+      Logger.info fn -> "Op. Bals  upserted: #{op_bals}" end
       Logger.info fn -> "Invoices  upserted: #{invoices}" end
       Logger.info fn -> "InvDetail upserted: #{inv_details}" end
       Logger.info fn -> "Pdcs      upserted: #{pdcs}" end
@@ -71,6 +94,38 @@ defmodule Mgp.ImportData do
       unexpected ->
         Logger.error "Error occurred #{inspect(unexpected)}"
     end
+
+    p = generate_postings_file_paths(@root_folder, year)
+
+    # TODO check avaliable FIN files and populate existing months only
+    # with {oct, nil} <- populate_postings(postings_dbf),
+    #      {nov, nil} <- populate_postings(postings_dbf),
+    #      {dec, nil} <- populate_postings(postings_dbf),
+    #      {jan, nil} <- populate_postings(postings_dbf),
+    #      {feb, nil} <- populate_postings(postings_dbf),
+    #      {mar, nil} <- populate_postings(postings_dbf),
+    #      {apr, nil} <- populate_postings(postings_dbf),
+    #      {may, nil} <- populate_postings(postings_dbf),
+    #      {jun, nil} <- populate_postings(postings_dbf),
+    #      {jul, nil} <- populate_postings(postings_dbf),
+    #      {aug, nil} <- populate_postings(postings_dbf),
+    #      {sep, nil} <- populate_postings(postings_dbf) do
+    #   Logger.info fn -> "FIN Oct upserted: #{oct}" end
+    #   Logger.info fn -> "FIN Nov upserted: #{nov}" end
+    #   Logger.info fn -> "FIN Dec upserted: #{dec}" end
+    #   Logger.info fn -> "FIN Jan upserted: #{jan}" end
+    #   Logger.info fn -> "FIN Feb upserted: #{feb}" end
+    #   Logger.info fn -> "FIN Mar upserted: #{mar}" end
+    #   Logger.info fn -> "FIN Apr upserted: #{apr}" end
+    #   Logger.info fn -> "FIN May upserted: #{may}" end
+    #   Logger.info fn -> "FIN Jun upserted: #{jun}" end
+    #   Logger.info fn -> "FIN Jul upserted: #{jul}" end
+    #   Logger.info fn -> "FIN Aug upserted: #{aug}" end
+    #   Logger.info fn -> "FIN Sep upserted: #{sep}" end
+    # else
+    #   unexpected ->
+    #     Logger.error "Error occurred #{inspect(unexpected)}"
+    # end
   end
 
   # PRODUCTS
@@ -174,6 +229,49 @@ defmodule Mgp.ImportData do
         attn: nil?(attn), add1: nil?(add1), add2: nil?(add2), add3: nil?(add3),
         phone: nil?(phone), is_gov: nil?(is_gov), resp: nil?(resp),
         email: nil?(email), lmu: nil?(lmu), lmd: to_date(lmd), lmt: to_time(lmt)
+      }
+    end)
+    |> Enum.to_list
+  end
+
+  # CUSTOMERS OPENING BALANCE
+  def populate_customer_op_bals(dbf, year) do
+
+    op_bals = parse_customer_op_bal_from_dbf(dbf, year)
+
+    # on_conflict update query
+    query = from(o in OpBalance,
+            where: fragment("o0.lmd <> EXCLUDED.lmd OR o0.lmt <> EXCLUDED.lmt"),
+            update: [set: [customer_id: fragment("EXCLUDED.customer_id"),
+                           op_bal: fragment("EXCLUDED.op_bal"),
+                           year: fragment("EXCLUDED.year"),
+                           lmu: fragment("EXCLUDED.lmu"),
+                           lmd: fragment("EXCLUDED.lmd"),
+                           lmt: fragment("EXCLUDED.lmt")
+                           ]
+            ])
+
+    # upsert the records into actual db
+    Repo.insert_all(OpBalance, op_bals, on_conflict: query,
+      conflict_target: {:constraint, :opbal_customer_id_year_key})
+  end
+
+  def parse_customer_op_bal_from_dbf(dbf, year) do
+    {csv, 1} = dbf_to_csv(dbf)
+    {:ok, stream} = csv |> StringIO.open()
+
+    stream
+    |> IO.binstream(:line)
+    |> MyParser.parse_stream(headers: false)
+    |> Stream.filter(fn(x) -> hd(x) == "203000" end)
+    |> Stream.map(fn(x) ->
+      [Enum.at(x,  1), Enum.at(x,  4),          year,
+       Enum.at(x, 91), Enum.at(x, 92), Enum.at(x, 93)]
+    end)
+    |> Stream.map(fn [customer_id, op_bal, year,
+                      lmu, lmd, lmt] ->
+      %{customer_id: customer_id, op_bal: to_decimal(op_bal), year: year,
+        lmu: nil?(lmu), lmd: to_date(lmd), lmt: to_time(lmt)
       }
     end)
     |> Enum.to_list
@@ -429,11 +527,11 @@ defmodule Mgp.ImportData do
 
   def populate_postings_partial(postings) do
     # on_conflict update query
-    query = from(p in Pdc,
+    query = from(p in Posting,
             where: fragment("p0.lmd <> EXCLUDED.lmd OR p0.lmt <> EXCLUDED.lmt"),
             update: [set: [customer_id: fragment("EXCLUDED.customer_id"),
                            date: fragment("EXCLUDED.date"),
-                           cheque: fragment("EXCLUDED.cheque"),
+                           description: fragment("EXCLUDED.description"),
                            amount: fragment("EXCLUDED.amount"),
                            lmu: fragment("EXCLUDED.lmu"),
                            lmd: fragment("EXCLUDED.lmd"),
@@ -442,7 +540,7 @@ defmodule Mgp.ImportData do
             ])
 
     # upsert the records into actual db
-    Repo.insert_all(Pdc, postings, on_conflict: query, conflict_target: :id)
+    Repo.insert_all(Posting, postings, on_conflict: query, conflict_target: :id)
   end
 
   def parse_postings_from_dbf(dbf) do
@@ -454,14 +552,20 @@ defmodule Mgp.ImportData do
     |> MyParser.parse_stream(headers: false)
     |> Stream.filter(fn(x) -> Enum.at(x, 6) == "203000" end)
     |> Stream.map(fn(x) ->
-      case Enum.at(x, 9) do
-        "D" ->
+      case {Enum.at(x, 9), Enum.at(x, 10)} do
+        {"D", ""} ->
+          [credit_id(Enum.at(x,  0), Enum.at(x,  1),
+                     Enum.at(x,  3), Enum.at(x,  2)),
+           Enum.at(x,  5), Enum.at(x,  7), Enum.at(x, 28),
+           Enum.at(x, 11),
+           Enum.at(x, 54), Enum.at(x, 55), Enum.at(x, 56)]
+        {"D", _} ->
           [Enum.at(x, 10),
            Enum.at(x,  5), Enum.at(x,  7),
            String.slice(Enum.at(x, 10), 4..14),
            Enum.at(x, 11),
            Enum.at(x, 54), Enum.at(x, 55), Enum.at(x, 56)]
-        "C" ->
+        _ ->
           [credit_id(Enum.at(x,  0), Enum.at(x,  1),
                      Enum.at(x,  3), Enum.at(x,  2)),
            Enum.at(x,  5), Enum.at(x,  7), Enum.at(x, 28),

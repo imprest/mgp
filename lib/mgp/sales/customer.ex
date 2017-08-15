@@ -4,6 +4,8 @@ defmodule Mgp.Sales.Customer do
   import Ecto.Changeset
   alias Mgp.Sales.Customer
   alias Mgp.Sales.Invoice
+  alias Mgp.Accounts.OpBalance
+  alias Mgp.Accounts.Posting
   alias Mgp.Accounts.Pdc
 
   @primary_key {:id, :string, []}
@@ -22,6 +24,8 @@ defmodule Mgp.Sales.Customer do
     field :region, :string
     field :resp, :string
     has_many :invoices, Invoice
+    has_many :postings, Posting
+    has_many :op_balances, OpBalance
     has_many :pdcs, Pdc
 
   end
