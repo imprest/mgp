@@ -27,7 +27,6 @@ defmodule Mgp.ImportData do
   @invoices_dbf        "SIINV.DBF"
   @invoice_details_dbf "SIDETINV.DBF"
   @pdcs_dbf            "FIPDC.DBF"
-  @postings_dbf        "FIT1610.dbf"
 
   def generate_file_paths(root_folder, year) do
     year_suffix = year |> to_string |> String.slice(2..3)
@@ -47,19 +46,19 @@ defmodule Mgp.ImportData do
     y2_suffix = year |> Kernel.+(1) |> to_string |> String.slice(2..3)
     full_path = Path.join(root_folder, @folder_prefix <> y1_suffix)
 
-    [Path.join(full_path, "FIN" <> y1_suffix <> "10.dbf"),
-     Path.join(full_path, "FIN" <> y1_suffix <> "11.dbf"),
-     Path.join(full_path, "FIN" <> y1_suffix <> "12.dbf"),
-     Path.join(full_path, "FIN" <> y2_suffix <> "01.dbf"),
-     Path.join(full_path, "FIN" <> y2_suffix <> "02.dbf"),
-     Path.join(full_path, "FIN" <> y2_suffix <> "03.dbf"),
-     Path.join(full_path, "FIN" <> y2_suffix <> "04.dbf"),
-     Path.join(full_path, "FIN" <> y2_suffix <> "05.dbf"),
-     Path.join(full_path, "FIN" <> y2_suffix <> "06.dbf"),
-     Path.join(full_path, "FIN" <> y2_suffix <> "07.dbf"),
-     Path.join(full_path, "FIN" <> y2_suffix <> "08.dbf"),
-     Path.join(full_path, "FIN" <> y2_suffix <> "09.dbf"),
-     ]
+    %{:oct => Path.join(full_path, "FIT" <> y1_suffix <> "10.dbf"),
+      :nov => Path.join(full_path, "FIT" <> y1_suffix <> "11.dbf"),
+      :dec => Path.join(full_path, "FIT" <> y1_suffix <> "12.dbf"),
+      :jan => Path.join(full_path, "FIT" <> y2_suffix <> "01.dbf"),
+      :feb => Path.join(full_path, "FIT" <> y2_suffix <> "02.dbf"),
+      :mar => Path.join(full_path, "FIT" <> y2_suffix <> "03.dbf"),
+      :apr => Path.join(full_path, "FIT" <> y2_suffix <> "04.dbf"),
+      :may => Path.join(full_path, "FIT" <> y2_suffix <> "05.dbf"),
+      :jun => Path.join(full_path, "FIT" <> y2_suffix <> "06.dbf"),
+      :jul => Path.join(full_path, "FIT" <> y2_suffix <> "07.dbf"),
+      :aug => Path.join(full_path, "FIT" <> y2_suffix <> "08.dbf"),
+      :sep => Path.join(full_path, "FIT" <> y2_suffix <> "09.dbf"),
+    }
   end
 
   def check_files(files) do
@@ -72,8 +71,10 @@ defmodule Mgp.ImportData do
 
   def populate(year) do
     files = generate_file_paths(@root_folder, year)
+    p     = generate_postings_file_paths(@root_folder, year)
 
     with :ok <- check_files(files),
+         :ok <- check_files(p),
          {products , nil} <- populate_products(files.products_dbf),
          {prices   , nil} <- populate_prices(files.prices_dbf),
          {customers, nil} <- populate_customers(files.customers_dbf),
@@ -82,7 +83,19 @@ defmodule Mgp.ImportData do
          {invoices , nil} <- populate_invoices(files.invoices_dbf),
          {inv_details, nil} <-
            populate_invoice_details(files.invoice_details_dbf),
-         {pdcs, nil} <- populate_pdcs(files.pdcs_dbf) do
+         {pdcs, nil} <- populate_pdcs(files.pdcs_dbf),
+         {oct, nil} <- populate_postings(p.oct),
+         {nov, nil} <- populate_postings(p.nov),
+         {dec, nil} <- populate_postings(p.dec),
+         {jan, nil} <- populate_postings(p.jan),
+         {feb, nil} <- populate_postings(p.feb),
+         {mar, nil} <- populate_postings(p.mar),
+         {apr, nil} <- populate_postings(p.apr),
+         {may, nil} <- populate_postings(p.may),
+         {jun, nil} <- populate_postings(p.jun),
+         {jul, nil} <- populate_postings(p.jul),
+         {aug, nil} <- populate_postings(p.aug),
+         {sep, nil} <- populate_postings(p.sep) do
       Logger.info fn -> "Products  upserted: #{products}" end
       Logger.info fn -> "Prices    upserted: #{prices}" end
       Logger.info fn -> "Customers upserted: #{customers}" end
@@ -90,42 +103,22 @@ defmodule Mgp.ImportData do
       Logger.info fn -> "Invoices  upserted: #{invoices}" end
       Logger.info fn -> "InvDetail upserted: #{inv_details}" end
       Logger.info fn -> "Pdcs      upserted: #{pdcs}" end
+      Logger.info fn -> "FIN Oct   upserted: #{oct}" end
+      Logger.info fn -> "FIN Nov   upserted: #{nov}" end
+      Logger.info fn -> "FIN Dec   upserted: #{dec}" end
+      Logger.info fn -> "FIN Jan   upserted: #{jan}" end
+      Logger.info fn -> "FIN Feb   upserted: #{feb}" end
+      Logger.info fn -> "FIN Mar   upserted: #{mar}" end
+      Logger.info fn -> "FIN Apr   upserted: #{apr}" end
+      Logger.info fn -> "FIN May   upserted: #{may}" end
+      Logger.info fn -> "FIN Jun   upserted: #{jun}" end
+      Logger.info fn -> "FIN Jul   upserted: #{jul}" end
+      Logger.info fn -> "FIN Aug   upserted: #{aug}" end
+      Logger.info fn -> "FIN Sep   upserted: #{sep}" end
     else
       unexpected ->
         Logger.error "Error occurred #{inspect(unexpected)}"
     end
-
-    p = generate_postings_file_paths(@root_folder, year)
-
-    # TODO check avaliable FIN files and populate existing months only
-    # with {oct, nil} <- populate_postings(postings_dbf),
-    #      {nov, nil} <- populate_postings(postings_dbf),
-    #      {dec, nil} <- populate_postings(postings_dbf),
-    #      {jan, nil} <- populate_postings(postings_dbf),
-    #      {feb, nil} <- populate_postings(postings_dbf),
-    #      {mar, nil} <- populate_postings(postings_dbf),
-    #      {apr, nil} <- populate_postings(postings_dbf),
-    #      {may, nil} <- populate_postings(postings_dbf),
-    #      {jun, nil} <- populate_postings(postings_dbf),
-    #      {jul, nil} <- populate_postings(postings_dbf),
-    #      {aug, nil} <- populate_postings(postings_dbf),
-    #      {sep, nil} <- populate_postings(postings_dbf) do
-    #   Logger.info fn -> "FIN Oct upserted: #{oct}" end
-    #   Logger.info fn -> "FIN Nov upserted: #{nov}" end
-    #   Logger.info fn -> "FIN Dec upserted: #{dec}" end
-    #   Logger.info fn -> "FIN Jan upserted: #{jan}" end
-    #   Logger.info fn -> "FIN Feb upserted: #{feb}" end
-    #   Logger.info fn -> "FIN Mar upserted: #{mar}" end
-    #   Logger.info fn -> "FIN Apr upserted: #{apr}" end
-    #   Logger.info fn -> "FIN May upserted: #{may}" end
-    #   Logger.info fn -> "FIN Jun upserted: #{jun}" end
-    #   Logger.info fn -> "FIN Jul upserted: #{jul}" end
-    #   Logger.info fn -> "FIN Aug upserted: #{aug}" end
-    #   Logger.info fn -> "FIN Sep upserted: #{sep}" end
-    # else
-    #   unexpected ->
-    #     Logger.error "Error occurred #{inspect(unexpected)}"
-    # end
   end
 
   # PRODUCTS
@@ -549,13 +542,14 @@ defmodule Mgp.ImportData do
 
     stream
     |> IO.binstream(:line)
+    |> Stream.map(fn(x) -> clean_line(x) end)
     |> MyParser.parse_stream(headers: false)
     |> Stream.filter(fn(x) -> Enum.at(x, 6) == "203000" end)
     |> Stream.map(fn(x) ->
       case {Enum.at(x, 9), Enum.at(x, 10)} do
         {"D", ""} ->
-          [credit_id(Enum.at(x,  0), Enum.at(x,  1),
-                     Enum.at(x,  3), Enum.at(x,  2)),
+          [posting_id(Enum.at(x,  5), Enum.at(x,  0), Enum.at(x,  1),
+                      Enum.at(x,  3), Enum.at(x,  2), Enum.at(x, 4)),
            Enum.at(x,  5), Enum.at(x,  7), Enum.at(x, 28),
            Enum.at(x, 11),
            Enum.at(x, 54), Enum.at(x, 55), Enum.at(x, 56)]
@@ -566,8 +560,8 @@ defmodule Mgp.ImportData do
            Enum.at(x, 11),
            Enum.at(x, 54), Enum.at(x, 55), Enum.at(x, 56)]
         _ ->
-          [credit_id(Enum.at(x,  0), Enum.at(x,  1),
-                     Enum.at(x,  3), Enum.at(x,  2)),
+          [posting_id(Enum.at(x,  5), Enum.at(x,  0), Enum.at(x,  1),
+                      Enum.at(x,  3), Enum.at(x,  2), Enum.at(x,  4)),
            Enum.at(x,  5), Enum.at(x,  7), Enum.at(x, 28),
            "-" <> Enum.at(x, 11),
            Enum.at(x, 54), Enum.at(x, 55), Enum.at(x, 56)]
@@ -582,8 +576,17 @@ defmodule Mgp.ImportData do
     |> Enum.to_list
   end
 
-  def credit_id(type, code, noc, non) do
-    type <> " " <> code <> " " <> noc <> "/" <> non
+  def clean_line(line) do
+    case String.contains?(line, "\"") do
+        true -> String.replace(line, "\"", "")
+        false -> line
+    end
+  end
+
+  # credo:disable-for-next-line
+  def posting_id(date, type, code, noc, non, sr_no) do
+    date <> " "
+    <> type <> " " <> code <> " " <> noc <> "/" <> non <> "/" <> sr_no
   end
 
   ### Private Functions ###
