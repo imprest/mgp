@@ -1,3 +1,10 @@
+/assets/node_modules
+/assets/dist/
+/assets/npm-debug.log
+/assets/yarn-debug.log
+/assets/yarn-error.log
+/assets/.sass-cache
+/assets/.tern-port
 /_build
 /cover
 /deps
@@ -5,4 +12,3 @@
 erl_crash.dump
 *.ez
 *.beam
-mix.lock
