@@ -1,3 +1,4 @@
+/assets/priv/
 /assets/node_modules
 /assets/dist/
 /assets/npm-debug.log
@@ -5,6 +6,7 @@
 /assets/yarn-error.log
 /assets/.sass-cache
 /assets/.tern-port
+/priv/static/
 /_build
 /cover
 /deps
