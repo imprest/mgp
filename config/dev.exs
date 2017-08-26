@@ -36,7 +36,7 @@ config :mgp, MgpWeb.Endpoint,
 config :mgp, MgpWeb.Endpoint,
   live_reload: [
     patterns: [
-      ~r{priv/static/.*(js|css|png|jpeg|jpg|gif|svg)$},
+      ~r{priv/static/.*(css|png|jpeg|jpg|gif|svg)$}, # rm js
       ~r{priv/gettext/.*(po)$},
       ~r{lib/mgp_web/views/.*(ex)$},
       ~r{lib/mgp_web/templates/.*(eex)$}

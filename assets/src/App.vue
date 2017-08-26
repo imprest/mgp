@@ -1,7 +1,7 @@
 <template>
     <div id="app">
         <header>
-            <h1>Phoenix Vue</h1>
+            <h1>Phoenix Vue 2.0</h1>
         </header>
         <main>
             <hello></hello>
@@ -10,7 +10,8 @@
 </template>
 
 <script>
-    import Hello from './components/Hello'
+    const Hello = () =>
+      import(/* webpackChunkName: "hello" */ '@/components/Hello');
     export default {
         name: 'app',
         components: {

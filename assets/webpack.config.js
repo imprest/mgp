@@ -5,6 +5,7 @@ const path = require('path')
 const webpack = require('webpack')
 const ExtractTextPlugin = require('extract-text-webpack-plugin')
 const CopyWebpackPlugin = require('copy-webpack-plugin')
+const FriendlyErrorsPlugin = require('friendly-errors-webpack-plugin')
 
 // Environment
 const Env = process.env.MIX_ENV || 'dev'
@@ -39,11 +40,12 @@ module.exports = (env) => {
           test: /\.vue$/,
           loader: 'vue-loader',
           options: {
-            loaders: {
-              css: ExtractTextPlugin.extract({
-                use: ['css-loader', 'sass-loader', 'stylus-loader'],
-                fallback: 'vue-style-loader'
-              })
+            extractCSS: true,
+            transformToRequire: {
+              video: 'scr',
+              source: 'src',
+              img: 'src',
+              image: 'xlink:href'
             }
           }
         }, {
@@ -52,7 +54,7 @@ module.exports = (env) => {
           loader: 'babel-loader',
           include: [resolve('src'), resolve('test')]
         }, {
-          test: /\.(gif|png|jpe?g|svg)$/i,
+          test: /\.(png|jpe?g|gif|svg)(\?.*)?$/,
           exclude: /node_modules/,
           loaders: [
             'file-loader?name=images/[name].[ext]',
@@ -78,10 +80,15 @@ module.exports = (env) => {
             }
           ]
         }, {
-          test: /\.(ttf|woff2?|eot|svg)$/,
+          test: /\.(mp4|webm|ogg|mp3|wav|flac|aac)(\?.*)?$/,
           exclude: /node_modules/,
-          query: { name: 'fonts/[hash].[ext]' },
-          loader: 'file-loader'
+          loader: 'file-loader',
+          query: { name: 'media/[name].[ext]' }
+        }, {
+          test: /\.(woff2?|eot|ttf|otf)(\?.*)?$/,
+          exclude: /node_modules/,
+          loader: 'file-loader',
+          query: { name: 'fonts/[hash].[ext]' }
         }
       ]
     },
@@ -92,9 +99,10 @@ module.exports = (env) => {
       }),
       new CopyWebpackPlugin([{
         from: './static',
-        to: path.resolve(__dirname, 'priv/static'),
+        to: path.resolve(__dirname, '../priv/static'),
         ignore: ['.*']
       }]),
+      new webpack.optimize.ModulesConcatenationPlugin(),
       new webpack.optimize.UglifyJsPlugin({
         compress: {
           warnings: false
@@ -108,13 +116,14 @@ module.exports = (env) => {
         filename: 'css/[name].css',
         allChunks: true
       }),
-
       new CopyWebpackPlugin([{
         from: './static',
-        to: path.resolve(__dirname, 'priv/static'),
+        to: path.resolve(__dirname, '../priv/static'),
         ignore: ['.*']
-      }])
+      }]),
+      new webpack.optimize.ModuleConcatenationPlugin(),
+      new webpack.NoEmitOnErrorsPlugin(),
+      new FriendlyErrorsPlugin()
     ]
-
   }
 }
