@@ -1,33 +1,30 @@
 <template>
-    <div id="app">
-        <header>
-            <h1>Phoenix Vue 2.0</h1>
-        </header>
-        <main>
-            <hello></hello>
-        </main>
-    </div>
+  <div id="app">
+    <Topbar></Topbar>
+    <router-view></router-view>
+  </div>
 </template>
 
 <script>
-    const Hello = () =>
-      import(/* webpackChunkName: "hello" */ '@/components/Hello');
-    export default {
-        name: 'app',
-        components: {
-            Hello
-        }
-    }
+import Topbar from '@/components/Topbar'
+import router from './router'
+
+export default {
+  components: {
+    Topbar,
+    router
+  }
+}
 </script>
 
 <style>
-    #app {
-          font-family: 'Avenir', Helvetica, Arial, sans-serif;
-          -webkit-font-smoothing: antialiased;
-          -moz-osx-font-smoothing: grayscale;
-          color: #2c3e50;
-    }
-    main {
-        margin-top: 60px;
-    }
+#app {
+  font-family: 'Avenir', Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  color: #2c3e50;
+}
+main {
+  margin-top: 60px;
+}
 </style>

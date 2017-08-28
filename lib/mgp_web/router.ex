@@ -16,7 +16,6 @@ defmodule MgpWeb.Router do
   scope "/", MgpWeb do
     pipe_through :browser # Use the default browser stack
 
-    resources "/products", ProductController, except: [:new, :edit]
     resources "/customers", CustomerController, except: [:new, :edit]
     resources "/op_product_stocks", OpProductStockController,
       except: [:new, :edit]
@@ -30,7 +29,9 @@ defmodule MgpWeb.Router do
   end
 
   # Other scopes may use custom stacks.
-  # scope "/api", MgpWeb do
-  #   pipe_through :api
-  # end
+  scope "/api", MgpWeb do
+    pipe_through :api
+
+    resources "/products", ProductController, except: [:new, :edit]
+  end
 end
