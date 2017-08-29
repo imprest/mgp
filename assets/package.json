@@ -10,6 +10,8 @@
     "axios": "^0.16.2",
     "phoenix": "file:../deps/phoenix",
     "phoenix_html": "file:../deps/phoenix_html",
+    "quasar-extras": "^0.0.7",
+    "quasar-framework": "^0.14.2",
     "vue": "^2.4.2",
     "vue-router": "^2.7.0",
     "vuex": "^2.3.1"

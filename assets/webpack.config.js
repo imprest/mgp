@@ -40,7 +40,12 @@ module.exports = (env) => {
           test: /\.vue$/,
           loader: 'vue-loader',
           options: {
-            extractCSS: true,
+            loaders: {
+              css: ExtractTextPlugin.extract({
+                use: ['css-loader', 'sass-loader', 'stylus-loader'],
+                fallback: 'vue-style-loader'
+              })
+            },
             transformToRequire: {
               video: 'scr',
               source: 'src',
@@ -53,6 +58,9 @@ module.exports = (env) => {
           exclude: /node_modules/,
           loader: 'babel-loader',
           include: [resolve('src'), resolve('test')]
+        }, {
+          test: /\.styl$/,
+          loader: 'style-loader!css-loader!stylus-loader'
         }, {
           test: /\.(png|jpe?g|gif|svg)(\?.*)?$/,
           exclude: /node_modules/,
@@ -85,8 +93,11 @@ module.exports = (env) => {
           loader: 'file-loader',
           query: { name: 'media/[name].[ext]' }
         }, {
-          test: /\.(woff2?|eot|ttf|otf)(\?.*)?$/,
-          exclude: /node_modules/,
+          test: /\.css$/,
+          loaders: ['style-loader', 'css-loader', 'sass-loader'],
+          exclude: path.resolve(__dirname, 'src/app')
+        }, {
+          test: /\.(ttf|eot|svg|woff(2)?)(\?[a-z0-9=&.]+)?$/,
           loader: 'file-loader',
           query: { name: 'fonts/[hash].[ext]' }
         }
