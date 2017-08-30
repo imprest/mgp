@@ -1,6 +1,6 @@
 <template>
   <div>
-    <h3>Hello from Vue.js!</h3>
+    <h3>Announcements</h3>
     <p>{{msg}}</p>
   </div>
 </template>
@@ -10,7 +10,7 @@ export default {
   name: 'hello',
   data() {
     return {
-      msg: 'Simple example using Phoenix, Vue and Webpack.'
+      msg: 'This will be an announcements page'
     }
   }
 }
