@@ -5,12 +5,11 @@ import Quasar from 'quasar-framework'
 import router from './router'
 import store from './store'
 import App from './App'
+import 'quasar-extras/material-icons'
 
 Vue.config.productionTip = false
 
 Vue.use(Quasar)
-
-import 'quasar-extras/material-icons'
 
 Quasar.start(() => {
   new Vue({

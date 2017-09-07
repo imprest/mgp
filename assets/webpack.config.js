@@ -41,6 +41,9 @@ module.exports = (env) => {
           loader: 'vue-loader',
           options: {
             loaders: {
+              // scss: isProd ? ExtractTextPlugin.extract({use:'css-loader!sass-loader',fallback:'vue-style-loader'}) : 'vue-style-loader!css-loader!sass-loader',
+              // sass: isProd ? ExtractTextPlugin.extract({use:'css-loader!sass-loader?indentedSyntax',fallback:'vue-style-loader'}) : 'vue-style-loader!sass-loader?indentedSyntax',
+              // css : isProd ? ExtractTextPlugin.extract({use:'css-loader',fallback:'vue-style-loader'}) : 'vue-style-loader!css-loader'
               css: ExtractTextPlugin.extract({
                 use: ['css-loader', 'sass-loader', 'stylus-loader'],
                 fallback: 'vue-style-loader'
@@ -123,10 +126,7 @@ module.exports = (env) => {
         comments: false
       })
     ] : [
-      new ExtractTextPlugin({
-        filename: 'css/[name].css',
-        allChunks: true
-      }),
+      new ExtractTextPlugin('css/[name].css'),
       new CopyWebpackPlugin([{
         from: './static',
         to: path.resolve(__dirname, '../priv/static'),

@@ -11,19 +11,12 @@
       <template slot="col-group" scope="cell">
         <span>{{cell.data}}</span>
       </template>
+      <template slot="col-cash-price" scope="cell">
+        <span>{{cell.data}}</span>
+      </template>
 
     </q-data-table>
 
-    <!-- <table> -->
-    <!--   <tr v-for="p in products"> -->
-    <!--     <td>{{p.id}}</td> -->
-    <!--     <td>{{p.description}}</td> -->
-    <!--     <td>{{p.group}}</td> -->
-    <!--     <td>{{p.cash_price}}</td> -->
-    <!--     <td>{{p.credit_price}}</td> -->
-    <!--     <td>{{p.trek_price}}</td> -->
-    <!--   </tr> -->
-    <!-- </table> -->
   </div>
 </template>
 
@@ -52,6 +45,7 @@ export default {
         {label: 'Id', field: 'id', width: '200px', type: 'string'},
         {label: 'Name', field: 'description', width: '200px', type: 'string'},
         {label: 'Group', field: 'group', width: '50px', type: 'string'},
+        {label: 'Cash', field: 'cash_price', width: '50px', type: 'number'},
       ]
     }
   }
