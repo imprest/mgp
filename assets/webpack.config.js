@@ -3,16 +3,18 @@
 // Modules
 const path = require('path')
 const webpack = require('webpack')
+const utils = require('./utils')
 const ExtractTextPlugin = require('extract-text-webpack-plugin')
 const CopyWebpackPlugin = require('copy-webpack-plugin')
 const FriendlyErrorsPlugin = require('friendly-errors-webpack-plugin')
+const vueLoaderConfig = require('./vue-loader.conf')
 
 // Environment
 const Env = process.env.MIX_ENV || 'dev'
 const isProd = (Env === 'prod')
 
 function resolve (dir) {
-  return path.join(__dirname, dir)
+  return path.join(__dirname, '..',  dir)
 }
 
 module.exports = (env) => {
@@ -28,7 +30,7 @@ module.exports = (env) => {
       filename: 'js/[name].js'
     },
     resolve: {
-      extensions: ['.js', '.vue', '.json', '.css', '.scss', '.styl'],
+      extensions: ['.js', '.vue', '.json'],
       alias: {
         'vue$': 'vue/dist/vue.esm.js',
         '@': resolve('src')
@@ -39,34 +41,13 @@ module.exports = (env) => {
         {
           test: /\.vue$/,
           loader: 'vue-loader',
-          options: {
-            loaders: {
-              // scss: isProd ? ExtractTextPlugin.extract({use:'css-loader!sass-loader',fallback:'vue-style-loader'}) : 'vue-style-loader!css-loader!sass-loader',
-              // sass: isProd ? ExtractTextPlugin.extract({use:'css-loader!sass-loader?indentedSyntax',fallback:'vue-style-loader'}) : 'vue-style-loader!sass-loader?indentedSyntax',
-              // css : isProd ? ExtractTextPlugin.extract({use:'css-loader',fallback:'vue-style-loader'}) : 'vue-style-loader!css-loader'
-              css: ExtractTextPlugin.extract({
-                use: ['css-loader', 'sass-loader', 'stylus-loader'],
-                fallback: 'vue-style-loader'
-              })
-            },
-            transformToRequire: {
-              video: 'scr',
-              source: 'src',
-              img: 'src',
-              image: 'xlink:href'
-            }
-          }
+          options: vueLoaderConfig
         }, {
           test: /\.js$/,
-          exclude: /node_modules/,
           loader: 'babel-loader',
           include: [resolve('src'), resolve('test')]
         }, {
-          test: /\.styl$/,
-          loader: 'style-loader!css-loader!stylus-loader'
-        }, {
           test: /\.(png|jpe?g|gif|svg)(\?.*)?$/,
-          exclude: /node_modules/,
           loaders: [
             'file-loader?name=images/[name].[ext]',
             {
@@ -92,24 +73,18 @@ module.exports = (env) => {
           ]
         }, {
           test: /\.(mp4|webm|ogg|mp3|wav|flac|aac)(\?.*)?$/,
-          exclude: /node_modules/,
           loader: 'file-loader',
           query: { name: 'media/[name].[ext]' }
-        }, {
-          test: /\.css$/,
-          loaders: ['style-loader', 'css-loader', 'sass-loader'],
-          exclude: path.resolve(__dirname, 'src/app')
         }, {
           test: /\.(ttf|eot|svg|woff(2)?)(\?[a-z0-9=&.]+)?$/,
           loader: 'file-loader',
           query: { name: 'fonts/[hash].[ext]' }
         }
-      ]
+      ].concat(utils.styleLoaders({ sourceMap: false }))
     },
     plugins: isProd ? [
       new ExtractTextPlugin({
-        filename: 'css/[name].css',
-        allChunks: true
+        filename: 'css/[name].css'
       }),
       new CopyWebpackPlugin([{
         from: './static',
@@ -126,7 +101,6 @@ module.exports = (env) => {
         comments: false
       })
     ] : [
-      new ExtractTextPlugin('css/[name].css'),
       new CopyWebpackPlugin([{
         from: './static',
         to: path.resolve(__dirname, '../priv/static'),
