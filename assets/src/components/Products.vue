@@ -1,21 +1,13 @@
 <template>
-  <div>
-    <h4>Products List</h4>
-    <q-data-table :data="products" :config="config" :columns="columns">
-      <template slot="col-id" scope="cell">
-        <span>{{cell.data}}</span>
-      </template>
-      <template slot="col-description" scope="cell">
-        <span>{{cell.data}}</span>
-      </template>
-      <template slot="col-group" scope="cell">
-        <span>{{cell.data}}</span>
-      </template>
-      <template slot="col-cash-price" scope="cell">
-        <span>{{cell.data}}</span>
-      </template>
+  <div class="layout-padding">
+    <div><h5>Products List</h5></div>
 
-    </q-data-table>
+    <div class='row'>
+      <div class='dataTables_wrapper'>
+      <q-data-table :data="products" :config="config" :columns="columns">
+      </q-data-table>
+      </div>
+    </div>
 
   </div>
 </template>
@@ -40,12 +32,17 @@ export default {
   },
   data () {
     return {
-      config: { rowHeight: '50px' },
+      config: { rowHeight: '30px', columnPicker: true, leftStickyColumns: 1, bodyStyle: { maxHeight: '640px', width: '100%' }, responsive: true},
       columns: [
-        {label: 'Id', field: 'id', width: '200px', type: 'string'},
-        {label: 'Name', field: 'description', width: '200px', type: 'string'},
-        {label: 'Group', field: 'group', width: '50px', type: 'string'},
-        {label: 'Cash', field: 'cash_price', width: '50px', type: 'number'},
+        {label: 'ID', field: 'id', width: '200px', type: 'string', sort: true},
+        {label: 'Name', field: 'description', width: '200px', type: 'string', sort: true},
+        {label: 'Group', field: 'group', width: '50px', type: 'string', classes: "text-center"},
+        {label: 'Cash', field: 'cash_price', width: '60px', type: 'number', sort: true, classes: 'text-right'},
+        {label: 'Credit', field: 'credit_price', width: '60px', type: 'number', classes: 'text-right'},
+        {label: 'Trek', field: 'trek_price', width: '60px', type: 'number', classes: 'text-right'},
+        {label: 'SubQty', field: 'sub_qty', width: '60px', type: 'number', classes: "text-right"},
+        {label: 'LMU', field: 'lmu', width: '80px', type: 'string', classes: "text-center"},
+        {label: 'LMD', field: 'lmd', width: '100px', type: 'date', sort: true, classes: "text-center"}
       ]
     }
   }

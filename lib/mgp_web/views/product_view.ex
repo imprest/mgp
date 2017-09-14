@@ -18,6 +18,9 @@ defmodule MgpWeb.ProductView do
       tax_tat: product.tax_tat,
       cash_price: product.cash_price,
       credit_price: product.credit_price,
-      trek_price: product.trek_price}
+      trek_price: product.trek_price,
+      sub_qty: product.sub_qty,
+      lmu: product.lmu,
+      lmd: product.lmd }
   end
 end

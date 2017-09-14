@@ -1,6 +1,7 @@
 <template>
   <div id="app">
-    <q-layout ref="layout" view="hHh Lpr fff" :left-class="{'no-shadow': true }">
+    <q-layout ref="layout" view="hHh Lpr fff" :left-breakpoint=920 :left-class="{'no-shadow': true, 'border-right': true }"
+    :left-style="{width: '230px'}">
       <q-toolbar slot="header">
         <q-btn flat @click="$refs.layout.toggleLeft()">
           <q-icon name="menu" />
@@ -73,7 +74,7 @@ export default {
 
 <style>
 #app {
-  font-family: 'Avenir', Helvetica, Arial, sans-serif;
+  /* font-family: 'Avenir', Helvetica, Arial, sans-serif; */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   color: #2c3e50;
@@ -83,7 +84,17 @@ header.layout-header {
   box-shadow: none;
 }
 
-aside .layout-aside .fixed .on-layout .layout-aside-left {
+aside.layout-aside.fixed.on-layout .layout-aside-left .no-shadow {
     box-shadow: none;
 }
+
+.border-right { border-right: 1px #e0e0e0 solid; }
+
+div.layout-padding {
+  padding: 5px 10px;
+}
+
+.text-center { text-align: center; }
+.text-right  { text-align: right;  }
+.dataTables_wrapper { min-width: 615px; margin: 0 auto; }
 </style>

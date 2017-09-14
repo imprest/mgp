@@ -78,7 +78,7 @@ module.exports = (env) => {
         }, {
           test: /\.(ttf|eot|svg|woff(2)?)(\?[a-z0-9=&.]+)?$/,
           loader: 'file-loader',
-          query: { name: 'fonts/[hash].[ext]' }
+          query: { name: 'fonts/[name].[ext]' }
         }
       ].concat(utils.styleLoaders({ sourceMap: false }))
     },
