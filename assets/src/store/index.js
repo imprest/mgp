@@ -7,10 +7,12 @@ Vue.use(Vuex)
 const api = axios.create({ baseURL: '/api' })
 
 const store = new Vuex.Store({
+  strict: true,
   state: {
     username: '',
     id: '',
     products: [],
+    product: null,
     authenticated: false
   },
   actions: {
@@ -22,6 +24,12 @@ const store = new Vuex.Store({
           })
       }
     },
+    getProduct(context, product_id) {
+      return api.get('/products/' + product_id)
+        .then((response) => {
+          context.commit('setProduct', response.data.data)
+        })
+    },
     setProfile(context, profile) { context.commit('setProfile', profile) },
     logout(context) { context.commit('logout') },
     login(context) { context.commit('login') }
@@ -29,6 +37,9 @@ const store = new Vuex.Store({
   mutations: {
     setProducts(state, products) {
       state.products = products
+    },
+    setProduct(state, product) {
+      state.product = product
     },
     setProfile (state, profile) {
       state.id = profile.id
@@ -48,9 +59,6 @@ const store = new Vuex.Store({
     }
   },
   getters: {
-    products: state => {
-      return state.products
-    }
   }
 })
 
