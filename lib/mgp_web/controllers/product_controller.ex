@@ -22,7 +22,7 @@ defmodule MgpWeb.ProductController do
 
   def show(conn, %{"id" => id}) do
     product = Sales.get_product!(id)
-    render(conn, "show.json", product: product)
+    render(conn, "show_details.json", product: product)
   end
 
   def update(conn, %{"id" => id, "product" => product_params}) do

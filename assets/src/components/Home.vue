@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="layout-padding">
     <h3>Announcements</h3>
     <p>{{msg}}</p>
   </div>
@@ -7,10 +7,9 @@
 
 <script>
 export default {
-  name: 'hello',
   data() {
     return {
-      msg: 'This will be an announcements page'
+      msg: 'Work on searching and displaying invoices'
     }
   }
 }

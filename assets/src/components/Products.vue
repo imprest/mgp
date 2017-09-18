@@ -9,8 +9,24 @@
         </q-data-table>
       </div>
 
-      <div class="col" v-if="product">
-        <p>Product Selected: {{product.id}} </p>
+      <div v-if="product">
+        <h5>{{product.id}}</h5>
+        <table class="q-table horizontal-separator">
+          <tr>
+            <th>Date</th>
+            <th>Cash</th>
+            <th>Credit</th>
+            <th>Trek</th>
+            <th>LMU</th>
+          </tr>
+          <tr v-for="p in product.prices">
+            <td>{{p.lmd}}</td>
+            <td class="text-right">{{p.cash}}</td>
+            <td class="text-right">{{p.credit}}</td>
+            <td class="text-right">{{p.trek}}</td>
+            <td class="text-right">{{p.lmu}}</td>
+          </tr>
+        </table>
       </div>
     </div>
 
@@ -46,7 +62,7 @@ export default {
   },
   data () {
     return {
-      config: { rowHeight: '30px', columnPicker: true, leftStickyColumns: 1, bodyStyle: { maxHeight: '320px', width: '100%' }, responsive: true},
+      config: { rowHeight: '30px', columnPicker: true, leftStickyColumns: 1, bodyStyle: { maxHeight: '40vh', width: '100%' }, responsive: true},
       columns: [
         {label: 'ID', field: 'id', width: '210px', type: 'string', sort: true},
         {label: 'Name', field: 'description', width: '100px', type: 'string', sort: true},

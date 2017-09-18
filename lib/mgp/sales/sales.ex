@@ -7,6 +7,7 @@ defmodule Mgp.Sales do
   alias Mgp.Repo
 
   alias Mgp.Sales.Product
+  alias Mgp.Sales.Price
 
   @doc """
   Returns the list of products.
@@ -35,7 +36,11 @@ defmodule Mgp.Sales do
       ** (Ecto.NoResultsError)
 
   """
-  def get_product!(id), do: Repo.get!(Product, id)
+  def get_product!(id) do
+    Product
+    |> Repo.get!(id)
+    |> Repo.preload([prices: (from p in Price, order_by: p.date)])
+  end
 
   @doc """
   Creates a product.

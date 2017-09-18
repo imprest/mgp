@@ -25,7 +25,7 @@ const store = new Vuex.Store({
       }
     },
     getProduct(context, product_id) {
-      return api.get('/products/' + product_id)
+      return api.get('/products/' + encodeURIComponent(product_id))
         .then((response) => {
           context.commit('setProduct', response.data.data)
         })
