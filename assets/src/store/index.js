@@ -13,6 +13,8 @@ const store = new Vuex.Store({
     id: '',
     products: [],
     product: null,
+    invoice: '',
+    suggestedInvoices: [],
     authenticated: false
   },
   actions: {
@@ -29,6 +31,10 @@ const store = new Vuex.Store({
         .then((response) => {
           context.commit('setProduct', response.data.data)
         })
+    },
+    suggestInvoices(context, query) {
+      // send websocket message search Invoice
+      console.log(query)
     },
     setProfile(context, profile) { context.commit('setProfile', profile) },
     logout(context) { context.commit('logout') },

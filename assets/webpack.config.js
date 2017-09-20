@@ -101,11 +101,13 @@ module.exports = (env) => {
         comments: false
       })
     ] : [
-      new CopyWebpackPlugin([{
-        from: './static',
-        to: path.resolve(__dirname, '../priv/static'),
-        ignore: ['.*']
-      }]),
+      new CopyWebpackPlugin([
+        { from: './static',
+          to: path.resolve(__dirname, '../priv/static'),
+          ignore: ['.*'] },
+        { from: '../deps/phoenix/priv/static/phoenix.js',
+          to  : 'js/phoenix.js' }
+      ]),
       new webpack.optimize.ModuleConcatenationPlugin(),
       new webpack.NoEmitOnErrorsPlugin(),
       new FriendlyErrorsPlugin()

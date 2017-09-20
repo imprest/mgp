@@ -12,7 +12,7 @@ config :mgp, MgpWeb.Endpoint,
   code_reloader: true,
   check_origin: false,
   watchers: [
-    node: ["node_modules/.bin/webpack", "--colors", "--watch-stdin", "--progress",
+    node: ["node_modules/.bin/webpack", "--colors", "--watch-stdin",
            cd: Path.expand("../assets", __DIR__)]
 ]
 
