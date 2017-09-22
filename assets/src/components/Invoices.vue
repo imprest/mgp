@@ -24,11 +24,11 @@
 
 <script>
 import { mapState } from 'vuex'
-import { QSearch, QAutocomplete, QSpinnerDots  } from 'quasar-framework'
+import { QSearch, QAutocomplete, QSpinner, QInnerLoading } from 'quasar-framework'
 
 export default {
   name: 'invoices',
-  components: { QSearch, QAutocomplete, QSpinnerDots },
+  components: { QSearch, QAutocomplete, QSpinner, QInnerLoading },
   computed: {
     ...mapState([
       'suggestedInvoices',

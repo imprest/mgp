@@ -44,6 +44,7 @@ module.exports = (env) => {
           options: vueLoaderConfig
         }, {
           test: /\.js$/,
+          exclude: /node_modules/,
           loader: 'babel-loader',
           include: [resolve('src'), resolve('test')]
         }, {
@@ -104,9 +105,7 @@ module.exports = (env) => {
       new CopyWebpackPlugin([
         { from: './static',
           to: path.resolve(__dirname, '../priv/static'),
-          ignore: ['.*'] },
-        { from: '../deps/phoenix/priv/static/phoenix.js',
-          to  : 'js/phoenix.js' }
+          ignore: ['.*'] }
       ]),
       new webpack.optimize.ModuleConcatenationPlugin(),
       new webpack.NoEmitOnErrorsPlugin(),

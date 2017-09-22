@@ -3,6 +3,7 @@ defmodule MgpWeb.UserSocket do
 
   ## Channels
   # channel "room:*", MgpWeb.RoomChannel
+  channel "auto_complete:*", MgpWeb.AutoCompleteChannel
 
   ## Transports
   transport :websocket, Phoenix.Transports.WebSocket

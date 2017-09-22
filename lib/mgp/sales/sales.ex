@@ -8,6 +8,18 @@ defmodule Mgp.Sales do
 
   alias Mgp.Sales.Product
   alias Mgp.Sales.Price
+  alias Mgp.Sales.Invoice
+  alias Mgp.Sales.OpProductStock
+  alias Mgp.Sales.Customer
+  alias Mgp.Sales.InvoiceDetail
+
+
+  def suggest_invoice_ids(query) do
+    q = from Invoice,
+      where: fragment("similarity(id, ?) > 0.2", ^query),
+      select: [:id, :customer_id, :date]
+    Repo.all(q)
+  end
 
   @doc """
   Returns the list of products.
@@ -107,8 +119,6 @@ defmodule Mgp.Sales do
     Product.changeset(product, %{})
   end
 
-  alias Mgp.Sales.OpProductStock
-
   @doc """
   Returns the list of op_product_stocks.
 
@@ -202,8 +212,6 @@ defmodule Mgp.Sales do
   def change_op_product_stock(%OpProductStock{} = op_product_stock) do
     OpProductStock.changeset(op_product_stock, %{})
   end
-
-  alias Mgp.Sales.Price
 
   @doc """
   Returns the list of prices.
@@ -299,8 +307,6 @@ defmodule Mgp.Sales do
     Price.changeset(price, %{})
   end
 
-  alias Mgp.Sales.Customer
-
   @doc """
   Returns the list of customers.
 
@@ -395,8 +401,6 @@ defmodule Mgp.Sales do
     Customer.changeset(customer, %{})
   end
 
-  alias Mgp.Sales.Invoice
-
   @doc """
   Returns the list of invoices.
 
@@ -490,8 +494,6 @@ defmodule Mgp.Sales do
   def change_invoice(%Invoice{} = invoice) do
     Invoice.changeset(invoice, %{})
   end
-
-  alias Mgp.Sales.InvoiceDetail
 
   @doc """
   Returns the list of invoice_details.
