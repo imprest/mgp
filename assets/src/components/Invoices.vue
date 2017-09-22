@@ -6,11 +6,14 @@
       <div>
         <q-search
           v-model="searchInvoice"
-          :debounce="600"
           icon="search"
           float-label="Invoice #"
           >
-          <q-autocomplete @search="suggestInvoices" @selected="invoice"/>
+          <q-autocomplete
+            @search="suggestInvoiceIds"
+            @selected="invoice"
+            :min-characters=5
+            :static-data="suggestedInvoiceIds"/>
         </q-search>
       </div>
 
@@ -31,14 +34,14 @@ export default {
   components: { QSearch, QAutocomplete, QSpinner, QInnerLoading },
   computed: {
     ...mapState([
-      'suggestedInvoices',
+      'suggestedInvoiceIds',
       'invoice'
     ])
   },
   methods: {
-    suggestInvoices(query) {
+    suggestInvoiceIds(query) {
       // Dispatch get prodcut price history and stuff
-      this.$store.dispatch('suggestInvoices', query)
+      this.$store.dispatch('suggestInvoiceIds', query)
     }
   },
   data () {

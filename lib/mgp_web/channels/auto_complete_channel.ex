@@ -15,9 +15,12 @@ defmodule MgpWeb.AutoCompleteChannel do
   end
 
   def handle_in("invoice", %{"query" => query}, socket) do
-    ids = Sales.suggest_invoice_ids(query)
+    ids = query
+      |> Sales.suggest_invoice_ids
+      |> Enum.map(fn(x) -> Map.take(x, [:id, :customer_id, :date]) end)
     {:reply, {:ok, %{:ids => ids}}, socket}
   end
+
   # Channels can be used in a request/response fashion
   # by sending replies to requests from the client
   def handle_in("ping", payload, socket) do

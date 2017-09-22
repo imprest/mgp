@@ -13,10 +13,10 @@ defmodule Mgp.Sales do
   alias Mgp.Sales.Customer
   alias Mgp.Sales.InvoiceDetail
 
-
   def suggest_invoice_ids(query) do
     q = from Invoice,
       where: fragment("similarity(id, ?) > 0.2", ^query),
+      limit: 12,
       select: [:id, :customer_id, :date]
     Repo.all(q)
   end

@@ -10,8 +10,10 @@ const socket = new Socket("/socket", {params: {userToken: "123"}})
 socket.connect()
 
 const channel = socket.channel("auto_complete:lobby", {})
-channel.on("new_msg", payload => {
-  console.log(payload)
+channel.on("phx_reply", payload => {
+  if (payload.status === "ok") {
+    store.dispatch("suggestedInvoiceIds", payload.response.ids)
+  }
 })
 channel.join()
   .receive("ok", resp => { console.log("Joined successfully", resp) })
@@ -25,7 +27,7 @@ const store = new Vuex.Store({
     products: [],
     product: null,
     invoice: '',
-    suggestedInvoices: [],
+    suggestedInvoiceIds: [],
     authenticated: false
   },
   actions: {
@@ -44,10 +46,13 @@ const store = new Vuex.Store({
         })
     },
     socketConnect(context) { context.commit('socketConnect')},
-    suggestInvoices(context, query) {
+    suggestInvoiceIds(context, query) {
       // send websocket message search Invoice
       console.log(query)
       channel.push("invoice", {query: query})
+    },
+    suggestedInvoiceIds(context, ids) {
+      context.commit('setSuggestedInvoiceIds', ids)
     },
     setProfile(context, profile) { context.commit('setProfile', profile) },
     logout(context) { context.commit('logout') },
@@ -59,6 +64,10 @@ const store = new Vuex.Store({
     },
     setProduct(state, product) {
       state.product = product
+    },
+    setSuggestedInvoiceIds(state, ids) {
+      ids = {[{ value: 'M 12312', label: 'M123124'}]}
+      state.suggestedInvoiceIds = ids
     },
     setProfile (state, profile) {
       state.id = profile.id
