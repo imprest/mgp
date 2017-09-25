@@ -51,8 +51,19 @@ const store = new Vuex.Store({
       console.log(query)
       channel.push("invoice", {query: query})
     },
-    suggestedInvoiceIds(context, ids) {
-      context.commit('setSuggestedInvoiceIds', ids)
+    suggestedInvoiceIds({commit}, ids) {
+      if (ids === undefined || ids.length < 1) { return }
+      let newIds = ids.map(i => { return i.id
+        // return {
+        //   label: i.id,
+        //   value: i.id,
+        //   sublabel: i.customer_id,
+        //   icon: 'receipt',
+        //   stamp: i.date
+        // }
+      })
+      console.log(newIds)
+      commit('setSuggestedInvoiceIds', newIds)
     },
     setProfile(context, profile) { context.commit('setProfile', profile) },
     logout(context) { context.commit('logout') },
@@ -66,7 +77,6 @@ const store = new Vuex.Store({
       state.product = product
     },
     setSuggestedInvoiceIds(state, ids) {
-      ids = {[{ value: 'M 12312', label: 'M123124'}]}
       state.suggestedInvoiceIds = ids
     },
     setProfile (state, profile) {
