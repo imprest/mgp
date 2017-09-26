@@ -2,60 +2,75 @@
   <div class="layout-padding">
     <div><h5>Invoice Search</h5></div>
 
-    <div class='row'>
-      <div>
-        <q-search
-          v-model="terms"
-          float-label="Invoice #"
-          >
-          <q-autocomplete
-            seperator
-            @search="suggestInvoiceIds"
-            :debounce="300"
-            @selected="invoice"
-            :min-characters=3
-            />
-        </q-search>
-      </div>
-
-      <div>
-
-      </div>
-    </div>
+    <section>
+      <p class="content"><b>Selected:</b> {{ selected }}</p>
+      <b-field label="Find an Invoice">
+        <b-autocomplete
+          v-model="search"
+          :data="data"
+          placeholder="e.g. 95632"
+          field="title"
+          :loading="isFetching"
+          :max-results=12
+          :maxlength="10"
+          @input="suggestInvoiceIds"
+          @select="option => selected = option">
+          <template scope="props">
+            <div class="media">
+              <div class="media-left">
+                <img width="32">
+              </div>
+              <div class="media-content">
+                {{ props.option.id }}
+                <br>
+                <small>
+                  Customer ID: <b>{{ props.option.customer_id }}</b>,
+                  Date: <b>{{ props.option.date }}</b>
+                </small>
+              </div>
+            </div>
+          </template>
+          <template slot="empty">No results found</template>
+        </b-autocomplete>
+      </b-field>
+    </section>
 
   </div>
+
 </template>
 
 <script>
 import { mapState } from 'vuex'
-import { QSearch, QAutocomplete, QInput, filter } from 'quasar-framework'
 
 export default {
   name: 'invoices',
-  components: { QSearch, QAutocomplete, QInput },
   computed: {
-    ...mapState([
-      'invoice'
-    ])
+    ...mapState({
+      invoiceIds: state => state.suggestedInvoiceIds
+    })
   },
   watch: {
-    ...mapState([
-      'suggestedInvoiceIds'
-    ])
+    invoiceIds () {
+      this.isFetching = false
+      this.data = this.invoiceIds
+    }
   },
   methods: {
-    suggestInvoiceIds(terms, done) {
-      // Dispatch get prodcut price history and stuff
-      this.$store.dispatch('suggestInvoiceIds', terms)
-      // done(this.suggestedInvoiceIds)
-      setTimeout(() => {
-        done(filter(terms, {field: 'value', list: this.suggestedInvoiceIds}))
-      }, 1000)
+    suggestInvoiceIds() {
+      if (this.search === undefined) { return }
+      if (this.search < 3) { return }
+      this.data = []
+      this.isFetching = true
+      this.$store.dispatch('suggestInvoiceIds', this.search)
     }
   },
   data () {
     return {
-      terms: ''
+      search: '',
+      invoice: '',
+      data: [],
+      selected: null,
+      isFetching: false
     }
   }
 }

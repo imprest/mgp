@@ -19,7 +19,7 @@ defmodule Mgp.ImportData do
 
   # @inserted_at Ecto.DateTime.cast!("2016-10-01T08:30:00")
   # @updated_at  Ecto.DateTime.cast!("2016-10-01T08:30:00")
-  @root_folder         "/mnt/scl"
+  @root_folder         "/home/hvaria/Desktop"
   @folder_prefix       "MGP"
   @products_dbf        "SIITM.DBF"
   @prices_dbf          "SIITMPLD.DBF"

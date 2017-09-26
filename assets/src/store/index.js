@@ -47,23 +47,13 @@ const store = new Vuex.Store({
     },
     socketConnect(context) { context.commit('socketConnect')},
     suggestInvoiceIds(context, query) {
+      if (query.length < 3) { return }
       // send websocket message search Invoice
-      console.log(query)
       channel.push("invoice", {query: query})
     },
     suggestedInvoiceIds({commit}, ids) {
       if (ids === undefined || ids.length < 1) { return }
-      let newIds = ids.map(i => { return i.id
-        // return {
-        //   label: i.id,
-        //   value: i.id,
-        //   sublabel: i.customer_id,
-        //   icon: 'receipt',
-        //   stamp: i.date
-        // }
-      })
-      console.log(newIds)
-      commit('setSuggestedInvoiceIds', newIds)
+      commit('setSuggestedInvoiceIds', ids)
     },
     setProfile(context, profile) { context.commit('setProfile', profile) },
     logout(context) { context.commit('logout') },
