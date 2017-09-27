@@ -1,8 +1,8 @@
 <template>
-  <div class="layout-padding">
+  <section class="container">
     <h3>Announcements</h3>
     <p>{{msg}}</p>
-  </div>
+  </section>
 </template>
 
 <script>

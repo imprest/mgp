@@ -1,45 +1,69 @@
 <template>
-  <div class="layout-padding">
-    <div><h5>Products List</h5></div>
+  <section>
+    <h5>Products List</h5>
 
-    <div class='row'>
-      <div class='dataTables_wrapper'>
-        <q-data-table :data="products" :config="config" :columns="columns"
-                      @rowclick="rowClick">
-        </q-data-table>
-      </div>
+    <b-table
+      @click="rowClick"
+      :data="products">
+      <template scope="props">
+        <b-table-column label="ID" width="210">
+          {{ props.row.id }}
+        </b-table-column>
+        <b-table-column label="Name" width="100">
+          {{ props.row.description }}
+        </b-table-column>
+        <b-table-column label="Group" width="50">
+          {{ props.row.group }}
+        </b-table-column>
+        <b-table-column label="Cash" width="65" numeric>
+          {{ props.row.cash_price }}
+        </b-table-column>
+        <b-table-column label="Credit" width="65" numeric>
+          {{ props.row.credit_price }}
+        </b-table-column>
+        <b-table-column label="Trek" width="65" numeric>
+          {{ props.row.trek_price }}
+        </b-table-column>
+        <b-table-column label="SubQty" width="65" numeric>
+          {{ props.row.sub_qty }}
+        </b-table-column>
+        <b-table-column label="LMD" width="65" centered>
+          {{ new Date(props.row.lmd).toLocaleDateString() }}
+        </b-table-column>
+        <b-table-column label="LMU" width="80">
+          {{ props.row.lmu }}
+        </b-table-column>
+      </template>
+    </b-table>
 
-      <div v-if="product">
-        <h5>{{product.id}}</h5>
-        <table class="q-table horizontal-separator">
-          <tr>
-            <th>Date</th>
-            <th>Cash</th>
-            <th>Credit</th>
-            <th>Trek</th>
-            <th>LMU</th>
-          </tr>
-          <tr v-for="p in product.prices">
-            <td>{{p.lmd}}</td>
-            <td class="text-right">{{p.cash}}</td>
-            <td class="text-right">{{p.credit}}</td>
-            <td class="text-right">{{p.trek}}</td>
-            <td class="text-right">{{p.lmu}}</td>
-          </tr>
-        </table>
-      </div>
-    </div>
+    <section v-if="product">
+      <h5>{{product.id}}</h5>
+      <table class="q-table horizontal-separator">
+        <tr>
+          <th>Date</th>
+          <th>Cash</th>
+          <th>Credit</th>
+          <th>Trek</th>
+          <th>LMU</th>
+        </tr>
+        <tr v-for="p in product.prices">
+          <td>{{p.lmd}}</td>
+          <td class="text-right">{{p.cash}}</td>
+          <td class="text-right">{{p.credit}}</td>
+          <td class="text-right">{{p.trek}}</td>
+          <td class="text-right">{{p.lmu}}</td>
+        </tr>
+      </table>
+    </section>
 
-  </div>
+  </section>
 </template>
 
 <script>
 import { mapState } from 'vuex'
-import { QDataTable } from 'quasar-framework'
 
 export default {
   name: 'products',
-  components: { QDataTable },
   computed: {
     ...mapState([
       'products',
@@ -62,18 +86,6 @@ export default {
   },
   data () {
     return {
-      config: { rowHeight: '30px', columnPicker: true, leftStickyColumns: 1, bodyStyle: { maxHeight: '40vh', width: '100%' }, responsive: true},
-      columns: [
-        {label: 'ID', field: 'id', width: '210px', type: 'string', sort: true},
-        {label: 'Name', field: 'description', width: '100px', type: 'string', sort: true},
-        {label: 'Group', field: 'group', width: '50px', type: 'string', classes: "text-center"},
-        {label: 'Cash', field: 'cash_price', width: '65px', type: 'number', sort: true, classes: 'text-right'},
-        {label: 'Credit', field: 'credit_price', width: '65px', type: 'number', classes: 'text-right'},
-        {label: 'Trek', field: 'trek_price', width: '65px', type: 'number', classes: 'text-right'},
-        {label: 'SubQty', field: 'sub_qty', width: '60px', type: 'number', classes: "text-right"},
-        {label: 'LMD', field: 'lmd', width: '100px', type: 'date', sort: true, classes: "text-center"},
-        {label: 'LMU', field: 'lmu', width: '80px', type: 'string', classes: "text-center"}
-      ]
     }
   }
 }

@@ -11,14 +11,14 @@ const vueLoaderConfig = require('./vue-loader.conf')
 
 // Environment
 const Env = process.env.MIX_ENV || 'dev'
-const isProd = (Env === 'prod')
+const isProduction = (Env === 'prod')
 
 function resolve (dir) {
   return path.join(__dirname, '..',  dir)
 }
 
-module.exports = (env) => {
-  const devtool = isProd ? '#source-map' : '#cheap-module-eval-source-map'
+module.exports = (Env) => {
+  const devtool = isProduction ? '#source-map' : '#cheap-module-eval-source-map'
 
   return {
     devtool: devtool,
@@ -37,8 +37,7 @@ module.exports = (env) => {
       }
     },
     module: {
-      rules: [
-        {
+      rules: [{
           test: /\.vue$/,
           loader: 'vue-loader',
           options: vueLoaderConfig
@@ -83,7 +82,7 @@ module.exports = (env) => {
         }
       ].concat(utils.styleLoaders({ sourceMap: false }))
     },
-    plugins: isProd ? [
+    plugins: isProduction ? [
       new ExtractTextPlugin({
         filename: 'css/[name].css'
       }),

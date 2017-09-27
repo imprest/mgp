@@ -1,78 +1,29 @@
 <template>
   <div id="app">
-    <q-layout ref="layout" view="hHh Lpr fff" :left-breakpoint=920 :left-class="{'no-shadow': true, 'border-right': true }"
-    :left-style="{width: '230px'}">
-      <q-toolbar slot="header">
-        <q-btn flat @click="$refs.layout.toggleLeft()">
-          <q-icon name="menu" />
-        </q-btn>
-
-        <q-toolbar-title>
-          MGP
-        </q-toolbar-title>
-      </q-toolbar>
-
-      <!-- Navigation panel -->
-      <div slot="left">
-        <q-side-link item to="/" exact>
-          <q-item-side icon="announcement" />
-          <q-item-main label="Announcements" />
-        </q-side-link>
-
-        <q-side-link item to="/dashboard" exact>
-          <q-item-side icon="dashboard" />
-          <q-item-main label="Dashboard" />
-        </q-side-link>
-
-        <q-side-link item to="/products">
-          <q-item-side icon="local_pharmacy" />
-          <q-item-main label="Products" />
-        </q-side-link>
-
-        <q-side-link item to="/invoices">
-          <q-item-side icon="credit_card" />
-          <q-item-main label="Invoices" />
-        </q-side-link>
-
-        <q-collapsible indent icon="business_center" label="Reports">
-          <q-collapsible menu label="Sales" opened>
-            <div class="scroll" style="max-height: 400px">
-              <q-side-link item to="/reports/sales/mr" exact>
-                <q-item-main label="MR" />
-              </q-side-link>
-            </div>
-          </q-collapsible>
-        </q-collapsible>
+    <section class="container">
+      <div class="has-text-centered">
+        <img src="" alt="MGP">
+        <router-view />
 
       </div>
 
-      <router-view />
+    </section>
 
-    </q-layout>
+    <!-- Navigation panel -->
+    <!-- Announcements, Dashboard, Products, Invoices, Customers, Reports -->
   </div>
 </template>
 
 <script>
-import {
-  QLayout,
-  QToolbar,
-  QToolbarTitle,
-  QIcon,
-  QBtn,
-  QSideLink,
-  QItemSide,
-  QCollapsible,
-  QItemMain } from 'quasar-framework'
-
 export default {
-  components: {
-    QLayout, QToolbar, QToolbarTitle, QIcon, QBtn,
-    QSideLink, QItemMain, QItemSide, QCollapsible
-  }
+  name: 'app'
 }
 </script>
 
-<style>
+<style lang="scss">
+// Import Bulma's core
+@import "~bulma/sass/utilities/_all";
+
 #app {
   /* font-family: 'Avenir', Helvetica, Arial, sans-serif; */
   -webkit-font-smoothing: antialiased;
@@ -80,21 +31,32 @@ export default {
   color: #2c3e50;
 }
 
-header.layout-header {
-  box-shadow: none;
-}
+// Set your colors
+$primary: #f1896f;
+$primary-invert: findColorInvert($primary);
+$twitter: #4099ff;
+$twitter-invert: findColorInvert($twitter);
 
-aside.layout-aside.fixed.on-layout .layout-aside-left .no-shadow {
-    box-shadow: none;
-}
+// Setup $colors to use as bulma classes (e.g. 'is-twitter')
+$colors: (
+    "white": ($white, $black),
+    "black": ($black, $white),
+    "light": ($light, $light-invert),
+    "dark": ($dark, $dark-invert),
+    "primary": ($primary, $primary-invert),
+    "info": ($info, $info-invert),
+    "success": ($success, $success-invert),
+    "warning": ($warning, $warning-invert),
+    "danger": ($danger, $danger-invert),
+    "twitter": ($twitter, $twitter-invert)
+);
 
-.border-right { border-right: 1px #e0e0e0 solid; }
+// Links
+$link: $primary;
+$link-invert: $primary-invert;
+$link-focus-border: $primary;
 
-div.layout-padding {
-  padding: 5px 10px;
-}
-
-.text-center { text-align: center; }
-.text-right  { text-align: right;  }
-.dataTables_wrapper { min-width: 615px; margin: 0 auto; }
+// Import Bulma and Buefy styles
+@import "~bulma";
+@import "~buefy/src/scss/buefy";
 </style>
