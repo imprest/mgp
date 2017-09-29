@@ -3,7 +3,7 @@
   "license": "MIT",
   "scripts": {
     "start": "yarn run dev",
-    "dev": "MIX_ENV=dev webpack --watch-stdin --progress --color",
+    "dev": "MIX_ENV=dev webpack --watch --color",
     "deploy": "MIX_ENV=prod webpack -p"
   },
   "dependencies": {

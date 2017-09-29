@@ -12,7 +12,7 @@ exports.cssLoaders = function (options) {
   var cssLoader = {
     loader: 'css-loader',
     options: {
-      minimize: true,
+      minimize: process.env.MIX_ENV !== 'dev',
       sourceMap: options.sourceMap
     }
   }
