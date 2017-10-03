@@ -17,8 +17,8 @@ defmodule Mgp.ImportData do
 
   NimbleCSV.define(MyParser, separator: "!")
 
-  # @inserted_at Ecto.DateTime.cast!("2016-10-01T08:30:00")
-  # @updated_at  Ecto.DateTime.cast!("2016-10-01T08:30:00")
+  # @inserted_at       Ecto.DateTime.cast!("2016-10-01T08:30:00")
+  @default_date        Ecto.Date.cast!("2016-10-01")
   @root_folder         "/home/hvaria/Desktop"
   @folder_prefix       "MGP"
   @products_dbf        "SIITM.DBF"
@@ -214,7 +214,7 @@ defmodule Mgp.ImportData do
       [Enum.at(x,  1), Enum.at(x,  2), Enum.at(x,  3), Enum.at(x, 29),
        Enum.at(x, 30), Enum.at(x, 31), Enum.at(x, 32), Enum.at(x, 33),
        Enum.at(x, 34), Enum.at(x, 35), Enum.at(x, 36),
-       Enum.at(x, 91), Enum.at(x, 92), Enum.at(x, 93)]
+       Enum.at(x, 92), Enum.at(x, 93), Enum.at(x, 94)]
     end)
     |> Stream.map(fn [id, region, description, attn, add1, add2, add3,
                       phone, is_gov, resp, email, lmu, lmd, lmt] ->
@@ -259,7 +259,7 @@ defmodule Mgp.ImportData do
     |> Stream.filter(fn(x) -> hd(x) == "203000" end)
     |> Stream.map(fn(x) ->
       [Enum.at(x,  1), Enum.at(x,  4),          year,
-       Enum.at(x, 91), Enum.at(x, 92), Enum.at(x, 93)]
+       Enum.at(x, 92), Enum.at(x, 93), Enum.at(x, 94)]
     end)
     |> Stream.map(fn [customer_id, op_bal, year,
                       lmu, lmd, lmt] ->
@@ -621,7 +621,7 @@ defmodule Mgp.ImportData do
     Decimal.new(n)
   end
 
-  defp to_date("") do nil end
+  defp to_date("") do @default_date end
   defp to_date(date) do
     year  = String.slice(date, 0..3)
     month = String.slice(date, 4..5)
