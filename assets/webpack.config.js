@@ -1,114 +1,68 @@
 'use strict'
 
-// Modules
-const path = require('path')
 const webpack = require('webpack')
-const utils = require('./utils')
+const path = require('path')
+
+const staticDir = path.join(__dirname, ".")
+const destDir   = path.join(__dirname, "../priv/static")
+const publicPath = "/"
+
 const ExtractTextPlugin = require('extract-text-webpack-plugin')
 const CopyWebpackPlugin = require('copy-webpack-plugin')
-const FriendlyErrorsPlugin = require('friendly-errors-webpack-plugin')
-const vueLoaderConfig = require('./vue-loader.conf')
 
 // Environment
-const Env = process.env.MIX_ENV || 'dev'
-const isProduction = (Env === 'prod')
+var env = process.env.MIX_ENV || "dev"
+var isProduction = env === "prod";
+const nodeEnv = isProduction?"production":"development"
 
-function resolve (dir) {
-  return path.join(__dirname, '..',  dir)
-}
-
-module.exports = (Env) => {
-  const devtool = isProduction ? '#source-map' : '#cheap-module-eval-source-map'
-
-  return {
-    devtool: devtool,
-    entry: {
-      app: './src/main.js'
-    },
-    output: {
-      path: path.resolve(__dirname, '../priv/static'),
-      filename: 'js/[name].js'
-    },
-    resolve: {
-      extensions: ['.js', '.vue', '.json'],
-      alias: {
-        // 'vue$': 'vue/dist/vue.esm.js',
-        '@': resolve('src')
+module.exports = {
+  entry: [staticDir + "/src/main.js"],
+  output: {
+    path: destDir,
+    filename: "js/app.js",
+    publicPath
+  },
+  resolve: {
+    extensions: [".js", ".vue", ".json"],
+    alias: {
+      config: path.resolve(__dirname, `./${nodeEnv}.js`)
+    }
+  },
+  module: {
+    rules: [
+      {
+        test: /\.vue$/,
+        loader: "vue-loader"
+      },
+      {
+        test: /\.js$/,
+        exclude: /node_modules/,
+        loader: "babel-loader"
+      },
+      {
+        test: /\.s?css$/,
+        use: ExtractTextPlugin.extract({
+          use: "css-loader!sass-loader!import-glob-loader",
+          fallback: "style-loader"
+        })
+      },
+      {
+        test: /\.(eot|svg|ttf|woff|woff2)$/,
+        loader: "file-loader?name=fonts/[name].[ext]"
+      },
+      {
+        test: /\.(svg)(\?v=[0-9]\.[0-9]\.[0-9])?$/,
+        loader: "file-loader?name=images/[name].[ext]"
       }
-    },
-    module: {
-      rules: [{
-          test: /\.vue$/,
-          loader: 'vue-loader',
-          options: vueLoaderConfig
-        }, {
-          test: /\.js$/,
-          exclude: /node_modules/,
-          loader: 'babel-loader',
-          include: [resolve('src'), resolve('test')]
-        }, {
-          test: /\.(png|jpe?g|gif|svg)(\?.*)?$/,
-          loaders: [
-            'file-loader?name=images/[name].[ext]',
-            {
-              loader: 'image-webpack-loader',
-              options: {
-                query: {
-                  mozjpeg: {
-                    progressive: true
-                  },
-                  gifsicle: {
-                    interlaced: true
-                  },
-                  optipng: {
-                    optimizationLevel: 7
-                  },
-                  pngquant: {
-                    quality: '65-90',
-                    speed: 4
-                  }
-                }
-              }
-            }
-          ]
-        }, {
-          test: /\.(mp4|webm|ogg|mp3|wav|flac|aac)(\?.*)?$/,
-          loader: 'file-loader',
-          query: { name: 'media/[name].[ext]' }
-        }, {
-          test: /\.(ttf|eot|svg|woff(2)?)(\?[a-z0-9=&.]+)?$/,
-          loader: 'file-loader',
-          query: { name: 'fonts/[name].[ext]' }
-        }
-      ].concat(utils.styleLoaders({ sourceMap: false }))
-    },
-    plugins: isProduction ? [
-      new ExtractTextPlugin({
-        filename: 'css/[name].css'
-      }),
-      new CopyWebpackPlugin([{
-        from: './static',
-        to: path.resolve(__dirname, '../priv/static'),
-        ignore: ['.*']
-      }]),
-      new webpack.optimize.ModulesConcatenationPlugin(),
-      new webpack.optimize.UglifyJsPlugin({
-        compress: {
-          warnings: false
-        },
-        sourceMap: true,
-        beautify: false,
-        comments: false
-      })
-    ] : [
-      new CopyWebpackPlugin([
-        { from: './static',
-          to: path.resolve(__dirname, '../priv/static'),
-          ignore: ['.*'] }
-      ]),
-      new webpack.optimize.ModuleConcatenationPlugin(),
-      new webpack.NoEmitOnErrorsPlugin(),
-      new FriendlyErrorsPlugin()
     ]
-  }
-}
+  },
+  devServer: {
+    contentBase: staticDir,
+    headers: { "Access-Control-Allow-Origin": "*" }
+  },
+  plugins: [
+    new ExtractTextPlugin("css/app.css"),
+    new CopyWebpackPlugin([{ from: "./static/images", to: "images"}])
+  ]
+};
+

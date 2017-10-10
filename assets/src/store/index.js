@@ -1,6 +1,7 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
 import axios from 'axios'
+// import 'phoenix_html'
 import { Socket } from 'phoenix'
 
 Vue.use(Vuex)
