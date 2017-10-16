@@ -2,7 +2,7 @@
   "repository": {},
   "license": "MIT",
   "scripts": {
-    "dev": "MIX_ENV=dev webpack-dev-server --watch --color",
+     "watch": "MIX_ENV=dev webpack --watch-stdin --color",
     "deploy": "MIX_ENV=prod webpack -p"
   },
   "dependencies": {
@@ -29,14 +29,11 @@
     "import-glob-loader": "^1.1.0",
     "node-sass": "^4.5.3",
     "sass-loader": "^6.0.6",
-    "semver": "^5.3.0",
     "style-loader": "^0.18.2",
-    "url-loader": "^0.5.9",
     "vue-loader": "^13.0.4",
     "vue-style-loader": "^3.0.1",
     "vue-template-compiler": "^2.4.4",
-    "webpack": "^3.5.5",
-    "webpack-dev-server": "^2.9.1"
+    "webpack": "^3.5.5"
   },
   "browserslist": [
     "> 1%",

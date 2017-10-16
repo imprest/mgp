@@ -5,22 +5,21 @@ const path = require('path')
 
 const staticDir = path.join(__dirname, ".")
 const destDir   = path.join(__dirname, "../priv/static")
-const publicPath = "/"
 
 const ExtractTextPlugin = require('extract-text-webpack-plugin')
 const CopyWebpackPlugin = require('copy-webpack-plugin')
 
 // Environment
-var env = process.env.MIX_ENV || "dev"
-var isProduction = env === "prod";
+const env = process.env.MIX_ENV || "dev"
+const isProduction = env === "prod";
 const nodeEnv = isProduction?"production":"development"
 
 module.exports = {
+  devtool: isProduction?false:"#cheap-module-eval-source-map",
   entry: [staticDir + "/src/main.js"],
   output: {
     path: destDir,
-    filename: "js/app.js",
-    publicPath
+    filename: "js/app.js"
   },
   resolve: {
     extensions: [".js", ".vue", ".json"],
@@ -32,7 +31,16 @@ module.exports = {
     rules: [
       {
         test: /\.vue$/,
-        loader: "vue-loader"
+        loader: "vue-loader",
+        options: {
+          extractCSS: true,
+          transformToRequire: {
+            video: 'src',
+            source: 'src',
+            img: 'src',
+            image: 'xlink:href'
+          }
+        }
       },
       {
         test: /\.js$/,
@@ -47,22 +55,51 @@ module.exports = {
         })
       },
       {
-        test: /\.(eot|svg|ttf|woff|woff2)$/,
+        test: /\.(png|jpe?g|gif|svg)(\?.*)?$/,
+        loader: "file-loader?name=images/[name].[ext]"
+      },
+      {
+        test: /\.(woff2?|eot|ttf|otf)(\?.*)?$/,
         loader: "file-loader?name=fonts/[name].[ext]"
       },
       {
-        test: /\.(svg)(\?v=[0-9]\.[0-9]\.[0-9])?$/,
-        loader: "file-loader?name=images/[name].[ext]"
+        test: /\.(mp4|webm|ogg|mp3|wav|flac|aac)(\?.*)?$/,
+        loader: "file-loader?name=media/[name].[ext]"
       }
     ]
   },
-  devServer: {
-    contentBase: staticDir,
-    headers: { "Access-Control-Allow-Origin": "*" }
-  },
-  plugins: [
-    new ExtractTextPlugin("css/app.css"),
-    new CopyWebpackPlugin([{ from: "./static/images", to: "images"}])
+  plugins: isProduction ? [
+    new webpack.DefinePlugin({ 'process.env.NODE_ENV': '"production"'}),
+    new ExtractTextPlugin({
+      filename: "css/app.css",
+      allChunks: true
+    }),
+    new CopyWebpackPlugin([{
+      from: "./static",
+      to: path.resolve(__dirname, '../priv/static'),
+      ignore: ['.*']
+    }]),
+    new webpack.optimize.ModuleConcatenationPlugin(),
+    new webpack.optimize.UglifyJsPlugin({
+      compress: {
+        warnings: false
+      },
+      sourceMap: true,
+      beautify: false,
+      comments: false
+    })
+  ] : [
+    new webpack.DefinePlugin({ 'process.env.NODE_ENV': '"development"'}),
+    new ExtractTextPlugin({
+      filename: "css/app.css",
+      allChunks: true
+    }),
+    new CopyWebpackPlugin([{
+      from: "./static",
+      to: path.resolve(__dirname, '../priv/static'),
+      ignore: ['.*']
+    }]),
+    new webpack.NoEmitOnErrorsPlugin()
   ]
 };
 

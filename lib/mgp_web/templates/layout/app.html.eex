@@ -8,13 +8,12 @@
     <meta name="author" content="">
 
     <title>MGP</title>
-    <!-- <link rel="stylesheet" href="<%= static_path(@conn, "/css/app.css") %>"> -->
+    <link rel="stylesheet" href="<%= static_path(@conn, "/css/app.css") %>">
   </head>
 
   <body>
     <%= render @view_module, @view_template, assigns %>
 
-    <%# <script src="<%= static_path(@conn, "/js/app.js") %1>"></script> %>
-    <%= {:safe, js_script_tag()} %>
+    <script src="<%= static_path(@conn, "/js/app.js") %>"></script>
   </body>
 </html>
