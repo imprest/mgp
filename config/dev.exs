@@ -12,7 +12,12 @@ config :mgp, MgpWeb.Endpoint,
   code_reloader: true,
   check_origin: false,
   watchers: [
-    node: ["node_modules/.bin/webpack", "--colors", "--watch-stdin",
+    node: ["node_modules/.bin/webpack-dev-server",
+           "--inline", "--hot", "--stdin", "--color",#"--history-api-fallback",
+           "--host", "localhost",
+           "--port", "8080",
+           "--public", "localhost:8080",
+           "--config", "webpack.config.js",
            cd: Path.expand("../assets", __DIR__)]
 ]
 
@@ -36,7 +41,7 @@ config :mgp, MgpWeb.Endpoint,
 config :mgp, MgpWeb.Endpoint,
   live_reload: [
     patterns: [
-      ~r{priv/static/.*(css|png|jpeg|jpg|gif|svg)$}, # disable js
+      ~r{priv/static/.*(js|css|png|jpeg|jpg|gif|svg)$},
       ~r{priv/gettext/.*(po)$},
       ~r{lib/mgp_web/views/.*(ex)$},
       ~r{lib/mgp_web/templates/.*(eex)$}

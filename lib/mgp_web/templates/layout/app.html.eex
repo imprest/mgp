@@ -8,12 +8,18 @@
     <meta name="author" content="">
 
     <title>MGP</title>
-    <link rel="stylesheet" href="<%= static_path(@conn, "/css/app.css") %>">
+    <%= if Mix.env == :prod  do %>
+      <link rel="stylesheet" href="<%= static_path(@conn, "/css/app.css") %>">
+    <% end %>
   </head>
 
   <body>
     <%= render @view_module, @view_template, assigns %>
 
-    <script src="<%= static_path(@conn, "/js/app.js") %>"></script>
+    <%= if Mix.env == :prod  do %>
+      <script src="<%= static_path(@conn, "/js/app.js") %>"></script>
+    <% else %>
+      <script src="http://localhost:8080/js/app.js"></script>
+    <% end %>
   </body>
 </html>

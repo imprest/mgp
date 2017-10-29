@@ -15,7 +15,7 @@
           :maxlength="10"
           @input="suggestInvoiceIds"
           @select="option => selected = option">
-          <template scope="props">
+          <template slot-scope="props">
             <div class="media">
               <div class="media-left">
                 <img width="32">
@@ -76,5 +76,5 @@ export default {
 }
 </script>
 
-<style scoped>
+<style>
 </style>

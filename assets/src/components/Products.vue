@@ -1,11 +1,11 @@
 <template>
   <section>
-    <h5>Products List</h5>
+    <h5>Product List</h5>
 
     <b-table
       @click="rowClick"
       :data="products">
-      <template scope="props">
+      <template slot-scope="props">
         <b-table-column label="ID" width="210">
           {{ props.row.id }}
         </b-table-column>
@@ -91,5 +91,5 @@ export default {
 }
 </script>
 
-<style scoped>
+<style>
 </style>

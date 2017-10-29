@@ -5,6 +5,7 @@ const path = require('path')
 
 const staticDir = path.join(__dirname, ".")
 const destDir   = path.join(__dirname, "../priv/static")
+const publicPath = "/"
 
 const ExtractTextPlugin = require('extract-text-webpack-plugin')
 const CopyWebpackPlugin = require('copy-webpack-plugin')
@@ -15,11 +16,15 @@ const isProduction = env === "prod";
 const nodeEnv = isProduction?"production":"development"
 
 module.exports = {
-  devtool: isProduction?false:"#cheap-module-eval-source-map",
+  devtool: isProduction?"#source-map":"#cheap-module-eval-source-map",
   entry: [staticDir + "/src/main.js"],
   output: {
     path: destDir,
-    filename: "js/app.js"
+    filename: "js/app.js",
+    publicPath: "http://localhost:8080/"
+  },
+  devServer: {
+    headers: { "Access-Control-Allow-Origin": "*" }
   },
   resolve: {
     extensions: [".js", ".vue", ".json"],
@@ -33,7 +38,7 @@ module.exports = {
         test: /\.vue$/,
         loader: "vue-loader",
         options: {
-          extractCSS: true,
+          extractCSS: isProduction?true:false,
           transformToRequire: {
             video: 'src',
             source: 'src',
@@ -90,13 +95,9 @@ module.exports = {
     })
   ] : [
     new webpack.DefinePlugin({ 'process.env.NODE_ENV': '"development"'}),
-    new ExtractTextPlugin({
-      filename: "css/app.css",
-      allChunks: true
-    }),
     new CopyWebpackPlugin([{
       from: "./static",
-      to: path.resolve(__dirname, '../priv/static'),
+      to: destDir,
       ignore: ['.*']
     }]),
     new webpack.NoEmitOnErrorsPlugin()

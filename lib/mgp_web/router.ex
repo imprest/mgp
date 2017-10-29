@@ -13,9 +13,11 @@ defmodule MgpWeb.Router do
     plug :accepts, ["json"]
   end
 
-  scope "/", MgpWeb do
-    pipe_through :browser # Use the default browser stack
+  # Other scopes may use custom stacks.
+  scope "/api", MgpWeb do
+    pipe_through :api
 
+    resources "/products", ProductController, except: [:new, :edit]
     resources "/customers", CustomerController, except: [:new, :edit]
     resources "/op_product_stocks", OpProductStockController,
       except: [:new, :edit]
@@ -25,13 +27,12 @@ defmodule MgpWeb.Router do
     resources "/op_balances", OpBalanceController, except: [:new, :edit]
     resources "/postings", PostingController, except: [:new, :edit]
     resources "/pdcs", PdcController, except: [:new, :edit]
+  end
+
+  scope "/", MgpWeb do
+    pipe_through :browser # Use the default browser stack
+
     get "/", PageController, :index
   end
 
-  # Other scopes may use custom stacks.
-  scope "/api", MgpWeb do
-    pipe_through :api
-
-    resources "/products", ProductController, except: [:new, :edit]
-  end
 end
