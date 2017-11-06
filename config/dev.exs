@@ -13,7 +13,7 @@ config :mgp, MgpWeb.Endpoint,
   check_origin: false,
   watchers: [
     node: ["node_modules/.bin/webpack-dev-server",
-           "--inline", "--hot", "--stdin", "--color",#"--history-api-fallback",
+           "--inline", "--hot", "--stdin", "--color", "--history-api-fallback",
            "--host", "localhost",
            "--port", "8080",
            "--public", "localhost:8080",

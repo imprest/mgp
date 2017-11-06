@@ -9,6 +9,7 @@ const publicPath = "/"
 
 const ExtractTextPlugin = require('extract-text-webpack-plugin')
 const CopyWebpackPlugin = require('copy-webpack-plugin')
+const FriendlyErrorsPlugin = require('friendly-errors-webpack-plugin')
 
 // Environment
 const env = process.env.MIX_ENV || "dev"
@@ -24,13 +25,12 @@ module.exports = {
     publicPath: "http://localhost:8080/"
   },
   devServer: {
-    headers: { "Access-Control-Allow-Origin": "*" }
+    headers: { "Access-Control-Allow-Origin": "*" },
+    quiet: true
   },
   resolve: {
     extensions: [".js", ".vue", ".json"],
-    alias: {
-      config: path.resolve(__dirname, `./${nodeEnv}.js`)
-    }
+    modules: ["node_modules", __dirname]
   },
   module: {
     rules: [
@@ -38,13 +38,7 @@ module.exports = {
         test: /\.vue$/,
         loader: "vue-loader",
         options: {
-          extractCSS: isProduction?true:false,
-          transformToRequire: {
-            video: 'src',
-            source: 'src',
-            img: 'src',
-            image: 'xlink:href'
-          }
+          extractCSS: isProduction?true:false
         }
       },
       {
@@ -75,10 +69,7 @@ module.exports = {
   },
   plugins: isProduction ? [
     new webpack.DefinePlugin({ 'process.env.NODE_ENV': '"production"'}),
-    new ExtractTextPlugin({
-      filename: "css/app.css",
-      allChunks: true
-    }),
+    new ExtractTextPlugin("css/app.css"),
     new CopyWebpackPlugin([{
       from: "./static",
       to: path.resolve(__dirname, '../priv/static'),
@@ -95,12 +86,8 @@ module.exports = {
     })
   ] : [
     new webpack.DefinePlugin({ 'process.env.NODE_ENV': '"development"'}),
-    new CopyWebpackPlugin([{
-      from: "./static",
-      to: destDir,
-      ignore: ['.*']
-    }]),
-    new webpack.NoEmitOnErrorsPlugin()
+    new webpack.NamedModulesPlugin(),
+    new webpack.NoEmitOnErrorsPlugin(),
+    new FriendlyErrorsPlugin()
   ]
 };
-

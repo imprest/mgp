@@ -1,14 +1,14 @@
 import Vue      from 'vue'
 import Router   from 'vue-router'
 import Home     from '../components/Home'
-import Products from '../components/Products'
-import Invoices from '../components/Invoices'
-
-// const Products = () => import('../components/Products')
+// Dynamically load below pages
+const Invoices = () => import('../components/Invoices')
+const Products = () => import('../components/Products')
 
 Vue.use(Router)
 
 export default new Router({
+  mode: 'history',
   routes: [{
     path: '/',
     name: 'Home',
