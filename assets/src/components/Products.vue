@@ -72,16 +72,16 @@ export default {
   },
   created () {
     // Dispatch getting the data when the view is created
-    this.$store.dispatch('getProducts')
+    this.$store.dispatch('GET_PRODUCTS')
   },
   watch: {
     // call again if the route changes
-    '$route': "this.$store.dispatch('getProducts')"
+    '$route': "this.$store.dispatch('GET_PRODUCTS')"
   },
   methods: {
     rowClick(row) {
       // Dispatch get prodcut price history and stuff
-      this.$store.dispatch('getProduct', row.id)
+      this.$store.dispatch('GET_PRODUCT', row.id)
     }
   },
   data () {
