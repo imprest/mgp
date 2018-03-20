@@ -22,7 +22,8 @@ module.exports = {
   output: {
     path: destDir,
     filename: "js/app.js",
-    publicPath: "http://localhost:8080/"
+    publicPath: "http://localhost:8080/",
+    chunkFilename: '[name].js'
   },
   devServer: {
     headers: { "Access-Control-Allow-Origin": "*" },
