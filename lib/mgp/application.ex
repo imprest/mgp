@@ -14,6 +14,8 @@ defmodule Mgp.Application do
       supervisor(MgpWeb.Endpoint, []),
       # Start your own worker by calling: Mgp.Worker.start_link(arg1, arg2, arg3)
       # worker(Mgp.Worker, [arg1, arg2, arg3]),
+      Mgp.Sync
+      # worker(Mgp.Sync, [])
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

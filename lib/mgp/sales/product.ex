@@ -15,6 +15,7 @@ defmodule Mgp.Sales.Product do
     field :credit_price, :decimal
     field :trek_price, :decimal
     field :sub_qty, :integer
+    field :spec, :string
     field :lmu, :string
     field :lmd, :date
     field :lmt, :time
@@ -26,7 +27,7 @@ defmodule Mgp.Sales.Product do
   @doc false
   def changeset(%Product{} = product, attrs) do
     product
-    |> cast(attrs, [:group, :description, :tax_type, :tax_tat, :cash_price, :credit_price, :trek_price, :sub_qty, :lmu, :lmd, :lmt])
-    |> validate_required([:group, :description, :tax_type, :tax_tat, :cash_price, :credit_price, :trek_price, :sub_qty, :lmu, :lmd, :lmt])
+    |> cast(attrs, [:group, :description, :tax_type, :tax_tat, :cash_price, :credit_price, :trek_price, :sub_qty, :spec, :lmu, :lmd, :lmt])
+    |> validate_required([:group, :description, :tax_type, :tax_tat, :cash_price, :credit_price, :trek_price, :sub_qty, :spec, :lmu, :lmd, :lmt])
   end
 end

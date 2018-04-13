@@ -12,13 +12,13 @@ config :mgp, MgpWeb.Endpoint,
   code_reloader: true,
   check_origin: false,
   watchers: [
-    node: ["node_modules/.bin/webpack-dev-server",
-           "--inline", "--hot", "--stdin", "--color", "--history-api-fallback",
-           "--host", "localhost",
-           "--port", "8080",
-           "--public", "localhost:8080",
-           "--config", "webpack.config.js",
-           cd: Path.expand("../assets", __DIR__)]
+    # node: ["node_modules/.bin/webpack-dev-server",
+    #        "--inline", "--hot", "--stdin", "--color", "--history-api-fallback",
+    #        "--host", "localhost",
+    #        "--port", "8080",
+    #        "--public", "localhost:8080",
+    #        "--config", "webpack.config.js",
+    #        cd: Path.expand("../assets", __DIR__)]
 ]
 
 # ## SSL Support

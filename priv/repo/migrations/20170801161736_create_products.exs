@@ -12,6 +12,7 @@ defmodule Mgp.Repo.Migrations.CreateProducts do
       add :credit_price, :decimal
       add :trek_price, :decimal
       add :sub_qty, :integer
+      add :spec, :string
       add :lmu, :string
       add :lmd, :date
       add :lmt, :time
