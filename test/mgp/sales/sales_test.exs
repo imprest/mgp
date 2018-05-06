@@ -454,4 +454,154 @@ defmodule Mgp.SalesTest do
       assert %Ecto.Changeset{} = Sales.change_invoice_detail(invoice_detail)
     end
   end
+
+  describe "stock_transfers" do
+    alias Mgp.Sales.StockTransfer
+
+    @valid_attrs %{date: ~D[2010-04-17], doc_id: "some doc_id", from_stock: "some from_stock", lmd: ~D[2010-04-17], lmt: ~T[14:00:00.000000], lmu: "some lmu", qty: 42, to_stock: "some to_stock"}
+    @update_attrs %{date: ~D[2011-05-18], doc_id: "some updated doc_id", from_stock: "some updated from_stock", lmd: ~D[2011-05-18], lmt: ~T[15:01:01.000000], lmu: "some updated lmu", qty: 43, to_stock: "some updated to_stock"}
+    @invalid_attrs %{date: nil, doc_id: nil, from_stock: nil, lmd: nil, lmt: nil, lmu: nil, qty: nil, to_stock: nil}
+
+    def stock_transfer_fixture(attrs \\ %{}) do
+      {:ok, stock_transfer} =
+        attrs
+        |> Enum.into(@valid_attrs)
+        |> Sales.create_stock_transfer()
+
+      stock_transfer
+    end
+
+    test "list_stock_transfers/0 returns all stock_transfers" do
+      stock_transfer = stock_transfer_fixture()
+      assert Sales.list_stock_transfers() == [stock_transfer]
+    end
+
+    test "get_stock_transfer!/1 returns the stock_transfer with given id" do
+      stock_transfer = stock_transfer_fixture()
+      assert Sales.get_stock_transfer!(stock_transfer.id) == stock_transfer
+    end
+
+    test "create_stock_transfer/1 with valid data creates a stock_transfer" do
+      assert {:ok, %StockTransfer{} = stock_transfer} = Sales.create_stock_transfer(@valid_attrs)
+      assert stock_transfer.date == ~D[2010-04-17]
+      assert stock_transfer.doc_id == "some doc_id"
+      assert stock_transfer.from_stock == "some from_stock"
+      assert stock_transfer.lmd == ~D[2010-04-17]
+      assert stock_transfer.lmt == ~T[14:00:00.000000]
+      assert stock_transfer.lmu == "some lmu"
+      assert stock_transfer.qty == 42
+      assert stock_transfer.to_stock == "some to_stock"
+    end
+
+    test "create_stock_transfer/1 with invalid data returns error changeset" do
+      assert {:error, %Ecto.Changeset{}} = Sales.create_stock_transfer(@invalid_attrs)
+    end
+
+    test "update_stock_transfer/2 with valid data updates the stock_transfer" do
+      stock_transfer = stock_transfer_fixture()
+      assert {:ok, stock_transfer} = Sales.update_stock_transfer(stock_transfer, @update_attrs)
+      assert %StockTransfer{} = stock_transfer
+      assert stock_transfer.date == ~D[2011-05-18]
+      assert stock_transfer.doc_id == "some updated doc_id"
+      assert stock_transfer.from_stock == "some updated from_stock"
+      assert stock_transfer.lmd == ~D[2011-05-18]
+      assert stock_transfer.lmt == ~T[15:01:01.000000]
+      assert stock_transfer.lmu == "some updated lmu"
+      assert stock_transfer.qty == 43
+      assert stock_transfer.to_stock == "some updated to_stock"
+    end
+
+    test "update_stock_transfer/2 with invalid data returns error changeset" do
+      stock_transfer = stock_transfer_fixture()
+      assert {:error, %Ecto.Changeset{}} = Sales.update_stock_transfer(stock_transfer, @invalid_attrs)
+      assert stock_transfer == Sales.get_stock_transfer!(stock_transfer.id)
+    end
+
+    test "delete_stock_transfer/1 deletes the stock_transfer" do
+      stock_transfer = stock_transfer_fixture()
+      assert {:ok, %StockTransfer{}} = Sales.delete_stock_transfer(stock_transfer)
+      assert_raise Ecto.NoResultsError, fn -> Sales.get_stock_transfer!(stock_transfer.id) end
+    end
+
+    test "change_stock_transfer/1 returns a stock_transfer changeset" do
+      stock_transfer = stock_transfer_fixture()
+      assert %Ecto.Changeset{} = Sales.change_stock_transfer(stock_transfer)
+    end
+  end
+
+  describe "stock_receipts" do
+    alias Mgp.Sales.StockReceipt
+
+    @valid_attrs %{batch: "some batch", date: ~D[2010-04-17], doc_id: "some doc_id", expiry: ~D[2010-04-17], lmd: ~D[2010-04-17], lmt: ~T[14:00:00.000000], lmu: "some lmu", qty: 42, sr_no: 42}
+    @update_attrs %{batch: "some updated batch", date: ~D[2011-05-18], doc_id: "some updated doc_id", expiry: ~D[2011-05-18], lmd: ~D[2011-05-18], lmt: ~T[15:01:01.000000], lmu: "some updated lmu", qty: 43, sr_no: 43}
+    @invalid_attrs %{batch: nil, date: nil, doc_id: nil, expiry: nil, lmd: nil, lmt: nil, lmu: nil, qty: nil, sr_no: nil}
+
+    def stock_receipt_fixture(attrs \\ %{}) do
+      {:ok, stock_receipt} =
+        attrs
+        |> Enum.into(@valid_attrs)
+        |> Sales.create_stock_receipt()
+
+      stock_receipt
+    end
+
+    test "list_stock_receipts/0 returns all stock_receipts" do
+      stock_receipt = stock_receipt_fixture()
+      assert Sales.list_stock_receipts() == [stock_receipt]
+    end
+
+    test "get_stock_receipt!/1 returns the stock_receipt with given id" do
+      stock_receipt = stock_receipt_fixture()
+      assert Sales.get_stock_receipt!(stock_receipt.id) == stock_receipt
+    end
+
+    test "create_stock_receipt/1 with valid data creates a stock_receipt" do
+      assert {:ok, %StockReceipt{} = stock_receipt} = Sales.create_stock_receipt(@valid_attrs)
+      assert stock_receipt.batch == "some batch"
+      assert stock_receipt.date == ~D[2010-04-17]
+      assert stock_receipt.doc_id == "some doc_id"
+      assert stock_receipt.expiry == ~D[2010-04-17]
+      assert stock_receipt.lmd == ~D[2010-04-17]
+      assert stock_receipt.lmt == ~T[14:00:00.000000]
+      assert stock_receipt.lmu == "some lmu"
+      assert stock_receipt.qty == 42
+      assert stock_receipt.sr_no == 42
+    end
+
+    test "create_stock_receipt/1 with invalid data returns error changeset" do
+      assert {:error, %Ecto.Changeset{}} = Sales.create_stock_receipt(@invalid_attrs)
+    end
+
+    test "update_stock_receipt/2 with valid data updates the stock_receipt" do
+      stock_receipt = stock_receipt_fixture()
+      assert {:ok, stock_receipt} = Sales.update_stock_receipt(stock_receipt, @update_attrs)
+      assert %StockReceipt{} = stock_receipt
+      assert stock_receipt.batch == "some updated batch"
+      assert stock_receipt.date == ~D[2011-05-18]
+      assert stock_receipt.doc_id == "some updated doc_id"
+      assert stock_receipt.expiry == ~D[2011-05-18]
+      assert stock_receipt.lmd == ~D[2011-05-18]
+      assert stock_receipt.lmt == ~T[15:01:01.000000]
+      assert stock_receipt.lmu == "some updated lmu"
+      assert stock_receipt.qty == 43
+      assert stock_receipt.sr_no == 43
+    end
+
+    test "update_stock_receipt/2 with invalid data returns error changeset" do
+      stock_receipt = stock_receipt_fixture()
+      assert {:error, %Ecto.Changeset{}} = Sales.update_stock_receipt(stock_receipt, @invalid_attrs)
+      assert stock_receipt == Sales.get_stock_receipt!(stock_receipt.id)
+    end
+
+    test "delete_stock_receipt/1 deletes the stock_receipt" do
+      stock_receipt = stock_receipt_fixture()
+      assert {:ok, %StockReceipt{}} = Sales.delete_stock_receipt(stock_receipt)
+      assert_raise Ecto.NoResultsError, fn -> Sales.get_stock_receipt!(stock_receipt.id) end
+    end
+
+    test "change_stock_receipt/1 returns a stock_receipt changeset" do
+      stock_receipt = stock_receipt_fixture()
+      assert %Ecto.Changeset{} = Sales.change_stock_receipt(stock_receipt)
+    end
+  end
 end

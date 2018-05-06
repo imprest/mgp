@@ -11,6 +11,9 @@ defmodule Mgp.Sync.ImportData do
   alias Mgp.Sales.Customer
   alias Mgp.Sales.Invoice
   alias Mgp.Sales.InvoiceDetail
+  alias Mgp.Sales.OpStock
+  alias Mgp.Sales.StockReceipt
+  alias Mgp.Sales.StockTransfer
   alias Mgp.Accounts.OpBalance
   alias Mgp.Accounts.Posting
   alias Mgp.Accounts.Pdc
@@ -23,11 +26,15 @@ defmodule Mgp.Sync.ImportData do
   @root_folder "/home/hvaria/backup"
   @folder_prefix "MGP"
   @products_dbf "SIITM.DBF"
+  @op_stocks_dbf "SIITMB.DBF"
+  @stock_receipts_dbf "SIDETRCT.DBF"
   @prices_dbf "SIITMPLD.DBF"
   @customers_dbf "FISLMST.DBF"
   @invoices_dbf "SIINV.DBF"
   @invoice_details_dbf "SIDETINV.DBF"
   @pdcs_dbf "FIPDC.DBF"
+
+  def root_folder, do: @root_folder
 
   def dbf_files_list,
     do: [
@@ -35,6 +42,7 @@ defmodule Mgp.Sync.ImportData do
       @invoice_details_dbf,
       @pdcs_dbf,
       @products_dbf,
+      @stock_receipts_dbf,
       @prices_dbf,
       @customers_dbf
     ]
@@ -45,6 +53,8 @@ defmodule Mgp.Sync.ImportData do
 
     %{
       :products_dbf => Path.join(full_path, @products_dbf),
+      :op_stocks_dbf => Path.join(full_path, @op_stocks_dbf),
+      :stock_receipts_dbf => Path.join(full_path, @stock_receipts_dbf),
       :prices_dbf => Path.join(full_path, @prices_dbf),
       :customers_dbf => Path.join(full_path, @customers_dbf),
       :invoices_dbf => Path.join(full_path, @invoices_dbf),
@@ -86,30 +96,35 @@ defmodule Mgp.Sync.ImportData do
   def populate(year) do
     files = generate_file_paths(@root_folder, year)
     p = generate_postings_file_paths(@root_folder, year)
-    lmd_lmt = last_record_lmd_lmt(Posting)
 
     with :ok <- check_files(files),
          :ok <- check_files(p),
          {products, nil} <- populate_products(files.products_dbf),
+         {op_stocks, nil} <- populate_stock_op_qtys(files.op_stocks_dbf, year),
+         {stock_receipts_dbf, nil} <- populate_stock_receipts(files.stock_receipts_dbf, year),
+         {stock_transfers, nil} <- populate_stock_transfers(files.invoice_details_dbf),
          {prices, nil} <- populate_prices(files.prices_dbf),
          {customers, nil} <- populate_customers(files.customers_dbf),
          {op_bals, nil} <- populate_customer_op_bals(files.customers_dbf, year),
          {invoices, nil} <- populate_invoices(files.invoices_dbf),
          {inv_details, nil} <- populate_invoice_details(files.invoice_details_dbf),
          {pdcs, nil} <- populate_pdcs(files.pdcs_dbf),
-         {oct, nil} <- populate_postings(p.oct, lmd_lmt),
-         {nov, nil} <- populate_postings(p.nov, lmd_lmt),
-         {dec, nil} <- populate_postings(p.dec, lmd_lmt),
-         {jan, nil} <- populate_postings(p.jan, lmd_lmt),
-         {feb, nil} <- populate_postings(p.feb, lmd_lmt),
-         {mar, nil} <- populate_postings(p.mar, lmd_lmt),
-         {apr, nil} <- populate_postings(p.apr, lmd_lmt),
-         {may, nil} <- populate_postings(p.may, lmd_lmt),
-         {jun, nil} <- populate_postings(p.jun, lmd_lmt),
-         {jul, nil} <- populate_postings(p.jul, lmd_lmt),
-         {aug, nil} <- populate_postings(p.aug, lmd_lmt),
-         {sep, nil} <- populate_postings(p.sep, lmd_lmt) do
+         {oct, nil} <- populate_postings(p.oct),
+         {nov, nil} <- populate_postings(p.nov),
+         {dec, nil} <- populate_postings(p.dec),
+         {jan, nil} <- populate_postings(p.jan),
+         {feb, nil} <- populate_postings(p.feb),
+         {mar, nil} <- populate_postings(p.mar),
+         {apr, nil} <- populate_postings(p.apr),
+         {may, nil} <- populate_postings(p.may),
+         {jun, nil} <- populate_postings(p.jun),
+         {jul, nil} <- populate_postings(p.jul),
+         {aug, nil} <- populate_postings(p.aug),
+         {sep, nil} <- populate_postings(p.sep) do
       Logger.info(fn -> "Products  upserted: #{products}" end)
+      Logger.info(fn -> "Op Stock  upserted: #{op_stocks}" end)
+      Logger.info(fn -> "Stk Recp  upserted: #{stock_receipts_dbf}" end)
+      Logger.info(fn -> "Stk Tran  upserted: #{stock_transfers}" end)
       Logger.info(fn -> "Prices    upserted: #{prices}" end)
       Logger.info(fn -> "Customers upserted: #{customers}" end)
       Logger.info(fn -> "Op. Bals  upserted: #{op_bals}" end)
@@ -162,11 +177,7 @@ defmodule Mgp.Sync.ImportData do
 
   # PRODUCTS
   def populate_products(dbf) do
-    # lmd_lmt = last_record_lmd_lmt(Product)
-
-    products =
-      parse_products_from_dbf(dbf)
-      # |> Enum.filter(fn x -> is_record_newer_than(x, lmd_lmt) end)
+    products = parse_products_from_dbf(dbf)
 
     # on_conflict update query
     query =
@@ -255,11 +266,7 @@ defmodule Mgp.Sync.ImportData do
 
   # CUSTOMERS
   def populate_customers(dbf) do
-    # lmd_lmt = last_record_lmd_lmt(Customer)
-
-    customers =
-      parse_customers_from_dbf(dbf)
-      # |> Enum.filter(fn x -> is_record_newer_than(x, lmd_lmt) end)
+    customers = parse_customers_from_dbf(dbf)
 
     # on_conflict update query
     query =
@@ -414,6 +421,59 @@ defmodule Mgp.Sync.ImportData do
     |> Enum.to_list()
   end
 
+  # STOCK OPENING BALANCE
+  def populate_stock_op_qtys(dbf, year) do
+    # Get valid product_ids from product table
+    # filter op_stocks with invalid product_id
+    q = from(p in Product, select: p.id)
+    product_ids = Repo.all(q)
+
+    op_stocks =
+      parse_stock_op_qty_from_dbf(dbf, year)
+      |> Enum.filter(fn x -> Enum.member?(product_ids, x.product_id) end)
+
+    # on_conflict update query
+    query =
+      from(
+        o in OpStock,
+        update: [
+          set: [
+            op_qty: fragment("EXCLUDED.op_qty")
+          ]
+        ]
+      )
+
+    # upsert the records into actual db
+    Repo.insert_all(
+      OpStock,
+      op_stocks,
+      on_conflict: query,
+      conflict_target: {:constraint, :opstock_product_id_year_loc_key}
+    )
+  end
+
+  def parse_stock_op_qty_from_dbf(dbf, year) do
+    {csv, 1} = dbf_to_csv(dbf)
+    {:ok, stream} = csv |> StringIO.open()
+
+    stream
+    |> IO.binstream(:line)
+    |> MyParser.parse_stream(headers: false)
+    |> Stream.filter(fn x -> Enum.member?(["A", "V", "W"], hd(x)) end)
+    |> Stream.map(fn x ->
+      [Enum.at(x, 0), Enum.at(x, 2), Enum.at(x, 3), year]
+    end)
+    |> Stream.map(fn [location, product_id, op_qty, year] ->
+      %{
+        location: location,
+        product_id: product_id,
+        op_qty: to_integer(op_qty),
+        year: year
+      }
+    end)
+    |> Enum.to_list()
+  end
+
   # PRICES
   def populate_prices(dbf) do
     lmd_lmt = last_record_lmd_lmt(Price)
@@ -496,12 +556,13 @@ defmodule Mgp.Sync.ImportData do
 
   # INVOICES
   def populate_invoices(dbf) do
-    lmd_lmt = last_record_lmd_lmt(Invoice)
+    # Can't do this because opening records from last year also updates its timestamp
+    # lmd_lmt = last_record_lmd_lmt(Invoice)
 
     rows =
       dbf
       |> parse_invoices_from_dbf
-      |> Enum.filter(fn x -> is_record_newer_than(x, lmd_lmt) end)
+      # |> Enum.filter(fn x -> is_record_newer_than(x, lmd_lmt) end)
       |> Enum.chunk_every(1000)
       |> Enum.map(fn x -> populate_invoices_partial(x) end)
       |> Enum.reduce(0, fn x, acc -> elem(x, 0) + acc end)
@@ -527,7 +588,6 @@ defmodule Mgp.Sync.ImportData do
             credit: fragment("EXCLUDED.credit"),
             cheque: fragment("EXCLUDED.cheque"),
             price_level: fragment("EXCLUDED.price_level"),
-            value: fragment("EXCLUDED.value"),
             lmu: fragment("EXCLUDED.lmu"),
             lmd: fragment("EXCLUDED.lmd"),
             lmt: fragment("EXCLUDED.lmt")
@@ -557,7 +617,6 @@ defmodule Mgp.Sync.ImportData do
         to_invoice_id(Enum.at(x, 0), Enum.at(x, 1)),
         Enum.at(x, 2),
         Enum.at(x, 3),
-        Enum.at(x, 21),
         Enum.at(x, 23),
         Enum.at(x, 25),
         Enum.at(x, 38),
@@ -575,7 +634,6 @@ defmodule Mgp.Sync.ImportData do
                        id,
                        date,
                        customer_id,
-                       value,
                        price_level,
                        from_stock,
                        cash,
@@ -592,7 +650,6 @@ defmodule Mgp.Sync.ImportData do
         id: id,
         date: to_date(date),
         customer_id: customer_id,
-        value: to_decimal(value),
         price_level: nil?(price_level),
         from_stock: nil?(from_stock),
         cash: to_decimal(cash),
@@ -615,12 +672,9 @@ defmodule Mgp.Sync.ImportData do
 
   # INVOICE_DETAILS
   def populate_invoice_details(dbf) do
-    lmd_lmt = last_record_lmd_lmt(InvoiceDetail)
-
     rows =
       dbf
       |> parse_invoice_details_from_dbf
-      |> Enum.filter(fn x -> is_record_newer_than(x, lmd_lmt) end)
       |> Enum.chunk_every(1000)
       |> Enum.map(fn x -> populate_invoice_details_partial(x) end)
       |> Enum.reduce(0, fn x, acc -> elem(x, 0) + acc end)
@@ -715,6 +769,191 @@ defmodule Mgp.Sync.ImportData do
     |> Enum.to_list()
   end
 
+  # STOCK_RECEIPTS
+  def populate_stock_receipts(dbf, year) do
+    rows =
+      dbf
+      |> parse_stock_receipts_from_dbf
+      |> Enum.chunk_every(1000)
+      |> Enum.map(fn x -> populate_stock_receipts_partial(x) end)
+      |> Enum.reduce(0, fn x, acc -> elem(x, 0) + acc end)
+
+    {rows, nil}
+  end
+
+  def populate_stock_receipts_partial(receipts) do
+    # on_conflict update query
+    query =
+      from(
+        s in StockReceipt,
+        where: fragment("s0.lmd <> EXCLUDED.lmd OR s0.lmt <> EXCLUDED.lmt"),
+        update: [
+          set: [
+            doc_id: fragment("EXCLUDED.doc_id"),
+            sr_no: fragment("EXCLUDED.sr_no"),
+            date: fragment("EXCLUDED.date"),
+            product_id: fragment("EXCLUDED.product_id"),
+            qty: fragment("EXCLUDED.qty"),
+            batch: fragment("EXCLUDED.batch"),
+            expiry: fragment("EXCLUDED.expiry"),
+            lmu: fragment("EXCLUDED.lmu"),
+            lmd: fragment("EXCLUDED.lmd"),
+            lmt: fragment("EXCLUDED.lmt")
+          ]
+        ]
+      )
+
+    # upsert the records into actual db
+    Repo.insert_all(
+      StockReceipt,
+      receipts,
+      on_conflict: query,
+      conflict_target: {:constraint, :stock_receipts_doc_id_no_key}
+    )
+  end
+
+  def parse_stock_receipts_from_dbf(dbf) do
+    {csv, 1} = dbf_to_csv(dbf)
+    {:ok, stream} = csv |> StringIO.open()
+
+    stream
+    |> IO.binstream(:line)
+    |> MyParser.parse_stream(headers: false)
+    |> Stream.filter(fn x -> String.starts_with?(hd(x), "A") end)
+    |> Stream.map(fn x ->
+      [
+        Enum.at(x, 0),
+        Enum.at(x, 1),
+        Enum.at(x, 3),
+        Enum.at(x, 8),
+        Enum.at(x, 10),
+        Enum.at(x, 6),
+        Enum.at(x, 23),
+        Enum.at(x, 29),
+        Enum.at(x, 30),
+        Enum.at(x, 31)
+      ]
+    end)
+    |> Stream.map(fn [
+                       doc_id,
+                       date,
+                       sr_no,
+                       product_id,
+                       qty,
+                       batch,
+                       expiry,
+                       lmu,
+                       lmd,
+                       lmt
+                     ] ->
+      %{
+        doc_id: doc_id,
+        date: to_date(date),
+        sr_no: to_integer(sr_no),
+        product_id: product_id,
+        qty: to_integer(qty),
+        batch: nil?(batch),
+        expiry: to_date(expiry),
+        lmu: nil?(lmu),
+        lmd: to_date(lmd),
+        lmt: to_time(lmt)
+      }
+    end)
+    |> Enum.to_list()
+  end
+
+  # STOCK_TRANSFER
+  def populate_stock_transfers(dbf) do
+    rows =
+      dbf
+      |> parse_stock_transfers_from_dbf
+      |> Enum.chunk_every(1000)
+      |> Enum.map(fn x -> populate_stock_transfers_partial(x) end)
+      |> Enum.reduce(0, fn x, acc -> elem(x, 0) + acc end)
+
+    {rows, nil}
+  end
+
+  def populate_stock_transfers_partial(transfers) do
+    # on_conflict update query
+    query =
+      from(
+        s in StockTransfer,
+        where: fragment("s0.lmd <> EXCLUDED.lmd OR s0.lmt <> EXCLUDED.lmt"),
+        update: [
+          set: [
+            doc_id: fragment("EXCLUDED.doc_id"),
+            sr_no: fragment("EXCLUDED.sr_no"),
+            product_id: fragment("EXCLUDED.product_id"),
+            qty: fragment("EXCLUDED.qty"),
+            from_stock: fragment("EXCLUDED.from_stock"),
+            to_stock: fragment("EXCLUDED.to_stock"),
+            lmu: fragment("EXCLUDED.lmu"),
+            lmd: fragment("EXCLUDED.lmd"),
+            lmt: fragment("EXCLUDED.lmt")
+          ]
+        ]
+      )
+
+    # upsert the records into actual db
+    Repo.insert_all(
+      StockTransfer,
+      transfers,
+      on_conflict: query,
+      conflict_target: {:constraint, :stock_transfers_doc_id_no_key}
+    )
+  end
+
+  def parse_stock_transfers_from_dbf(dbf) do
+    {csv, 1} = dbf_to_csv(dbf)
+    {:ok, stream} = csv |> StringIO.open()
+
+    stream
+    |> IO.binstream(:line)
+    |> MyParser.parse_stream(headers: false)
+    |> Stream.filter(fn x -> String.starts_with?(hd(x), "B") end)
+    |> Stream.map(fn x ->
+      [
+        Enum.at(x, 0),
+        Enum.at(x, 1),
+        Enum.at(x, 3),
+        Enum.at(x, 5),
+        Enum.at(x, 8),
+        Enum.at(x, 18),
+        String.slice(Enum.at(x, 2), 5, 1),
+        Enum.at(x, 32),
+        Enum.at(x, 33),
+        Enum.at(x, 34)
+      ]
+    end)
+    |> Stream.map(fn [
+                       doc_id,
+                       date,
+                       sr_no,
+                       product_id,
+                       qty,
+                       from_stock,
+                       to_stock,
+                       lmu,
+                       lmd,
+                       lmt
+                     ] ->
+      %{
+        doc_id: doc_id,
+        date: to_date(date),
+        sr_no: to_integer(sr_no),
+        product_id: product_id,
+        qty: to_integer(qty),
+        from_stock: from_stock,
+        to_stock: to_stock,
+        lmu: nil?(lmu),
+        lmd: to_date(lmd),
+        lmt: to_time(lmt)
+      }
+    end)
+    |> Enum.to_list()
+  end
+
   # PDCS
   def populate_pdcs(dbf) do
     lmd_lmt = last_record_lmd_lmt(Pdc)
@@ -794,11 +1033,10 @@ defmodule Mgp.Sync.ImportData do
   end
 
   # POSTINGS
-  def populate_postings(dbf, lmd_lmt) do
+  def populate_postings(dbf) do
     rows =
       dbf
       |> parse_postings_from_dbf
-      |> Enum.filter(fn x -> is_record_newer_than(x, lmd_lmt) end)
       |> Enum.chunk_every(1000)
       |> Enum.map(fn x -> populate_postings_partial(x) end)
       |> Enum.reduce(0, fn x, acc -> elem(x, 0) + acc end)

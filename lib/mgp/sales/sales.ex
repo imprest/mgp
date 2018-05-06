@@ -9,15 +9,19 @@ defmodule Mgp.Sales do
   alias Mgp.Sales.Product
   alias Mgp.Sales.Price
   alias Mgp.Sales.Invoice
-  alias Mgp.Sales.OpProductStock
+  # alias Mgp.Sales.OpStock
   alias Mgp.Sales.Customer
   alias Mgp.Sales.InvoiceDetail
 
   def suggest_invoice_ids(query) do
-    q = from Invoice,
-      where: fragment("similarity(id, ?) > 0.2", ^query),
-      limit: 12,
-      select: [:id, :customer_id, :date]
+    q =
+      from(
+        Invoice,
+        where: fragment("similarity(id, ?) > 0.2", ^query),
+        limit: 12,
+        select: [:id, :customer_id, :date]
+      )
+
     Repo.all(q)
   end
 
@@ -51,7 +55,7 @@ defmodule Mgp.Sales do
   def get_product!(id) do
     Product
     |> Repo.get!(id)
-    |> Repo.preload([prices: (from p in Price, order_by: p.date)])
+    |> Repo.preload(prices: from(p in Price, order_by: p.date))
   end
 
   @doc """
@@ -117,100 +121,6 @@ defmodule Mgp.Sales do
   """
   def change_product(%Product{} = product) do
     Product.changeset(product, %{})
-  end
-
-  @doc """
-  Returns the list of op_product_stocks.
-
-  ## Examples
-
-      iex> list_op_product_stocks()
-      [%OpProductStock{}, ...]
-
-  """
-  def list_op_product_stocks do
-    Repo.all(OpProductStock)
-  end
-
-  @doc """
-  Gets a single op_product_stock.
-
-  Raises `Ecto.NoResultsError` if the Op product stock does not exist.
-
-  ## Examples
-
-      iex> get_op_product_stock!(123)
-      %OpProductStock{}
-
-      iex> get_op_product_stock!(456)
-      ** (Ecto.NoResultsError)
-
-  """
-  def get_op_product_stock!(id), do: Repo.get!(OpProductStock, id)
-
-  @doc """
-  Creates a op_product_stock.
-
-  ## Examples
-
-      iex> create_op_product_stock(%{field: value})
-      {:ok, %OpProductStock{}}
-
-      iex> create_op_product_stock(%{field: bad_value})
-      {:error, %Ecto.Changeset{}}
-
-  """
-  def create_op_product_stock(attrs \\ %{}) do
-    %OpProductStock{}
-    |> OpProductStock.changeset(attrs)
-    |> Repo.insert()
-  end
-
-  @doc """
-  Updates a op_product_stock.
-
-  ## Examples
-
-      iex> update_op_product_stock(op_product_stock, %{field: new_value})
-      {:ok, %OpProductStock{}}
-
-      iex> update_op_product_stock(op_product_stock, %{field: bad_value})
-      {:error, %Ecto.Changeset{}}
-
-  """
-  def update_op_product_stock(%OpProductStock{} = op_product_stock, attrs) do
-    op_product_stock
-    |> OpProductStock.changeset(attrs)
-    |> Repo.update()
-  end
-
-  @doc """
-  Deletes a OpProductStock.
-
-  ## Examples
-
-      iex> delete_op_product_stock(op_product_stock)
-      {:ok, %OpProductStock{}}
-
-      iex> delete_op_product_stock(op_product_stock)
-      {:error, %Ecto.Changeset{}}
-
-  """
-  def delete_op_product_stock(%OpProductStock{} = op_product_stock) do
-    Repo.delete(op_product_stock)
-  end
-
-  @doc """
-  Returns an `%Ecto.Changeset{}` for tracking op_product_stock changes.
-
-  ## Examples
-
-      iex> change_op_product_stock(op_product_stock)
-      %Ecto.Changeset{source: %OpProductStock{}}
-
-  """
-  def change_op_product_stock(%OpProductStock{} = op_product_stock) do
-    OpProductStock.changeset(op_product_stock, %{})
   end
 
   @doc """
@@ -587,5 +497,197 @@ defmodule Mgp.Sales do
   """
   def change_invoice_detail(%InvoiceDetail{} = invoice_detail) do
     InvoiceDetail.changeset(invoice_detail, %{})
+  end
+
+  alias Mgp.Sales.StockTransfer
+
+  @doc """
+  Returns the list of stock_transfers.
+
+  ## Examples
+
+      iex> list_stock_transfers()
+      [%StockTransfer{}, ...]
+
+  """
+  def list_stock_transfers do
+    Repo.all(StockTransfer)
+  end
+
+  @doc """
+  Gets a single stock_transfer.
+
+  Raises `Ecto.NoResultsError` if the Stock transfer does not exist.
+
+  ## Examples
+
+      iex> get_stock_transfer!(123)
+      %StockTransfer{}
+
+      iex> get_stock_transfer!(456)
+      ** (Ecto.NoResultsError)
+
+  """
+  def get_stock_transfer!(id), do: Repo.get!(StockTransfer, id)
+
+  @doc """
+  Creates a stock_transfer.
+
+  ## Examples
+
+      iex> create_stock_transfer(%{field: value})
+      {:ok, %StockTransfer{}}
+
+      iex> create_stock_transfer(%{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def create_stock_transfer(attrs \\ %{}) do
+    %StockTransfer{}
+    |> StockTransfer.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  @doc """
+  Updates a stock_transfer.
+
+  ## Examples
+
+      iex> update_stock_transfer(stock_transfer, %{field: new_value})
+      {:ok, %StockTransfer{}}
+
+      iex> update_stock_transfer(stock_transfer, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_stock_transfer(%StockTransfer{} = stock_transfer, attrs) do
+    stock_transfer
+    |> StockTransfer.changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Deletes a StockTransfer.
+
+  ## Examples
+
+      iex> delete_stock_transfer(stock_transfer)
+      {:ok, %StockTransfer{}}
+
+      iex> delete_stock_transfer(stock_transfer)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def delete_stock_transfer(%StockTransfer{} = stock_transfer) do
+    Repo.delete(stock_transfer)
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for tracking stock_transfer changes.
+
+  ## Examples
+
+      iex> change_stock_transfer(stock_transfer)
+      %Ecto.Changeset{source: %StockTransfer{}}
+
+  """
+  def change_stock_transfer(%StockTransfer{} = stock_transfer) do
+    StockTransfer.changeset(stock_transfer, %{})
+  end
+
+  alias Mgp.Sales.StockReceipt
+
+  @doc """
+  Returns the list of stock_receipts.
+
+  ## Examples
+
+      iex> list_stock_receipts()
+      [%StockReceipt{}, ...]
+
+  """
+  def list_stock_receipts do
+    Repo.all(StockReceipt)
+  end
+
+  @doc """
+  Gets a single stock_receipt.
+
+  Raises `Ecto.NoResultsError` if the Stock receipt does not exist.
+
+  ## Examples
+
+      iex> get_stock_receipt!(123)
+      %StockReceipt{}
+
+      iex> get_stock_receipt!(456)
+      ** (Ecto.NoResultsError)
+
+  """
+  def get_stock_receipt!(id), do: Repo.get!(StockReceipt, id)
+
+  @doc """
+  Creates a stock_receipt.
+
+  ## Examples
+
+      iex> create_stock_receipt(%{field: value})
+      {:ok, %StockReceipt{}}
+
+      iex> create_stock_receipt(%{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def create_stock_receipt(attrs \\ %{}) do
+    %StockReceipt{}
+    |> StockReceipt.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  @doc """
+  Updates a stock_receipt.
+
+  ## Examples
+
+      iex> update_stock_receipt(stock_receipt, %{field: new_value})
+      {:ok, %StockReceipt{}}
+
+      iex> update_stock_receipt(stock_receipt, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_stock_receipt(%StockReceipt{} = stock_receipt, attrs) do
+    stock_receipt
+    |> StockReceipt.changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Deletes a StockReceipt.
+
+  ## Examples
+
+      iex> delete_stock_receipt(stock_receipt)
+      {:ok, %StockReceipt{}}
+
+      iex> delete_stock_receipt(stock_receipt)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def delete_stock_receipt(%StockReceipt{} = stock_receipt) do
+    Repo.delete(stock_receipt)
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for tracking stock_receipt changes.
+
+  ## Examples
+
+      iex> change_stock_receipt(stock_receipt)
+      %Ecto.Changeset{source: %StockReceipt{}}
+
+  """
+  def change_stock_receipt(%StockReceipt{} = stock_receipt) do
+    StockReceipt.changeset(stock_receipt, %{})
   end
 end
