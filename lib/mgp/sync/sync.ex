@@ -1,5 +1,6 @@
 defmodule Mgp.Sync do
-  use Task
+  use Task, restart: :permanent
+
   require Logger
   alias Mgp.Sync.ImportData
 
@@ -7,7 +8,7 @@ defmodule Mgp.Sync do
   @remote_folder "/mnt/scl"
 
   def start_link(_arg) do
-    Task.start_link(&sync/0)
+    Task.start_link(__MODULE__, :sync, [])
   end
 
   def sync() do
@@ -15,7 +16,6 @@ defmodule Mgp.Sync do
     after
       30_000 ->
         rsync()
-        sync()
     end
   end
 
@@ -27,6 +27,7 @@ defmodule Mgp.Sync do
     years_and_dbf_files = files_to_rsync(years)
 
     years_and_dbf_files |> Enum.map(fn x -> rsync_for_year(x) end)
+    sync()
   end
 
   defp rsync_for_year(%{year: year, dbf_files: dbf_files}) do
@@ -44,8 +45,7 @@ defmodule Mgp.Sync do
 
     with {products, nil} <- populate_products(files.products_dbf, result),
          {op_stocks, nil} <- populate_stock_op_qtys(files.op_stocks_dbf, year, result),
-         {stock_receipts_dbf, nil} <-
-           populate_stock_receipts(files.stock_receipts_dbf, year, result),
+         {stock_receipts_dbf, nil} <- populate_stock_receipts(files.stock_receipts_dbf, result),
          {stock_transfers, nil} <- populate_stock_transfers(files.invoice_details_dbf, result),
          {prices, nil} <- populate_prices(files.prices_dbf, result),
          {customers, nil} <- populate_customers(files.customers_dbf, result),
@@ -108,9 +108,9 @@ defmodule Mgp.Sync do
     end
   end
 
-  defp populate_stock_receipts(file, year, result) do
+  defp populate_stock_receipts(file, result) do
     case String.contains?(result, Path.basename(file)) do
-      true -> ImportData.populate_stock_receipts(file, year)
+      true -> ImportData.populate_stock_receipts(file)
       false -> {0, nil}
     end
   end

@@ -101,7 +101,7 @@ defmodule Mgp.Sync.ImportData do
          :ok <- check_files(p),
          {products, nil} <- populate_products(files.products_dbf),
          {op_stocks, nil} <- populate_stock_op_qtys(files.op_stocks_dbf, year),
-         {stock_receipts_dbf, nil} <- populate_stock_receipts(files.stock_receipts_dbf, year),
+         {stock_receipts_dbf, nil} <- populate_stock_receipts(files.stock_receipts_dbf),
          {stock_transfers, nil} <- populate_stock_transfers(files.invoice_details_dbf),
          {prices, nil} <- populate_prices(files.prices_dbf),
          {customers, nil} <- populate_customers(files.customers_dbf),
@@ -210,58 +210,62 @@ defmodule Mgp.Sync.ImportData do
     {csv, 1} = dbf_to_csv(dbf)
     {:ok, stream} = csv |> StringIO.open()
 
-    stream
-    |> IO.binstream(:line)
-    |> MyParser.parse_stream(headers: false)
-    |> Stream.map(fn x ->
-      [
-        Enum.at(x, 1),
-        Enum.at(x, 0),
-        Enum.at(x, 2),
-        Enum.at(x, 22),
-        Enum.at(x, 23),
-        Enum.at(x, 4),
-        Enum.at(x, 5),
-        Enum.at(x, 6),
-        Enum.at(x, 47),
-        Enum.at(x, 79),
-        Enum.at(x, 95),
-        Enum.at(x, 96),
-        Enum.at(x, 97)
-      ]
-    end)
-    |> Stream.map(fn [
-                       id,
-                       group,
-                       description,
-                       tax_type,
-                       tax_tat,
-                       cash_price,
-                       credit_price,
-                       trek_price,
-                       sub_qty,
-                       spec,
-                       lmu,
-                       lmd,
-                       lmt
-                     ] ->
-      %{
-        id: id,
-        group: group,
-        description: description,
-        tax_type: tax_type,
-        tax_tat: tax_tat,
-        cash_price: to_decimal(cash_price),
-        credit_price: to_decimal(credit_price),
-        trek_price: to_decimal(trek_price),
-        sub_qty: to_integer(sub_qty),
-        spec: spec,
-        lmu: nil?(lmu),
-        lmd: to_date(lmd),
-        lmt: to_time(lmt)
-      }
-    end)
-    |> Enum.to_list()
+    records =
+      stream
+      |> IO.binstream(:line)
+      |> MyParser.parse_stream(headers: false)
+      |> Stream.map(fn x ->
+        [
+          Enum.at(x, 1),
+          Enum.at(x, 0),
+          Enum.at(x, 2),
+          Enum.at(x, 22),
+          Enum.at(x, 23),
+          Enum.at(x, 4),
+          Enum.at(x, 5),
+          Enum.at(x, 6),
+          Enum.at(x, 47),
+          Enum.at(x, 79),
+          Enum.at(x, 95),
+          Enum.at(x, 96),
+          Enum.at(x, 97)
+        ]
+      end)
+      |> Stream.map(fn [
+                         id,
+                         group,
+                         description,
+                         tax_type,
+                         tax_tat,
+                         cash_price,
+                         credit_price,
+                         trek_price,
+                         sub_qty,
+                         spec,
+                         lmu,
+                         lmd,
+                         lmt
+                       ] ->
+        %{
+          id: id,
+          group: group,
+          description: description,
+          tax_type: tax_type,
+          tax_tat: tax_tat,
+          cash_price: to_decimal(cash_price),
+          credit_price: to_decimal(credit_price),
+          trek_price: to_decimal(trek_price),
+          sub_qty: to_integer(sub_qty),
+          spec: spec,
+          lmu: nil?(lmu),
+          lmd: to_date(lmd),
+          lmt: to_time(lmt)
+        }
+      end)
+      |> Enum.to_list()
+
+    StringIO.close(stream)
+    records
   end
 
   # CUSTOMERS
@@ -305,62 +309,66 @@ defmodule Mgp.Sync.ImportData do
     {csv, 1} = dbf_to_csv(dbf)
     {:ok, stream} = csv |> StringIO.open()
 
-    stream
-    |> IO.binstream(:line)
-    |> MyParser.parse_stream(headers: false)
-    |> Stream.filter(fn x -> hd(x) == "203000" end)
-    |> Stream.map(fn x ->
-      [
-        Enum.at(x, 1),
-        Enum.at(x, 2),
-        Enum.at(x, 3),
-        Enum.at(x, 29),
-        Enum.at(x, 30),
-        Enum.at(x, 31),
-        Enum.at(x, 32),
-        Enum.at(x, 33),
-        Enum.at(x, 34),
-        Enum.at(x, 35),
-        Enum.at(x, 36),
-        Enum.at(x, 92),
-        Enum.at(x, 93),
-        Enum.at(x, 94)
-      ]
-    end)
-    |> Stream.map(fn [
-                       id,
-                       region,
-                       description,
-                       attn,
-                       add1,
-                       add2,
-                       add3,
-                       phone,
-                       is_gov,
-                       resp,
-                       email,
-                       lmu,
-                       lmd,
-                       lmt
-                     ] ->
-      %{
-        id: id,
-        region: nil?(region),
-        description: description,
-        attn: nil?(attn),
-        add1: nil?(add1),
-        add2: nil?(add2),
-        add3: nil?(add3),
-        phone: nil?(phone),
-        is_gov: nil?(is_gov),
-        resp: nil?(resp),
-        email: nil?(email),
-        lmu: nil?(lmu),
-        lmd: to_date(lmd),
-        lmt: to_time(lmt)
-      }
-    end)
-    |> Enum.to_list()
+    records =
+      stream
+      |> IO.binstream(:line)
+      |> MyParser.parse_stream(headers: false)
+      |> Stream.filter(fn x -> hd(x) == "203000" end)
+      |> Stream.map(fn x ->
+        [
+          Enum.at(x, 1),
+          Enum.at(x, 2),
+          Enum.at(x, 3),
+          Enum.at(x, 29),
+          Enum.at(x, 30),
+          Enum.at(x, 31),
+          Enum.at(x, 32),
+          Enum.at(x, 33),
+          Enum.at(x, 34),
+          Enum.at(x, 35),
+          Enum.at(x, 36),
+          Enum.at(x, 92),
+          Enum.at(x, 93),
+          Enum.at(x, 94)
+        ]
+      end)
+      |> Stream.map(fn [
+                         id,
+                         region,
+                         description,
+                         attn,
+                         add1,
+                         add2,
+                         add3,
+                         phone,
+                         is_gov,
+                         resp,
+                         email,
+                         lmu,
+                         lmd,
+                         lmt
+                       ] ->
+        %{
+          id: id,
+          region: nil?(region),
+          description: description,
+          attn: nil?(attn),
+          add1: nil?(add1),
+          add2: nil?(add2),
+          add3: nil?(add3),
+          phone: nil?(phone),
+          is_gov: nil?(is_gov),
+          resp: nil?(resp),
+          email: nil?(email),
+          lmu: nil?(lmu),
+          lmd: to_date(lmd),
+          lmt: to_time(lmt)
+        }
+      end)
+      |> Enum.to_list()
+
+    StringIO.close(stream)
+    records
   end
 
   # CUSTOMERS OPENING BALANCE
@@ -401,24 +409,28 @@ defmodule Mgp.Sync.ImportData do
     {csv, 1} = dbf_to_csv(dbf)
     {:ok, stream} = csv |> StringIO.open()
 
-    stream
-    |> IO.binstream(:line)
-    |> MyParser.parse_stream(headers: false)
-    |> Stream.filter(fn x -> hd(x) == "203000" end)
-    |> Stream.map(fn x ->
-      [Enum.at(x, 1), Enum.at(x, 4), year, Enum.at(x, 92), Enum.at(x, 93), Enum.at(x, 94)]
-    end)
-    |> Stream.map(fn [customer_id, op_bal, year, lmu, lmd, lmt] ->
-      %{
-        customer_id: customer_id,
-        op_bal: to_decimal(op_bal),
-        year: year,
-        lmu: nil?(lmu),
-        lmd: to_date(lmd),
-        lmt: to_time(lmt)
-      }
-    end)
-    |> Enum.to_list()
+    records =
+      stream
+      |> IO.binstream(:line)
+      |> MyParser.parse_stream(headers: false)
+      |> Stream.filter(fn x -> hd(x) == "203000" end)
+      |> Stream.map(fn x ->
+        [Enum.at(x, 1), Enum.at(x, 4), year, Enum.at(x, 92), Enum.at(x, 93), Enum.at(x, 94)]
+      end)
+      |> Stream.map(fn [customer_id, op_bal, year, lmu, lmd, lmt] ->
+        %{
+          customer_id: customer_id,
+          op_bal: to_decimal(op_bal),
+          year: year,
+          lmu: nil?(lmu),
+          lmd: to_date(lmd),
+          lmt: to_time(lmt)
+        }
+      end)
+      |> Enum.to_list()
+
+    StringIO.close(stream)
+    records
   end
 
   # STOCK OPENING BALANCE
@@ -456,22 +468,26 @@ defmodule Mgp.Sync.ImportData do
     {csv, 1} = dbf_to_csv(dbf)
     {:ok, stream} = csv |> StringIO.open()
 
-    stream
-    |> IO.binstream(:line)
-    |> MyParser.parse_stream(headers: false)
-    |> Stream.filter(fn x -> Enum.member?(["A", "V", "W"], hd(x)) end)
-    |> Stream.map(fn x ->
-      [Enum.at(x, 0), Enum.at(x, 2), Enum.at(x, 3), year]
-    end)
-    |> Stream.map(fn [location, product_id, op_qty, year] ->
-      %{
-        location: location,
-        product_id: product_id,
-        op_qty: to_integer(op_qty),
-        year: year
-      }
-    end)
-    |> Enum.to_list()
+    records =
+      stream
+      |> IO.binstream(:line)
+      |> MyParser.parse_stream(headers: false)
+      |> Stream.filter(fn x -> Enum.member?(["A", "V", "W"], hd(x)) end)
+      |> Stream.map(fn x ->
+        [Enum.at(x, 0), Enum.at(x, 2), Enum.at(x, 3), year]
+      end)
+      |> Stream.map(fn [location, product_id, op_qty, year] ->
+        %{
+          location: location,
+          product_id: product_id,
+          op_qty: to_integer(op_qty),
+          year: year
+        }
+      end)
+      |> Enum.to_list()
+
+    StringIO.close(stream)
+    records
   end
 
   # PRICES
@@ -523,35 +539,39 @@ defmodule Mgp.Sync.ImportData do
     product_ids = Repo.all(query)
 
     # Need to do this due to possible zombie ids
-    stream
-    |> IO.binstream(:line)
-    |> MyParser.parse_stream(headers: false)
-    |> Stream.map(fn x ->
-      [
-        Enum.at(x, 0),
-        Enum.at(x, 1),
-        Enum.at(x, 3),
-        Enum.at(x, 2),
-        Enum.at(x, 4),
-        Enum.at(x, 10),
-        Enum.at(x, 11),
-        Enum.at(x, 12)
-      ]
-    end)
-    |> Stream.filter(&Enum.member?(product_ids, hd(&1)))
-    |> Stream.map(fn [product_id, date, cash, credit, trek, lmu, lmd, lmt] ->
-      %{
-        product_id: product_id,
-        date: to_date(date),
-        cash: to_decimal(cash),
-        credit: to_decimal(credit),
-        trek: to_decimal(trek),
-        lmu: nil?(lmu),
-        lmd: to_date(lmd),
-        lmt: to_time(lmt)
-      }
-    end)
-    |> Enum.to_list()
+    records =
+      stream
+      |> IO.binstream(:line)
+      |> MyParser.parse_stream(headers: false)
+      |> Stream.map(fn x ->
+        [
+          Enum.at(x, 0),
+          Enum.at(x, 1),
+          Enum.at(x, 3),
+          Enum.at(x, 2),
+          Enum.at(x, 4),
+          Enum.at(x, 10),
+          Enum.at(x, 11),
+          Enum.at(x, 12)
+        ]
+      end)
+      |> Stream.filter(&Enum.member?(product_ids, hd(&1)))
+      |> Stream.map(fn [product_id, date, cash, credit, trek, lmu, lmd, lmt] ->
+        %{
+          product_id: product_id,
+          date: to_date(date),
+          cash: to_decimal(cash),
+          credit: to_decimal(credit),
+          trek: to_decimal(trek),
+          lmu: nil?(lmu),
+          lmd: to_date(lmd),
+          lmt: to_time(lmt)
+        }
+      end)
+      |> Enum.to_list()
+
+    StringIO.close(stream)
+    records
   end
 
   # INVOICES
@@ -608,62 +628,66 @@ defmodule Mgp.Sync.ImportData do
     {csv, 1} = dbf_to_csv(dbf)
     {:ok, stream} = csv |> StringIO.open()
 
-    stream
-    |> IO.binstream(:line)
-    |> MyParser.parse_stream(headers: false)
-    |> Stream.filter(fn x -> hd(x) != "B" end)
-    |> Stream.map(fn x ->
-      [
-        to_invoice_id(Enum.at(x, 0), Enum.at(x, 1)),
-        Enum.at(x, 2),
-        Enum.at(x, 3),
-        Enum.at(x, 23),
-        Enum.at(x, 25),
-        Enum.at(x, 38),
-        Enum.at(x, 39),
-        Enum.at(x, 40),
-        Enum.at(x, 42),
-        Enum.at(x, 43),
-        Enum.at(x, 44),
-        Enum.at(x, 52),
-        Enum.at(x, 53),
-        Enum.at(x, 54)
-      ]
-    end)
-    |> Stream.map(fn [
-                       id,
-                       date,
-                       customer_id,
-                       price_level,
-                       from_stock,
-                       cash,
-                       cheque,
-                       credit,
-                       detail1,
-                       detail2,
-                       detail3,
-                       lmu,
-                       lmd,
-                       lmt
-                     ] ->
-      %{
-        id: id,
-        date: to_date(date),
-        customer_id: customer_id,
-        price_level: nil?(price_level),
-        from_stock: nil?(from_stock),
-        cash: to_decimal(cash),
-        cheque: to_decimal(cheque),
-        credit: to_decimal(credit),
-        detail1: nil?(detail1),
-        detail2: nil?(clean_string(detail2)),
-        detail3: nil?(detail3),
-        lmu: nil?(lmu),
-        lmd: to_date(lmd),
-        lmt: to_time(lmt)
-      }
-    end)
-    |> Enum.to_list()
+    records =
+      stream
+      |> IO.binstream(:line)
+      |> MyParser.parse_stream(headers: false)
+      |> Stream.filter(fn x -> hd(x) != "B" end)
+      |> Stream.map(fn x ->
+        [
+          to_invoice_id(Enum.at(x, 0), Enum.at(x, 1)),
+          Enum.at(x, 2),
+          Enum.at(x, 3),
+          Enum.at(x, 23),
+          Enum.at(x, 25),
+          Enum.at(x, 38),
+          Enum.at(x, 39),
+          Enum.at(x, 40),
+          Enum.at(x, 42),
+          Enum.at(x, 43),
+          Enum.at(x, 44),
+          Enum.at(x, 52),
+          Enum.at(x, 53),
+          Enum.at(x, 54)
+        ]
+      end)
+      |> Stream.map(fn [
+                         id,
+                         date,
+                         customer_id,
+                         price_level,
+                         from_stock,
+                         cash,
+                         cheque,
+                         credit,
+                         detail1,
+                         detail2,
+                         detail3,
+                         lmu,
+                         lmd,
+                         lmt
+                       ] ->
+        %{
+          id: id,
+          date: to_date(date),
+          customer_id: customer_id,
+          price_level: nil?(price_level),
+          from_stock: nil?(from_stock),
+          cash: to_decimal(cash),
+          cheque: to_decimal(cheque),
+          credit: to_decimal(credit),
+          detail1: nil?(detail1),
+          detail2: nil?(clean_string(detail2)),
+          detail3: nil?(detail3),
+          lmu: nil?(lmu),
+          lmd: to_date(lmd),
+          lmt: to_time(lmt)
+        }
+      end)
+      |> Enum.to_list()
+
+    StringIO.close(stream)
+    records
   end
 
   def to_invoice_id(code, num) do
@@ -717,60 +741,64 @@ defmodule Mgp.Sync.ImportData do
     {csv, 1} = dbf_to_csv(dbf)
     {:ok, stream} = csv |> StringIO.open()
 
-    stream
-    |> IO.binstream(:line)
-    |> MyParser.parse_stream(headers: false)
-    |> Stream.filter(fn x -> !String.starts_with?(hd(x), "B") end)
-    |> Stream.map(fn x ->
-      [
-        Enum.at(x, 0),
-        Enum.at(x, 3),
-        Enum.at(x, 5),
-        Enum.at(x, 6),
-        Enum.at(x, 24),
-        Enum.at(x, 8),
-        Enum.at(x, 11),
-        Enum.at(x, 13),
-        Enum.at(x, 15),
-        Enum.at(x, 32),
-        Enum.at(x, 33),
-        Enum.at(x, 34)
-      ]
-    end)
-    |> Stream.map(fn [
-                       invoice_id,
-                       sr_no,
-                       product_id,
-                       description,
-                       sub_qty,
-                       qty,
-                       rate,
-                       total,
-                       tax_rate,
-                       lmu,
-                       lmd,
-                       lmt
-                     ] ->
-      %{
-        invoice_id: invoice_id,
-        sr_no: to_integer(sr_no),
-        product_id: product_id,
-        description: description,
-        sub_qty: to_integer(sub_qty),
-        qty: to_integer(qty),
-        rate: to_decimal(rate),
-        total: to_decimal(total),
-        tax_rate: tax_rate,
-        lmu: nil?(lmu),
-        lmd: to_date(lmd),
-        lmt: to_time(lmt)
-      }
-    end)
-    |> Enum.to_list()
+    records =
+      stream
+      |> IO.binstream(:line)
+      |> MyParser.parse_stream(headers: false)
+      |> Stream.filter(fn x -> !String.starts_with?(hd(x), "B") end)
+      |> Stream.map(fn x ->
+        [
+          Enum.at(x, 0),
+          Enum.at(x, 3),
+          Enum.at(x, 5),
+          Enum.at(x, 6),
+          Enum.at(x, 24),
+          Enum.at(x, 8),
+          Enum.at(x, 11),
+          Enum.at(x, 13),
+          Enum.at(x, 15),
+          Enum.at(x, 32),
+          Enum.at(x, 33),
+          Enum.at(x, 34)
+        ]
+      end)
+      |> Stream.map(fn [
+                         invoice_id,
+                         sr_no,
+                         product_id,
+                         description,
+                         sub_qty,
+                         qty,
+                         rate,
+                         total,
+                         tax_rate,
+                         lmu,
+                         lmd,
+                         lmt
+                       ] ->
+        %{
+          invoice_id: invoice_id,
+          sr_no: to_integer(sr_no),
+          product_id: product_id,
+          description: description,
+          sub_qty: to_integer(sub_qty),
+          qty: to_integer(qty),
+          rate: to_decimal(rate),
+          total: to_decimal(total),
+          tax_rate: tax_rate,
+          lmu: nil?(lmu),
+          lmd: to_date(lmd),
+          lmt: to_time(lmt)
+        }
+      end)
+      |> Enum.to_list()
+
+    StringIO.close(stream)
+    records
   end
 
   # STOCK_RECEIPTS
-  def populate_stock_receipts(dbf, year) do
+  def populate_stock_receipts(dbf) do
     rows =
       dbf
       |> parse_stock_receipts_from_dbf
@@ -816,50 +844,54 @@ defmodule Mgp.Sync.ImportData do
     {csv, 1} = dbf_to_csv(dbf)
     {:ok, stream} = csv |> StringIO.open()
 
-    stream
-    |> IO.binstream(:line)
-    |> MyParser.parse_stream(headers: false)
-    |> Stream.filter(fn x -> String.starts_with?(hd(x), "A") end)
-    |> Stream.map(fn x ->
-      [
-        Enum.at(x, 0),
-        Enum.at(x, 1),
-        Enum.at(x, 3),
-        Enum.at(x, 8),
-        Enum.at(x, 10),
-        Enum.at(x, 6),
-        Enum.at(x, 23),
-        Enum.at(x, 29),
-        Enum.at(x, 30),
-        Enum.at(x, 31)
-      ]
-    end)
-    |> Stream.map(fn [
-                       doc_id,
-                       date,
-                       sr_no,
-                       product_id,
-                       qty,
-                       batch,
-                       expiry,
-                       lmu,
-                       lmd,
-                       lmt
-                     ] ->
-      %{
-        doc_id: doc_id,
-        date: to_date(date),
-        sr_no: to_integer(sr_no),
-        product_id: product_id,
-        qty: to_integer(qty),
-        batch: nil?(batch),
-        expiry: to_date(expiry),
-        lmu: nil?(lmu),
-        lmd: to_date(lmd),
-        lmt: to_time(lmt)
-      }
-    end)
-    |> Enum.to_list()
+    records =
+      stream
+      |> IO.binstream(:line)
+      |> MyParser.parse_stream(headers: false)
+      |> Stream.filter(fn x -> String.starts_with?(hd(x), "A") end)
+      |> Stream.map(fn x ->
+        [
+          Enum.at(x, 0),
+          Enum.at(x, 1),
+          Enum.at(x, 3),
+          Enum.at(x, 8),
+          Enum.at(x, 10),
+          Enum.at(x, 6),
+          Enum.at(x, 23),
+          Enum.at(x, 29),
+          Enum.at(x, 30),
+          Enum.at(x, 31)
+        ]
+      end)
+      |> Stream.map(fn [
+                         doc_id,
+                         date,
+                         sr_no,
+                         product_id,
+                         qty,
+                         batch,
+                         expiry,
+                         lmu,
+                         lmd,
+                         lmt
+                       ] ->
+        %{
+          doc_id: doc_id,
+          date: to_date(date),
+          sr_no: to_integer(sr_no),
+          product_id: product_id,
+          qty: to_integer(qty),
+          batch: nil?(batch),
+          expiry: to_date(expiry),
+          lmu: nil?(lmu),
+          lmd: to_date(lmd),
+          lmt: to_time(lmt)
+        }
+      end)
+      |> Enum.to_list()
+
+    StringIO.close(stream)
+    records
   end
 
   # STOCK_TRANSFER
@@ -908,50 +940,54 @@ defmodule Mgp.Sync.ImportData do
     {csv, 1} = dbf_to_csv(dbf)
     {:ok, stream} = csv |> StringIO.open()
 
-    stream
-    |> IO.binstream(:line)
-    |> MyParser.parse_stream(headers: false)
-    |> Stream.filter(fn x -> String.starts_with?(hd(x), "B") end)
-    |> Stream.map(fn x ->
-      [
-        Enum.at(x, 0),
-        Enum.at(x, 1),
-        Enum.at(x, 3),
-        Enum.at(x, 5),
-        Enum.at(x, 8),
-        Enum.at(x, 18),
-        String.slice(Enum.at(x, 2), 5, 1),
-        Enum.at(x, 32),
-        Enum.at(x, 33),
-        Enum.at(x, 34)
-      ]
-    end)
-    |> Stream.map(fn [
-                       doc_id,
-                       date,
-                       sr_no,
-                       product_id,
-                       qty,
-                       from_stock,
-                       to_stock,
-                       lmu,
-                       lmd,
-                       lmt
-                     ] ->
-      %{
-        doc_id: doc_id,
-        date: to_date(date),
-        sr_no: to_integer(sr_no),
-        product_id: product_id,
-        qty: to_integer(qty),
-        from_stock: from_stock,
-        to_stock: to_stock,
-        lmu: nil?(lmu),
-        lmd: to_date(lmd),
-        lmt: to_time(lmt)
-      }
-    end)
-    |> Enum.to_list()
+    records =
+      stream
+      |> IO.binstream(:line)
+      |> MyParser.parse_stream(headers: false)
+      |> Stream.filter(fn x -> String.starts_with?(hd(x), "B") end)
+      |> Stream.map(fn x ->
+        [
+          Enum.at(x, 0),
+          Enum.at(x, 1),
+          Enum.at(x, 3),
+          Enum.at(x, 5),
+          Enum.at(x, 8),
+          Enum.at(x, 18),
+          String.slice(Enum.at(x, 2), 5, 1),
+          Enum.at(x, 32),
+          Enum.at(x, 33),
+          Enum.at(x, 34)
+        ]
+      end)
+      |> Stream.map(fn [
+                         doc_id,
+                         date,
+                         sr_no,
+                         product_id,
+                         qty,
+                         from_stock,
+                         to_stock,
+                         lmu,
+                         lmd,
+                         lmt
+                       ] ->
+        %{
+          doc_id: doc_id,
+          date: to_date(date),
+          sr_no: to_integer(sr_no),
+          product_id: product_id,
+          qty: to_integer(qty),
+          from_stock: from_stock,
+          to_stock: to_stock,
+          lmu: nil?(lmu),
+          lmd: to_date(lmd),
+          lmt: to_time(lmt)
+        }
+      end)
+      |> Enum.to_list()
+
+    StringIO.close(stream)
+    records
   end
 
   # PDCS
@@ -1000,36 +1036,40 @@ defmodule Mgp.Sync.ImportData do
     customer_ids = Repo.all(query)
 
     # Need to do this due to possible zombie ids
-    stream
-    |> IO.binstream(:line)
-    |> MyParser.parse_stream(headers: false)
-    |> Stream.filter(fn x -> Enum.at(x, 4) == "203000" end)
-    |> Stream.map(fn x ->
-      [
-        Enum.at(x, 0) <> Enum.at(x, 1),
-        Enum.at(x, 2),
-        Enum.at(x, 5),
-        Enum.at(x, 6),
-        Enum.at(x, 3),
-        Enum.at(x, 13),
-        Enum.at(x, 14),
-        Enum.at(x, 15)
-      ]
-    end)
-    |> Stream.filter(fn x -> Enum.member?(customer_ids, Enum.at(x, 2)) end)
-    |> Stream.map(fn [id, date, customer_id, amount, cheque, lmu, lmd, lmt] ->
-      %{
-        id: id,
-        date: to_date(date),
-        customer_id: customer_id,
-        amount: to_decimal(amount),
-        cheque: clean_string(cheque),
-        lmu: nil?(lmu),
-        lmd: to_date(lmd),
-        lmt: to_time(lmt)
-      }
-    end)
-    |> Enum.to_list()
+    records =
+      stream
+      |> IO.binstream(:line)
+      |> MyParser.parse_stream(headers: false)
+      |> Stream.filter(fn x -> Enum.at(x, 4) == "203000" end)
+      |> Stream.map(fn x ->
+        [
+          Enum.at(x, 0) <> Enum.at(x, 1),
+          Enum.at(x, 2),
+          Enum.at(x, 5),
+          Enum.at(x, 6),
+          Enum.at(x, 3),
+          Enum.at(x, 13),
+          Enum.at(x, 14),
+          Enum.at(x, 15)
+        ]
+      end)
+      |> Stream.filter(fn x -> Enum.member?(customer_ids, Enum.at(x, 2)) end)
+      |> Stream.map(fn [id, date, customer_id, amount, cheque, lmu, lmd, lmt] ->
+        %{
+          id: id,
+          date: to_date(date),
+          customer_id: customer_id,
+          amount: to_decimal(amount),
+          cheque: clean_string(cheque),
+          lmu: nil?(lmu),
+          lmd: to_date(lmd),
+          lmt: to_time(lmt)
+        }
+      end)
+      |> Enum.to_list()
+
+    StringIO.close(stream)
+    records
   end
 
   # POSTINGS
@@ -1071,77 +1111,81 @@ defmodule Mgp.Sync.ImportData do
     {csv, 1} = dbf_to_csv(dbf)
     {:ok, stream} = csv |> StringIO.open()
 
-    stream
-    |> IO.binstream(:line)
-    |> Stream.map(fn x -> clean_line(x) end)
-    |> MyParser.parse_stream(headers: false)
-    |> Stream.filter(fn x -> Enum.at(x, 6) == "203000" end)
-    |> Stream.map(fn x ->
-      case {Enum.at(x, 9), Enum.at(x, 10)} do
-        {"D", ""} ->
-          [
-            posting_id(
+    records =
+      stream
+      |> IO.binstream(:line)
+      |> Stream.map(fn x -> clean_line(x) end)
+      |> MyParser.parse_stream(headers: false)
+      |> Stream.filter(fn x -> Enum.at(x, 6) == "203000" end)
+      |> Stream.map(fn x ->
+        case {Enum.at(x, 9), Enum.at(x, 10)} do
+          {"D", ""} ->
+            [
+              posting_id(
+                Enum.at(x, 5),
+                Enum.at(x, 0),
+                Enum.at(x, 1),
+                Enum.at(x, 3),
+                Enum.at(x, 2),
+                Enum.at(x, 4)
+              ),
               Enum.at(x, 5),
-              Enum.at(x, 0),
-              Enum.at(x, 1),
-              Enum.at(x, 3),
-              Enum.at(x, 2),
-              Enum.at(x, 4)
-            ),
-            Enum.at(x, 5),
-            Enum.at(x, 7),
-            Enum.at(x, 28),
-            Enum.at(x, 11),
-            Enum.at(x, 54),
-            Enum.at(x, 55),
-            Enum.at(x, 56)
-          ]
+              Enum.at(x, 7),
+              Enum.at(x, 28),
+              Enum.at(x, 11),
+              Enum.at(x, 54),
+              Enum.at(x, 55),
+              Enum.at(x, 56)
+            ]
 
-        {"D", _} ->
-          [
-            Enum.at(x, 10),
-            Enum.at(x, 5),
-            Enum.at(x, 7),
-            String.slice(Enum.at(x, 10), 4..14),
-            Enum.at(x, 11),
-            Enum.at(x, 54),
-            Enum.at(x, 55),
-            Enum.at(x, 56)
-          ]
-
-        _ ->
-          [
-            posting_id(
+          {"D", _} ->
+            [
+              Enum.at(x, 10),
               Enum.at(x, 5),
-              Enum.at(x, 0),
-              Enum.at(x, 1),
-              Enum.at(x, 3),
-              Enum.at(x, 2),
-              Enum.at(x, 4)
-            ),
-            Enum.at(x, 5),
-            Enum.at(x, 7),
-            Enum.at(x, 28),
-            "-" <> Enum.at(x, 11),
-            Enum.at(x, 54),
-            Enum.at(x, 55),
-            Enum.at(x, 56)
-          ]
-      end
-    end)
-    |> Stream.map(fn [id, date, customer_id, description, amount, lmu, lmd, lmt] ->
-      %{
-        id: id,
-        date: to_date(date),
-        customer_id: customer_id,
-        description: description,
-        amount: to_decimal(amount),
-        lmu: nil?(lmu),
-        lmd: to_date(lmd),
-        lmt: to_time(lmt)
-      }
-    end)
-    |> Enum.to_list()
+              Enum.at(x, 7),
+              String.slice(Enum.at(x, 10), 4..14),
+              Enum.at(x, 11),
+              Enum.at(x, 54),
+              Enum.at(x, 55),
+              Enum.at(x, 56)
+            ]
+
+          _ ->
+            [
+              posting_id(
+                Enum.at(x, 5),
+                Enum.at(x, 0),
+                Enum.at(x, 1),
+                Enum.at(x, 3),
+                Enum.at(x, 2),
+                Enum.at(x, 4)
+              ),
+              Enum.at(x, 5),
+              Enum.at(x, 7),
+              Enum.at(x, 28),
+              "-" <> Enum.at(x, 11),
+              Enum.at(x, 54),
+              Enum.at(x, 55),
+              Enum.at(x, 56)
+            ]
+        end
+      end)
+      |> Stream.map(fn [id, date, customer_id, description, amount, lmu, lmd, lmt] ->
+        %{
+          id: id,
+          date: to_date(date),
+          customer_id: customer_id,
+          description: description,
+          amount: to_decimal(amount),
+          lmu: nil?(lmu),
+          lmd: to_date(lmd),
+          lmt: to_time(lmt)
+        }
+      end)
+      |> Enum.to_list()
+
+    StringIO.close(stream)
+    records
   end
 
   def clean_line(line) do
