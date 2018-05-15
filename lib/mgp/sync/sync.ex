@@ -15,7 +15,8 @@ defmodule Mgp.Sync do
     receive do
     after
       30_000 ->
-        rsync()
+        nil
+        # rsync()
     end
   end
 

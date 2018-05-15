@@ -16,8 +16,10 @@ defmodule MgpWeb.ProductView do
   end
 
   def render("product.json", %{product: product}) do
-    %{id: product.id,
+    %{
+      id: product.id,
       group: product.group,
+      spec: product.spec,
       description: product.description,
       tax_type: product.tax_type,
       tax_tat: product.tax_tat,
@@ -31,8 +33,10 @@ defmodule MgpWeb.ProductView do
   end
 
   def render("product_details.json", %{product: product}) do
-    %{id: product.id,
+    %{
+      id: product.id,
       group: product.group,
+      spec: product.spec,
       description: product.description,
       tax_type: product.tax_type,
       tax_tat: product.tax_tat,

@@ -18,7 +18,16 @@ defmodule Mgp.Accounts do
 
   """
   def list_pdcs do
-    Repo.all(Pdc)
+    today = Date.utc_today()
+
+    q =
+      from(
+        p in Pdc,
+        where: fragment("?::date", p.date) >= ^today,
+        order_by: [desc: p.date]
+      )
+
+    Repo.all(q)
   end
 
   @doc """

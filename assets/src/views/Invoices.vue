@@ -1,11 +1,12 @@
 <template>
-  <div class="layout-padding">
-    <div><h5>Invoice Search</h5></div>
-
-    <section>
-      <p class="content"><b>Selected:</b> {{ selected }}</p>
-      <b-field label="Find an Invoice">
+  <div class="container">
+    <section class="section">
+      <b-field>
+        <p class="control">
+          <button class="button is-static">Search for Invoice: </button>
+        </p>
         <b-autocomplete
+          expanded
           v-model="search"
           :data="data"
           placeholder="e.g. 95632"
@@ -14,7 +15,7 @@
           :max-results=12
           :maxlength="10"
           @input="suggestInvoiceIds"
-          @select="option => selected = option">
+          @select="option => fetchSelectedInvoice(option.id)">
           <template slot-scope="props">
             <div class="media">
               <div class="media-left">
@@ -33,17 +34,22 @@
           <template slot="empty">No results found</template>
         </b-autocomplete>
       </b-field>
-    </section>
 
+      <Invoice></Invoice>
+    </section>
   </div>
 
 </template>
 
 <script>
 import { mapState } from 'vuex'
+import Invoice from '@/components/Invoice.vue'
 
 export default {
   name: 'invoices',
+  components: {
+    Invoice
+  },
   computed: {
     ...mapState({
       invoiceIds: state => state.suggestedInvoiceIds
@@ -62,6 +68,9 @@ export default {
       this.data = []
       this.isFetching = true
       this.$store.dispatch('suggestInvoiceIds', this.search)
+    },
+    fetchSelectedInvoice(invoice_id) {
+      this.$store.dispatch('GET_INVOICE', invoice_id)
     }
   },
   data () {

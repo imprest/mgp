@@ -42,6 +42,7 @@ defmodule Mgp.Mixfile do
       {:phoenix_live_reload, "~> 1.0", only: :dev},
       {:gettext, "~> 0.15"},
       {:cowboy, "~> 1.0"},
+      {:distillery, "~> 1.5", runtime: false},
       {:nimble_csv, "~> 0.4.0"}
     ]
   end

@@ -11,12 +11,15 @@ defmodule MgpWeb.PdcView do
   end
 
   def render("pdc.json", %{pdc: pdc}) do
-    %{id: pdc.id,
+    %{
+      id: pdc.id,
       date: pdc.date,
       cheque: pdc.cheque,
+      customer_id: pdc.customer_id,
       amount: pdc.amount,
       lmu: pdc.lmu,
       lmd: pdc.lmd,
-      lmt: pdc.lmt}
+      lmt: pdc.lmt
+    }
   end
 end
