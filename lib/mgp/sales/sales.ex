@@ -17,7 +17,7 @@ defmodule Mgp.Sales do
     q =
       from(
         Invoice,
-        where: fragment("similarity(id, ?) > 0.2", ^query),
+        order_by: fragment("? <<-> id", ^query),
         limit: 12,
         select: [:id, :customer_id, :date]
       )
@@ -338,7 +338,11 @@ defmodule Mgp.Sales do
       ** (Ecto.NoResultsError)
 
   """
-  def get_invoice!(id), do: Repo.get!(Invoice, id)
+  def get_invoice!(id) do
+    Repo.get!(Invoice, id)
+    |> Repo.preload(customer: from(c in Customer))
+    |> Repo.preload(invoice_details: from(d in InvoiceDetail, order_by: d.sr_no))
+  end
 
   @doc """
   Creates a invoice.

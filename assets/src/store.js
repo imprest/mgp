@@ -25,19 +25,27 @@ const store = new Vuex.Store({
   state: {
     username: '',
     id: '',
+    customers: [],
     products: [],
     product: null,
+    postings: [],
     pdcs: [],
-    invoice: {},
+    invoice: null,
     suggestedInvoiceIds: [],
     authenticated: false
   },
   mutations: {
+    SET_CUSTOMERS (state, { customers }) {
+      state.customers = customers
+    },
     SET_PRODUCTS (state, { products }) {
       state.products = products
     },
     SET_PRODUCT (state, { product }) {
       state.product = product
+    },
+    SET_POSTINGS (state, { postings }) {
+      state.postings = postings
     },
     SET_INVOICE (state, { invoice }) {
       state.invoice = invoice
@@ -66,6 +74,10 @@ const store = new Vuex.Store({
     }
   },
   actions: {
+    async GET_CUSTOMERS ({ commit }) {
+      const { data } = await api.get('/customers')
+      commit('SET_CUSTOMERS', { customers: data.data })
+    },
     async GET_PRODUCTS ({ commit }) {
       const { data } = await api.get('/products')
       commit('SET_PRODUCTS', { products: data.data })
@@ -74,6 +86,11 @@ const store = new Vuex.Store({
       const url = '/products/' + encodeURIComponent(product_id)
       const { data } = await api.get(url)
       commit('SET_PRODUCT', { product: data.data })
+    },
+    async GET_POSTINGS ({ commit }, payload) {
+      const url = '/postings?year=' + payload.year + '&customer_id=' + encodeURIComponent(payload.customer_id)
+      const { data } = await api.get(url)
+      commit('SET_POSTINGS', { postings: data.data })
     },
     async GET_INVOICE ({ commit }, invoice_id) {
       const url = '/invoices/' + encodeURIComponent(invoice_id)

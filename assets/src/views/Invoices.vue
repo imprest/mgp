@@ -1,6 +1,6 @@
 <template>
-  <div class="container">
-    <section class="section">
+  <section class="section">
+    <div class="container">
       <b-field>
         <p class="control">
           <button class="button is-static">Search for Invoice: </button>
@@ -34,11 +34,10 @@
           <template slot="empty">No results found</template>
         </b-autocomplete>
       </b-field>
+    </div>
 
-      <Invoice></Invoice>
-    </section>
-  </div>
-
+    <Invoice></Invoice>
+  </section>
 </template>
 
 <script>

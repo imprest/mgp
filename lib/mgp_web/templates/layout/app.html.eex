@@ -18,6 +18,7 @@
     <noscript>
       <strong>We're sorry but mgp doesn't work properly without JavaScript enabled. Please enable it to continue.</strong>
     </noscript>
+
     <%= render @view_module, @view_template, assigns %>
 
     <%= if Mix.env == :prod  do %>

@@ -25,6 +25,7 @@
           </div>
 
           <div class="navbar-end">
+            <a class="navbar-item" @click="logout">Logout</a>
           </div>
         </div>
 
@@ -34,7 +35,25 @@
     <router-view/>
   </div>
 </template>
+<script>
+import axios from 'axios'
 
+export default {
+  methods: {
+    logout() {
+      axios.delete('/api/sessions/2', {
+        method: 'delete',
+        withCredentials: false
+      })
+      .then(function (response) {
+        console.log(response);
+        window.location.replace('/');
+      })
+      .catch(function (error) { console.log(error); })
+    }
+  }
+}
+</script>
 <style lang="scss">
 // Import MDI fonts
 @import "~@mdi/font/scss/variables";
@@ -74,6 +93,7 @@ $mdi_font_path: "~@mdi/font/fonts/";
 section.section {
   padding-top: 1rem;
 }
+
 // Set your colors
 $primary: #8c67ef;
 $primary-invert: findColorInvert($primary);

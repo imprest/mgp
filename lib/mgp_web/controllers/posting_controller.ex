@@ -4,10 +4,11 @@ defmodule MgpWeb.PostingController do
   alias Mgp.Accounts
   alias Mgp.Accounts.Posting
 
-  action_fallback MgpWeb.FallbackController
+  action_fallback(MgpWeb.FallbackController)
 
-  def index(conn, _params) do
-    postings = Accounts.list_postings()
+  def index(conn, %{"customer_id" => customer_id, "year" => year}) do
+    year = String.to_integer(year)
+    postings = Accounts.customer_account_for_fin_year(customer_id, year)
     render(conn, "index.json", postings: postings)
   end
 
@@ -35,6 +36,7 @@ defmodule MgpWeb.PostingController do
 
   def delete(conn, %{"id" => id}) do
     posting = Accounts.get_posting!(id)
+
     with {:ok, %Posting{}} <- Accounts.delete_posting(posting) do
       send_resp(conn, :no_content, "")
     end

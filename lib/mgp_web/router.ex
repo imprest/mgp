@@ -7,15 +7,28 @@ defmodule MgpWeb.Router do
     plug(:fetch_flash)
     plug(:protect_from_forgery)
     plug(:put_secure_browser_headers)
+    plug(:assign_current_user)
   end
 
   pipeline :api do
     plug(:accepts, ["json"])
+    plug(:fetch_session)
+    plug(:fetch_flash)
+    plug(:assign_current_user)
+  end
+
+  pipeline :api_auth do
+    plug(:ensure_authenticated)
+  end
+
+  scope "/api", MgpWeb do
+    pipe_through(:api)
+    resources("/sessions", SessionController, only: [:delete])
   end
 
   # Other scopes may use custom stacks.
   scope "/api", MgpWeb do
-    pipe_through(:api)
+    pipe_through([:api, :api_auth])
 
     resources("/products", ProductController, except: [:new, :edit])
     resources("/customers", CustomerController, except: [:new, :edit])
@@ -25,13 +38,40 @@ defmodule MgpWeb.Router do
     resources("/op_balances", OpBalanceController, except: [:new, :edit])
     resources("/postings", PostingController, except: [:new, :edit])
     resources("/pdcs", PdcController, except: [:new, :edit])
+    resources("/users", UserController, except: [:new, :edit])
   end
 
   scope "/", MgpWeb do
     # Use the default browser stack
     pipe_through(:browser)
 
+    # get("/logout", SessionController, only: [:logout])
+    resources("/sessions", SessionController, only: [:new, :create])
+  end
+
+  scope "/", MgpWeb do
+    # Use the default browser stack
+    pipe_through([:browser, :api_auth])
     get("/", PageController, :index)
+    get("/favicon.ico", PageController, :index)
     get("/*path", PageController, :js)
+  end
+
+  # Plug function
+  defp assign_current_user(conn, _opts) do
+    user_id = get_session(conn, :user_id)
+    user = user_id && Mgp.Accounts.get_user(user_id)
+    assign(conn, :current_user, user)
+  end
+
+  defp ensure_authenticated(conn, _opts) do
+    if conn.assigns.current_user do
+      conn
+    else
+      conn
+      |> put_flash(:error, "You must login first!!")
+      |> redirect(to: MgpWeb.Router.Helpers.session_path(conn, :new))
+      |> halt()
+    end
   end
 end

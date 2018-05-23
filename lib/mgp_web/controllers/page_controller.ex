@@ -5,6 +5,12 @@ defmodule MgpWeb.PageController do
     render(conn, "index.html")
   end
 
+  def logout(conn, _params) do
+    conn
+    |> configure_session(drop: true)
+    |> render("index.html")
+  end
+
   def js(conn, %{"path" => [path]}) do
     case String.contains?(path, "js") do
       true ->

@@ -373,11 +373,7 @@ defmodule Mgp.Sync.ImportData do
 
   # CUSTOMERS OPENING BALANCE
   def populate_customer_op_bals(dbf, year) do
-    lmd_lmt = last_record_lmd_lmt(OpBalance)
-
-    op_bals =
-      parse_customer_op_bal_from_dbf(dbf, year)
-      |> Enum.filter(fn x -> is_record_newer_than(x, lmd_lmt) end)
+    op_bals = parse_customer_op_bal_from_dbf(dbf, year)
 
     # on_conflict update query
     query =

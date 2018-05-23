@@ -1,6 +1,8 @@
 defmodule MgpWeb.InvoiceView do
   use MgpWeb, :view
   alias MgpWeb.InvoiceView
+  alias MgpWeb.CustomerView
+  alias MgpWeb.InvoiceDetailView
 
   def render("index.json", %{invoices: invoices}) do
     %{data: render_many(invoices, InvoiceView, "invoice.json")}
@@ -24,7 +26,10 @@ defmodule MgpWeb.InvoiceView do
       detail3: invoice.detail3,
       lmu: invoice.lmu,
       lmd: invoice.lmd,
-      lmt: invoice.lmt
+      lmt: invoice.lmt,
+      customer: render_one(invoice.customer, CustomerView, "customer.json"),
+      invoice_details:
+        render_many(invoice.invoice_details, InvoiceDetailView, "invoice_detail.json")
     }
   end
 end

@@ -20,7 +20,7 @@ defmodule Mgp.Mixfile do
   def application do
     [
       mod: {Mgp.Application, []},
-      extra_applications: [:logger, :runtime_tools]
+      extra_applications: [:logger, :runtime_tools, :comeonin]
     ]
   end
 
@@ -43,7 +43,9 @@ defmodule Mgp.Mixfile do
       {:gettext, "~> 0.15"},
       {:cowboy, "~> 1.0"},
       {:distillery, "~> 1.5", runtime: false},
-      {:nimble_csv, "~> 0.4.0"}
+      {:nimble_csv, "~> 0.4.0"},
+      {:comeonin, "~> 4.0"},
+      {:argon2_elixir, "~> 1.2"}
     ]
   end
 

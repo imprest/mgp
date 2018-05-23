@@ -12,10 +12,12 @@
 
 alias Mgp.Repo
 
-#Mgp.Repo.insert!(%TaxRate{id: "NTX", description: "NO TAX", rate: Decimal.new(0)});
-#Mgp.Repo.insert!(%TaxRate{id: "VEX", description: "VAT EXEMPTED", rate: Decimal.new(0)});
-#Mgp.Repo.insert!(%TaxRate{id: "V15", description: "15% VAT", rate: Decimal.new("15.00")});
-#Mgp.Repo.insert!(%TaxRate{id: "V17", description: "17.5% VAT", rate: Decimal.new("17.50")});
+Mgp.Accounts.create_user(%{username: "hvaria", password: "admin", is_admin: true, role: "manager"})
+
+# Mgp.Repo.insert!(%TaxRate{id: "NTX", description: "NO TAX", rate: Decimal.new(0)});
+# Mgp.Repo.insert!(%TaxRate{id: "VEX", description: "VAT EXEMPTED", rate: Decimal.new(0)});
+# Mgp.Repo.insert!(%TaxRate{id: "V15", description: "15% VAT", rate: Decimal.new("15.00")});
+# Mgp.Repo.insert!(%TaxRate{id: "V17", description: "17.5% VAT", rate: Decimal.new("17.50")});
 
 # Repo.insert_all(TaxRate,
 #   [
