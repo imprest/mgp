@@ -1,5 +1,16 @@
+defmodule DevMode do
+  defmacro dev(a, b) do
+    if Mix.env() == :dev do
+      a
+    else
+      b
+    end
+  end
+end
+
 defmodule MgpWeb.Router do
   use MgpWeb, :router
+  require DevMode
 
   pipeline :browser do
     plug(:accepts, ["html"])
@@ -23,7 +34,7 @@ defmodule MgpWeb.Router do
 
   scope "/api", MgpWeb do
     pipe_through(:api)
-    resources("/sessions", SessionController, only: [:delete])
+    resources("/sessions", SessionController, only: [:delete], singleton: true)
   end
 
   # Other scopes may use custom stacks.
@@ -46,7 +57,7 @@ defmodule MgpWeb.Router do
     pipe_through(:browser)
 
     # get("/logout", SessionController, only: [:logout])
-    resources("/sessions", SessionController, only: [:new, :create])
+    resources("/login", SessionController, only: [:index, :create])
   end
 
   scope "/", MgpWeb do
@@ -54,7 +65,7 @@ defmodule MgpWeb.Router do
     pipe_through([:browser, :api_auth])
     get("/", PageController, :index)
     get("/favicon.ico", PageController, :index)
-    get("/*path", PageController, :js)
+    get("/*path", PageController, DevMode.dev(:js, :index))
   end
 
   # Plug function
@@ -70,7 +81,7 @@ defmodule MgpWeb.Router do
     else
       conn
       |> put_flash(:error, "You must login first!!")
-      |> redirect(to: MgpWeb.Router.Helpers.session_path(conn, :new))
+      |> redirect(to: MgpWeb.Router.Helpers.session_path(conn, :index))
       |> halt()
     end
   end

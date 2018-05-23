@@ -1,18 +1,40 @@
 <template>
-  <div class="container">
-    <section class="section">
+  <section class="section">
+    <div class="container">
       <b-table
         :striped="true"
         :narrowed="true"
         :hoverable="true"
-        :columns="columns"
         :data="pdcs"
-        :default-sort-direction="defaultSortDirection"
+        :default-sort-direction="asc"
         default-sort="date"
         >
+        <template slot-scope="props">
+          <b-table-column field="id" label="ID" width="40">
+            {{ props.row.id }}
+          </b-table-column>
+        <b-table-column field="date" label="Chq Date" width="100" sortable>
+          {{ props.row.date }}
+        </b-table-column>
+        <b-table-column field="cheque" label="Chq #">
+          {{ props.row.cheque }}
+        </b-table-column>
+        <b-table-column field="customer_id" label="Customer ID" sortable>
+          {{ props.row.customer_id }}
+        </b-table-column>
+        <b-table-column field="amount" label="Amount" numeric>
+          {{ props.row.amount | currency('') }}
+        </b-table-column>
+        <b-table-column field="lmd" label="Lmd" sortable>
+          {{ props.row.lmd }}
+        </b-table-column>
+        <b-table-column field="lmu" label="Lmu">
+          {{ props.row.lmu }}
+        </b-table-column>
+        </template>
       </b-table>
-    </section>
-  </div>
+    </div>
+  </section>
 </template>
 <script>
 import { mapState } from 'vuex'
@@ -33,44 +55,7 @@ export default {
     '$route': "this.$store.dispatch('GET_PDCS')"
   },
   data() {
-    return {
-      defaultSortDirection: 'asc',
-      columns: [
-        {
-          field: 'id',
-          label: 'ID',
-          width: '40'
-        },
-        {
-          field: 'date',
-          label: 'Chq Date',
-          sortable: true
-        },
-        {
-          field: 'cheque',
-          label: 'Chq #'
-        },
-        {
-          field: 'customer_id',
-          label: 'Customer ID',
-          sortable: true
-        },
-        {
-          field: 'amount',
-          label: 'Amount',
-          numeric: true
-        },
-        {
-          field: 'lmd',
-          label: 'Lmd',
-          sortable: true
-        },
-        {
-          field: 'lmu',
-          label: 'Lmu'
-        }
-      ]
-    }
+    return { }
   }
 }
 </script>

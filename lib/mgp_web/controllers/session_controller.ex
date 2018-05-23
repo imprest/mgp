@@ -8,7 +8,7 @@ defmodule MgpWeb.SessionController do
 
   action_fallback(MgpWeb.FallbackController)
 
-  def new(conn, _params) do
+  def index(conn, _params) do
     changeset = User.changeset(%User{})
     render(conn, "login.html", changeset: changeset)
   end

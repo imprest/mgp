@@ -6,8 +6,8 @@ import { Socket } from 'phoenix'
 
 Vue.use(Vuex)
 
-const api = axios.create({ baseURL: 'http://localhost:4000/api' })
-const socket = new Socket("ws://localhost:4000/socket", {params: {userToken: "123"}})
+const api = axios.create({ baseURL: (process.env.NODE_ENV === 'production') ? '/api' : 'http://localhost:4000/api' })
+const socket = new Socket((process.env.NODE_ENV === 'production') ? 'wss://localhost:4000/socket' : 'ws://localhost:4000/socket', {params: {userToken: "123"}})
 socket.connect()
 
 const channel = socket.channel("auto_complete:lobby", {})

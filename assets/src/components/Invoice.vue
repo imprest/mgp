@@ -62,7 +62,7 @@
           <td class="text-center">{{item.qty}} x {{item.sub_qty}}</td>
           <td>{{item.product_id}}</td>
           <td class="text-right">{{item.rate}}</td>
-          <td class="text-right">{{item.total}}</td>
+          <td class="text-right">{{item.total | currency('')}}</td>
         </tr>
       </tbody>
       <tfoot>
@@ -71,7 +71,7 @@
           <td></td>
           <td></td>
           <td class="text-right"><b class="subtitle">Total:</b></td>
-          <td class="text-right">{{total}}</td>
+          <td class="text-right">{{total | currency('')}}</td>
         </tr>
       </tfoot>
     </table>

@@ -41,7 +41,7 @@ import axios from 'axios'
 export default {
   methods: {
     logout() {
-      axios.delete('/api/sessions/2', {
+      axios.delete('/api/sessions', {
         method: 'delete',
         withCredentials: false
       })
