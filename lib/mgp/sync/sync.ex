@@ -6,6 +6,9 @@ defmodule Mgp.Sync do
 
   @base_year 2016
   @remote_folder "/mnt/scl"
+  # mkdir /mnt/scl
+  # Add the following to /etc/fstab
+  # //192.168.0.150/scl /mnt/scl cifs nouser,ro,iocharset=utf8,x-systemd.automount,_net_dev,noperm 0 0
 
   def start_link(_arg) do
     Task.start_link(__MODULE__, :sync, [])
@@ -16,7 +19,7 @@ defmodule Mgp.Sync do
     after
       30_000 ->
         nil
-        # rsync()
+        # rsync() // TODO: UNCOMMENT LATER
     end
   end
 
@@ -28,7 +31,7 @@ defmodule Mgp.Sync do
     years_and_dbf_files = files_to_rsync(years)
 
     years_and_dbf_files |> Enum.map(fn x -> rsync_for_year(x) end)
-    sync()
+    # sync() // TODO: UNCOMMENT LATER
   end
 
   defp rsync_for_year(%{year: year, dbf_files: dbf_files}) do

@@ -33,6 +33,10 @@ defmodule Mgp.Sync.ImportData do
   @invoices_dbf "SIINV.DBF"
   @invoice_details_dbf "SIDETINV.DBF"
   @pdcs_dbf "FIPDC.DBF"
+  # Extra dbf files to rsynced but not importing into our postgres db
+  @gl_dbf "FIGLMST.DBF"
+  @fi_codes_dbf "FICODE.DBF"
+  @tax_codes_dbf "FISMMST.DBF"
 
   def root_folder, do: @root_folder
 
@@ -44,7 +48,10 @@ defmodule Mgp.Sync.ImportData do
       @products_dbf,
       @stock_receipts_dbf,
       @prices_dbf,
-      @customers_dbf
+      @customers_dbf,
+      @gl_dbf,
+      @fi_codes_dbf,
+      @tax_codes_dbf
     ]
 
   def generate_file_paths(root_folder, year) do
@@ -59,7 +66,10 @@ defmodule Mgp.Sync.ImportData do
       :customers_dbf => Path.join(full_path, @customers_dbf),
       :invoices_dbf => Path.join(full_path, @invoices_dbf),
       :invoice_details_dbf => Path.join(full_path, @invoice_details_dbf),
-      :pdcs_dbf => Path.join(full_path, @pdcs_dbf)
+      :pdcs_dbf => Path.join(full_path, @pdcs_dbf),
+      :gl_dbf => Path.join(full_path, @gl_dbf),
+      :fi_codes_dbf => Path.join(full_path, @fi_codes_dbf),
+      :tax_codes_dbf => Path.join(full_path, @tax_codes_dbf)
     }
   end
 
