@@ -187,7 +187,7 @@ defmodule Mgp.Sync do
     year = today.year
     month = today.month
 
-    case month > 10 do
+    case month >= 10 do
       true ->
         Enum.to_list(base_year..year)
 
