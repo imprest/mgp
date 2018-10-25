@@ -168,6 +168,14 @@ defmodule Mgp.Sync.ImportData do
     end
   end
 
+  def is_record_for_today_onwards(record_date, date) do
+    case Ecto.Date.compare(record_date, date) do
+      :lt -> false
+      :gt -> true
+      :eq -> true
+    end
+  end
+
   def is_record_newer_than(record, lmd_lmt) do
     case Ecto.Date.compare(record.lmd, Enum.at(lmd_lmt, 0)) do
       :gt ->
@@ -582,13 +590,9 @@ defmodule Mgp.Sync.ImportData do
 
   # INVOICES
   def populate_invoices(dbf) do
-    # Can't do this because opening records from last year also updates its timestamp
-    # lmd_lmt = last_record_lmd_lmt(Invoice)
-
     rows =
       dbf
       |> parse_invoices_from_dbf
-      # |> Enum.filter(fn x -> is_record_newer_than(x, lmd_lmt) end)
       |> Enum.chunk_every(1000)
       |> Enum.map(fn x -> populate_invoices_partial(x) end)
       |> Enum.reduce(0, fn x, acc -> elem(x, 0) + acc end)
@@ -998,15 +1002,18 @@ defmodule Mgp.Sync.ImportData do
 
   # PDCS
   def populate_pdcs(dbf) do
-    lmd_lmt = last_record_lmd_lmt(Pdc)
+    today_date = Ecto.Date.cast!(Date.utc_today())
 
     rows =
       dbf
       |> parse_pdcs_from_dbf
-      |> Enum.filter(fn x -> is_record_newer_than(x, lmd_lmt) end)
+      |> Enum.filter(fn x -> is_record_for_today_onwards(x.date, today_date) end)
       |> Enum.chunk_every(1000)
       |> Enum.map(fn x -> populate_pdcs_partial(x) end)
       |> Enum.reduce(0, fn x, acc -> elem(x, 0) + acc end)
+
+    # Delete all pdcs with due date less than today's
+    from(p in Pdc, where: p.date < ^today_date) |> Repo.delete_all()
 
     {rows, nil}
   end
