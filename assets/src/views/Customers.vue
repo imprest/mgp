@@ -73,55 +73,53 @@
   </section>
 </template>
 <script>
-import { mapState } from 'vuex'
+import { mapState } from "vuex";
 
 export default {
-  name: 'customers',
+  name: "Customers",
   computed: {
     filteredCustomers() {
-      return this.customers.filter((option) => {
-        return option.description
-          .toString()
-          .toLowerCase()
-          .indexOf(this.name.toLowerCase()) >= 0
-      })
+      return this.customers.filter(option => {
+        return (
+          option.description
+            .toString()
+            .toLowerCase()
+            .indexOf(this.name.toLowerCase()) >= 0
+        );
+      });
     },
-    ...mapState([
-      'postings',
-      'customers'
-    ])
+    ...mapState(["postings", "customers"])
   },
-  created () {
+  created() {
     // Dispatch getting the data when the view is created
-    this.$store.dispatch('GET_CUSTOMERS')
+    this.$store.dispatch("GET_CUSTOMERS");
   },
   watch: {
     // call again if the route changes
-    '$route': "this.$store.dispatch('GET_CUSTOMERS')"
+    $route: "this.$store.dispatch('GET_CUSTOMERS')"
   },
   methods: {
     fetchSelectedCustomer: function(option) {
       if (option && option.id) {
-        this.selected = option
-        let payload = { customer_id: option.id, year: this.year  }
-        this.$store.dispatch('GET_POSTINGS', payload)
+        this.selected = option;
+        let payload = { customer_id: option.id, year: this.year };
+        this.$store.dispatch("GET_POSTINGS", payload);
       }
     },
     yearChanged: function(option) {
       if (this.selected) {
-        let payload = { customer_id: this.selected.id, year: option  }
-        this.$store.dispatch('GET_POSTINGS', payload)
+        let payload = { customer_id: this.selected.id, year: option };
+        this.$store.dispatch("GET_POSTINGS", payload);
       }
     }
   },
   data() {
     return {
-      name: '',
+      name: "",
       selected: null,
       fin_years: [2017, 2016],
       year: 2017
-    }
+    };
   }
-}
+};
 </script>
-

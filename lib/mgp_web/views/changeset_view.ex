@@ -2,10 +2,10 @@ defmodule MgpWeb.ChangesetView do
   use MgpWeb, :view
 
   @doc """
-  Traverses and translates changeset errors.
+  Traverses and tranlates changeset errors.
 
   See `Ecto.Changeset.traverse_errors/2` and
-  `MgpWeb.ErrorHelpers.translate_error/1` for more details.
+  `MgpWeb.ErrorHelpers.traslate_error/1` for more details.
   """
   def translate_errors(changeset) do
     Ecto.Changeset.traverse_errors(changeset, &translate_error/1)

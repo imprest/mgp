@@ -1,47 +1,52 @@
-import Vue from 'vue'
-import Router from 'vue-router'
-import Home from './views/Home.vue'
+import Vue from "vue";
+import Router from "vue-router";
+import Home from "./views/Home.vue";
 // Dynamically load below pages
-const Invoices = () => import('./views/Invoices.vue')
-const Products = () => import('./views/Products.vue')
-const Customers = () => import('./views/Customers.vue')
-const Pdcs = () => import('./views/Pdcs.vue')
-const Reports = () => import('./views/Reports.vue')
+const Invoices = () =>
+  import(/* webpackChunkName: "invoices" */ "./views/Invoices.vue");
+const Products = () =>
+  import(/* webpackChunkName: "products" */ "./views/Products.vue");
+const Customers = () =>
+  import(/* webpackChunkName: "customers" */ "./views/Customers.vue");
+const Pdcs = () => import(/* webpackChunkName: "pdcs" */ "./views/Pdcs.vue");
+const Reports = () =>
+  import(/* webpackChunkName: "reports" */ "./views/Reports.vue");
 
-Vue.use(Router)
+Vue.use(Router);
 
 export default new Router({
-  mode: 'history',
+  mode: "history",
+  base: process.env.BASE_URL,
   routes: [
     {
-      path: '/',
-      name: 'home',
+      path: "/",
+      name: "home",
       component: Home
     },
     {
-      path: '/products',
-      name: 'products',
+      path: "/products",
+      name: "products",
       component: Products
     },
     {
-      path: '/invoices',
-      name: 'invoices',
+      path: "/invoices",
+      name: "invoices",
       component: Invoices
     },
     {
-      path: '/customers',
-      name: 'customers',
+      path: "/customers",
+      name: "customers",
       component: Customers
     },
     {
-      path: '/pdcs',
-      name: 'pdcs',
+      path: "/pdcs",
+      name: "pdcs",
       component: Pdcs
     },
     {
-      path: '/reports',
-      name: 'reports',
+      path: "/reports",
+      name: "reports",
       component: Reports
     }
   ]
-})
+});

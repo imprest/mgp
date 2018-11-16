@@ -2,6 +2,7 @@ defmodule MgpWeb.AutoCompleteChannel do
   use MgpWeb, :channel
 
   alias Mgp.Sales
+  alias Mgp.Accounts
 
   def join("auto_complete:lobby", payload, socket) do
     if authorized?(payload) do
@@ -11,17 +12,29 @@ defmodule MgpWeb.AutoCompleteChannel do
     end
   end
 
+  # Channels can be used in a request/response fashion
+  # by sending replies to requests from the client
   def handle_in("invoice", %{"query" => query}, socket) do
     ids =
       query
       |> Sales.suggest_invoice_ids()
       |> Enum.map(fn x -> Map.take(x, [:id, :customer_id, :date]) end)
 
-    {:reply, {:ok, %{:ids => ids}}, socket}
+    {:reply, {:ok, %{:invoice_ids => ids}}, socket}
   end
 
-  # Channels can be used in a request/response fashion
-  # by sending replies to requests from the client
+  def handle_in("get_invoice", %{"id" => id}, socket) do
+    {:reply, {:ok, %{invoice: Jason.Fragment.new(Sales.invoice(id))}}, socket}
+  end
+
+  def handle_in("products", %{}, socket) do
+    {:reply, {:ok, %{products: Jason.Fragment.new(Sales.products())}}, socket}
+  end
+
+  def handle_in("pdcs", %{}, socket) do
+    {:reply, {:ok, %{pdcs: Jason.Fragment.new(Accounts.pdcs())}}, socket}
+  end
+
   def handle_in("ping", payload, socket) do
     {:reply, {:ok, payload}, socket}
   end

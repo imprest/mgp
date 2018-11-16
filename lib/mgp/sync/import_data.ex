@@ -20,9 +20,8 @@ defmodule Mgp.Sync.ImportData do
 
   NimbleCSV.define(MyParser, separator: "!")
 
-  # @inserted_at       Ecto.DateTime.cast!("2016-10-01T08:30:00")
-  @default_date Ecto.Date.cast!("2016-10-01")
-  @default_time Ecto.Time.cast!("08:00:00")
+  @default_date Date.from_iso8601!("2016-10-01")
+  @default_time Time.from_iso8601!("08:00:00")
   @root_folder "/home/hvaria/backup"
   @folder_prefix "MGP"
   @products_dbf "SIITM.DBF"
@@ -163,13 +162,13 @@ defmodule Mgp.Sync.ImportData do
     query = from(t in table, order_by: [desc: :lmd, desc: :lmt], limit: 1, select: [t.lmd, t.lmt])
 
     case Repo.all(query) do
-      [[lmd, lmt]] -> [Ecto.Date.cast!(lmd), Ecto.Time.cast!(lmt)]
+      [[lmd, lmt]] -> [lmd, lmt]
       [] -> [@default_date, @default_time]
     end
   end
 
   def is_record_for_today_onwards(record_date, date) do
-    case Ecto.Date.compare(record_date, date) do
+    case Date.compare(record_date, date) do
       :lt -> false
       :gt -> true
       :eq -> true
@@ -177,7 +176,7 @@ defmodule Mgp.Sync.ImportData do
   end
 
   def is_record_newer_than(record, lmd_lmt) do
-    case Ecto.Date.compare(record.lmd, Enum.at(lmd_lmt, 0)) do
+    case Date.compare(record.lmd, Enum.at(lmd_lmt, 0)) do
       :gt ->
         true
 
@@ -185,7 +184,7 @@ defmodule Mgp.Sync.ImportData do
         false
 
       :eq ->
-        case Ecto.Time.compare(record.lmt, Enum.at(lmd_lmt, 1)) do
+        case Time.compare(record.lmt, Enum.at(lmd_lmt, 1)) do
           :gt -> true
           :lt -> false
           :eq -> false
@@ -713,6 +712,14 @@ defmodule Mgp.Sync.ImportData do
       |> Enum.map(fn x -> populate_invoice_details_partial(x) end)
       |> Enum.reduce(0, fn x, acc -> elem(x, 0) + acc end)
 
+    # Delete all invoice_details where invoice was set to cancelled
+    q = """
+      DELETE FROM invoice_details
+      WHERE invoice_id IN (SELECT id FROM invoices WHERE customer_id = 'Zzzc')
+    """
+
+    Repo.query!(q, [])
+
     {rows, nil}
   end
 
@@ -1002,7 +1009,7 @@ defmodule Mgp.Sync.ImportData do
 
   # PDCS
   def populate_pdcs(dbf) do
-    today_date = Ecto.Date.cast!(Date.utc_today())
+    today_date = Date.utc_today()
 
     rows =
       dbf
@@ -1272,7 +1279,7 @@ defmodule Mgp.Sync.ImportData do
 
     [year, "-", month, "-", day]
     |> Enum.join()
-    |> Ecto.Date.cast!()
+    |> Date.from_iso8601!()
   end
 
   defp to_time("") do
@@ -1284,6 +1291,6 @@ defmodule Mgp.Sync.ImportData do
   end
 
   defp to_time(time) do
-    Ecto.Time.cast!(time)
+    Time.from_iso8601!(time)
   end
 end

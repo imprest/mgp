@@ -2,17 +2,12 @@ defmodule MgpWeb.SessionController do
   use MgpWeb, :controller
 
   alias Mgp.Accounts
-  alias Mgp.Accounts.User
 
   plug(:scrub_params, "user" when action in [:create])
 
-  action_fallback(MgpWeb.FallbackController)
+  action_fallback MgpWeb.FallbackController
 
-  def index(conn, _params) do
-    changeset = User.changeset(%User{})
-    render(conn, "login.html", changeset: changeset)
-  end
-
+  # TODO: on create session return Phoenix.Token to client
   def create(conn, %{"user" => %{"username" => username, "password" => password}}) do
     case Accounts.authenticate_user(username, password) do
       {:ok, user} ->
@@ -20,20 +15,17 @@ defmodule MgpWeb.SessionController do
         |> assign(:current_user, user)
         |> put_session(:user_id, user.id)
         |> configure_session(renew: true)
-        |> redirect(to: MgpWeb.Router.Helpers.page_path(conn, :index))
+        |> json(%{token: "asdfasdfasdf"})
 
       {:error, reason} ->
-        conn
-        |> put_flash(:info, reason)
-        |> render("login.html", changeset: User.changeset(%User{}))
+        json(conn, %{error: reason})
     end
   end
 
+  # TODO: on delete; invalidate Phoenix.Token
   def delete(conn, _params) do
-    changeset = User.changeset(%User{})
-
     conn
     |> configure_session(drop: true)
-    |> render("login.html", changeset: changeset)
+    |> json(%{ok: "logged out"})
   end
 end

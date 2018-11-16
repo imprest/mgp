@@ -57,11 +57,11 @@
         </tr>
       </thead>
       <tbody>
-        <tr v-for="(item, index) in invoice.invoice_details" :key="item.sr_no">
+        <tr v-for="(item, index) in invoice.items" :key="item.sr_no">
           <td class="text-right">{{index+1}}</td>
           <td class="text-center">{{item.qty}} x {{item.sub_qty}}</td>
           <td>{{item.product_id}}</td>
-          <td class="text-right">{{item.rate}}</td>
+          <td class="text-right">{{item.rate | currency('')}}</td>
           <td class="text-right">{{item.total | currency('')}}</td>
         </tr>
       </tbody>
@@ -79,39 +79,48 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
+import { mapState } from "vuex";
 
 export default {
-  name: 'Invoice',
+  name: "Invoice",
   computed: {
-    ...mapState([
-      'invoice'
-    ]),
+    ...mapState(["invoice"]),
     total: function() {
-      let total = 0.00
-      this.invoice.invoice_details.forEach((i) =>
-        total += parseFloat(i.total)
-      )
-      return total.toFixed(2)
+      let total = 0.0;
+      this.invoice.items.forEach(i => (total += parseFloat(i.total)));
+      return total.toFixed(2);
     }
   }
-}
+};
 </script>
 
 <style scoped lang="scss">
 .is-borderless {
-  th, td {
-   border: none
+  th,
+  td {
+    border: none;
   }
 }
 .level {
   margin-bottom: 0;
 }
 // Helper classes
-.text-left { text-align: left; }
-.text-center { text-align: center; }
-.text-right { text-align: right; }
-.flex-column { flex-direction: column; }
-.align-self-baseline { align-self: baseline; }
-.align-items-start { align-items: start; }
+.text-left {
+  text-align: left;
+}
+.text-center {
+  text-align: center;
+}
+.text-right {
+  text-align: right;
+}
+.flex-column {
+  flex-direction: column;
+}
+.align-self-baseline {
+  align-self: baseline;
+}
+.align-items-start {
+  align-items: start;
+}
 </style>

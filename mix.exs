@@ -1,11 +1,11 @@
-defmodule Mgp.Mixfile do
+defmodule Mgp.MixProject do
   use Mix.Project
 
   def project do
     [
       app: :mgp,
-      version: "0.0.1",
-      elixir: "~> 1.7.2",
+      version: "0.1.0",
+      elixir: "~> 1.5",
       elixirc_paths: elixirc_paths(Mix.env()),
       compilers: [:phoenix, :gettext] ++ Mix.compilers(),
       start_permanent: Mix.env() == :prod,
@@ -33,19 +33,18 @@ defmodule Mgp.Mixfile do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
-      {:phoenix, "~> 1.3.2"},
-      {:phoenix_pubsub, "~> 1.0"},
-      {:phoenix_ecto, "~> 3.3"},
-      {:ecto, "~> 2.2.9"},
+      {:phoenix, "~> 1.4.0"},
+      {:phoenix_pubsub, "~> 1.1"},
+      {:phoenix_ecto, "~> 4.0"},
+      {:ecto_sql, "~> 3.0"},
       {:postgrex, ">= 0.0.0"},
-      {:phoenix_html, "~> 2.11.1"},
-      {:phoenix_live_reload, "~> 1.0", only: :dev},
-      {:gettext, "~> 0.15"},
-      {:cowboy, "~> 1.0"},
-      {:distillery, "~> 1.5", runtime: false},
+      {:gettext, "~> 0.11"},
+      {:jason, "~> 1.0"},
+      {:plug_cowboy, "~> 2.0"},
       {:nimble_csv, "~> 0.4.0"},
       {:comeonin, "~> 4.0"},
-      {:argon2_elixir, "~> 1.2"}
+      {:argon2_elixir, "~> 1.3.1"},
+      {:distillery, "~> 1.5", runtime: false}
     ]
   end
 

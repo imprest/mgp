@@ -27,15 +27,40 @@ defmodule Mgp.Sales.Customer do
     has_many :postings, Posting
     has_many :op_balances, OpBalance
     has_many :pdcs, Pdc
-
   end
 
   @doc false
   def changeset(%Customer{} = customer, attrs) do
     customer
-    |> cast(attrs, [:region, :description, :attn, :add1, :add2, :add3, :phone,
-                    :is_gov, :resp, :email, :lmu, :lmd, :lmt])
-    |> validate_required([:region, :description, :attn, :add1, :add2, :add3,
-                          :phone, :is_gov, :resp, :email, :lmu, :lmd, :lmt])
+    |> cast(attrs, [
+      :region,
+      :description,
+      :attn,
+      :add1,
+      :add2,
+      :add3,
+      :phone,
+      :is_gov,
+      :resp,
+      :email,
+      :lmu,
+      :lmd,
+      :lmt
+    ])
+    |> validate_required([
+      :region,
+      :description,
+      :attn,
+      :add1,
+      :add2,
+      :add3,
+      :phone,
+      :is_gov,
+      :resp,
+      :email,
+      :lmu,
+      :lmd,
+      :lmt
+    ])
   end
 end

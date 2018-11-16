@@ -11,6 +11,7 @@
 # and so on) as they will fail if something goes wrong.
 
 alias Mgp.Repo
+# alias Mgp.Sales.Product
 
 Mgp.Accounts.create_user(%{username: "hvaria", password: "admin", is_admin: true, role: "manager"})
 
@@ -27,3 +28,6 @@ Mgp.Accounts.create_user(%{username: "hvaria", password: "admin", is_admin: true
 #     %{id: "NEW", description: "DONT KNOW", rate: Decimal.new(0), inserted_at: Ecto.DateTime.cast!("2017-07-31T12:00:00"), updated_at: Ecto.DateTime.utc},
 #   ]
 # );
+
+# q = Product |> where(id: "IMP BIOFIL 10ML") |> update(set: [description: "test"])
+# Repo.update_all(q, [])
