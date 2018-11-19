@@ -27,12 +27,20 @@ defmodule MgpWeb.AutoCompleteChannel do
     {:reply, {:ok, %{invoice: Jason.Fragment.new(Sales.invoice(id))}}, socket}
   end
 
+  def handle_in("customers", %{}, socket) do
+    {:reply, {:ok, %{customers: json(Sales.customers())}}, socket}
+  end
+
   def handle_in("products", %{}, socket) do
     {:reply, {:ok, %{products: Jason.Fragment.new(Sales.products())}}, socket}
   end
 
   def handle_in("pdcs", %{}, socket) do
     {:reply, {:ok, %{pdcs: Jason.Fragment.new(Accounts.pdcs())}}, socket}
+  end
+
+  def handle_in("get_postings", %{"id" => id, "year" => year}, socket) do
+    {:reply, {:ok, %{postings: json(Accounts.postings(id, year))}}, socket}
   end
 
   def handle_in("ping", payload, socket) do
@@ -49,5 +57,9 @@ defmodule MgpWeb.AutoCompleteChannel do
   # Add authorization logic here as required.
   defp authorized?(_payload) do
     true
+  end
+
+  def json(f) do
+    Jason.Fragment.new(f)
   end
 end

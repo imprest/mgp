@@ -61,8 +61,11 @@ defmodule Mgp.Sales do
 
   def customers() do
     q = """
-      select coalesce(json_agg(t), '[]'::json)::text
-      from (select * from customers order by description) t
+    select coalesce(json_agg(t), '[]'::json)::text
+    from (
+      select id, description, region, is_gov, resp
+      from customers order by description
+    ) t
     """
 
     r = Repo.query!(q, [])

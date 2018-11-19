@@ -33,14 +33,14 @@ const store = new Vuex.Store({
     customers: [],
     products: [],
     product: null,
-    postings: [],
+    postings: { postings: [] },
     pdcs: [],
     invoice: null,
     invoice_ids: [],
     authenticated: false
   },
   mutations: {
-    SET_CUSTOMERS(state, { customers }) {
+    SET_CUSTOMERS(state, customers) {
       state.customers = customers;
     },
     SET_PRODUCTS(state, { products }) {
@@ -49,7 +49,7 @@ const store = new Vuex.Store({
     SET_PRODUCT(state, { product }) {
       state.product = product;
     },
-    SET_POSTINGS(state, { postings }) {
+    SET_POSTINGS(state, postings) {
       state.postings = postings;
     },
     SET_INVOICE(state, invoice) {
@@ -79,6 +79,20 @@ const store = new Vuex.Store({
     }
   },
   actions: {
+    GET_CUSTOMERS(context) {
+      channel
+        .push("customers", {}, 10000)
+        .receive("ok", msg => context.commit("SET_CUSTOMERS", msg.customers))
+        .receive("error", reasons => console.log("error", reasons))
+        .receive("timeout", () => console.log("Networking issue..."));
+    },
+    GET_POSTINGS(context, { id, year }) {
+      channel
+        .push("get_postings", { id: id, year: year }, 10000)
+        .receive("ok", msg => context.commit("SET_POSTINGS", msg.postings))
+        .receive("error", reasons => console.log("error", reasons))
+        .receive("timeout", () => console.log("Networking issue..."));
+    },
     GET_PRODUCTS(context) {
       channel
         .push("products", {}, 10000)

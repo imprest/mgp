@@ -1,6 +1,6 @@
 <template>
+  <section class="section">
   <div class="container is-fullhd">
-  <section>
     <b-table
       :striped="true"
       :narrowed="true"
@@ -32,8 +32,8 @@
 
     </b-table>
 
-  </section>
   </div>
+  </section>
 </template>
 
 <script>
@@ -68,7 +68,4 @@ export default {
 </script>
 
 <style>
-div.container {
-  top: 5px;
-}
 </style>
