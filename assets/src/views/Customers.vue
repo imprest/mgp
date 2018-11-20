@@ -41,59 +41,109 @@
       </b-field>
     </div>
 
-    <div class="container">
-    </div>
-
-    <div class="container">
-      <b-table
-        :striped="true"
-        :narrowed="true"
-        :hoverable="true"
-        :data="postings.postings"
-        >
-        <template slot-scope="props">
-          <b-table-column field="id" label="ID" width="220">
-            {{ props.row.id }}
-          </b-table-column>
-          <b-table-column field="date" label="Date" width="120">
-            {{ props.row.date }}
-          </b-table-column>
-          <b-table-column field="description" label="Description">
-            {{ props.row.description }}
-          </b-table-column>
-          <b-table-column field="debit" label="Debit" numeric>
-            {{ props.row.debit | currency('')}}
-          </b-table-column>
-          <b-table-column field="credit" label="Credit" numeric>
-            {{ props.row.credit | currency('')}}
-          </b-table-column>
-          <b-table-column field="balanace" label="Balance" numeric>
-            {{ props.row.bal | currency('')}}
-          </b-table-column>
-        </template>
-        <template slot="footer">
-          <th></th>
-          <th></th>
-          <th class="has-text-right">Total: </th>
-          <th>
-            <div class="has-text-right">
-              {{postings.total_debit | currency('') }}
-            </div>
-          </th>
-          <th>
-            <div class="has-text-right">
-              {{postings.total_credit | currency('') }}
-            </div>
-          </th>
-          <th>
-            <div class="has-text-right">
-              {{postings.op_bal + postings.total_debit - postings.total_credit | currency('') }}
-            </div>
-          </th>
-        </template>
-      </b-table>
+    <div v-if="postings.postings.length > 0" class="section" style="padding-top: 1rem; padding-bottom: 1rem;">
+      <div class="container">
+        <div class="columns">
+          <div class="column">
+            <h1 class="title">
+              {{postings.description}}
+            </h1>
+            <h2 class="subtitle">
+              <b-taglist>
+                <b-tag>{{postings.region}}</b-tag>
+                <b-tag>{{postings.is_gov}}</b-tag>
+                <b-tag>{{postings.resp}}</b-tag>
+              </b-taglist>
+            </h2>
+          </div>
+        </div>
+        <table class="table is-narrow is-hoverable is-fullwidth">
+          <tbody>
+            <tr>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <th>Opening Bal:</th>
+              <th class="has-text-right">{{postings.op_bal | currency('')}}</th>
+            </tr>
+            <tr>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+            </tr>
+            <tr>
+              <th>ID</th>
+              <th>Date</th>
+              <th>Description</th>
+              <th class="has-text-right">Debit</th>
+              <th class="has-text-right">Credit</th>
+              <th class="has-text-right">Balance</th>
+            </tr>
+            <tr v-for="p in postings.postings" :key="p.id">
+              <td>
+                <span v-if="p.id.startsWith('S')">{{p.id}}</span>
+                <span v-else>{{p.id.substring(8, p.id.length)}}</span>
+              </td>
+              <td>{{p.date}}</td>
+              <td>{{p.description}}</td>
+              <td class="has-text-right">{{p.debit | currency('')}}</td>
+              <td class="has-text-right">{{p.credit | currency('')}}</td>
+              <td class="has-text-right">{{p.bal | currency('')}}</td>
+            </tr>
+            <tr>
+              <td></td>
+              <td></td>
+              <th class="has-text-right">Total: </th>
+              <th class="has-text-right">{{postings.total_debit | currency('')}}</th>
+              <th class="has-text-right">{{postings.total_credit | currency('')}}</th>
+              <th class="has-text-right">
+              {{postings.total_bal | currency('') }}
+              </th>
+            </tr>
+            <tr>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+            </tr>
+            <tr v-if="postings.total_pdcs > 0">
+              <th>PDCS</th>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+            </tr>
+            <tr v-for="p in postings.pdcs" :key="p.id">
+              <td>{{p.id}}</td>
+              <td>{{p.date}}</td>
+              <td>{{p.cheque}}</td>
+              <td></td>
+              <td class="has-text-right">{{p.amount | currency('')}}</td>
+              <td></td>
+            </tr>
+            <tr v-if="postings.total_pdcs > 0">
+              <td></td>
+              <td></td>
+              <th class="has-text-right">Total: </th>
+              <th class="has-text-right"></th>
+              <th class="has-text-right">{{postings.total_pdcs | currency('')}}</th>
+              <th class="has-text-right">
+              {{postings.total_bal - postings.total_pdcs | currency('') }}
+              </th>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   </section>
+
 </template>
 <script>
 import { mapState } from "vuex";
@@ -146,8 +196,12 @@ export default {
   }
 };
 </script>
-<style lang="scss">
-table {
+<style scoped lang="scss">
+table.table {
   font-family: "sans-serif";
+}
+.table td,
+.table th {
+  border: none;
 }
 </style>

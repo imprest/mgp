@@ -197,6 +197,10 @@ defmodule Mgp.Accounts do
           SELECT SUM(credit) FROM tx
         ) AS total_credit,
         (
+          SELECT op_bal+(SELECT SUM(debit) from tx)-(SELECT SUM(credit) FROM tx)
+          FROM op_bal
+        ) AS total_bal,
+        (
           SELECT COALESCE(json_agg(pdcs), '[]'::json)
           FROM (
             SELECT customer_id, id, date, cheque, amount
@@ -204,7 +208,12 @@ defmodule Mgp.Accounts do
             WHERE customer_id = $4::text
             ORDER BY id
           ) pdcs
-        ) AS pdcs
+        ) AS pdcs,
+        (
+          SELECT COALESCE(SUM(amount), 0)
+          FROM pdcs
+          WHERE customer_id = $4::text
+        ) AS total_pdcs
         FROM customers
         WHERE id = $1::text
       ) c;

@@ -15,7 +15,7 @@ const socket = new Socket(
 socket.connect();
 
 const channel = socket.channel("auto_complete:lobby", {});
-channel.on("phx_reply", msg => console.log("Got msg", msg));
+channel.on("phx_reply", msg => console.log("Got msg", msg.response));
 
 channel
   .join()
