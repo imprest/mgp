@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-    <nav id="navbar" class="navbar has-shadow is-spaced" role="navigation" aria-label="main navigation">
+    <nav id="navbar" v-if="$route.name !== 'login'" class="navbar has-shadow is-spaced" role="navigation" aria-label="main navigation">
       <div class="container">
         <div class="navbar-brand">
           <a class="navbar-item">
@@ -16,7 +16,7 @@
 
         <div class="navbar-menu">
           <div class="navbar-start">
-            <router-link to="/" class="navbar-item">Home</router-link>
+            <router-link to="/home" class="navbar-item">Home</router-link>
             <router-link to="/products" class="navbar-item">Products</router-link>
             <router-link to="/invoices" class="navbar-item">Invoices</router-link>
             <router-link to="/customers" class="navbar-item">Customers</router-link>
@@ -38,11 +38,8 @@
 export default {
   methods: {
     logout() {
-      fetch
-        .delete("/api/sessions", {
-          method: "delete",
-          withCredentials: false
-        })
+      const req = new Request("/api/sessions", { method: "DELETE" });
+      fetch(req)
         .then(function(response) {
           console.log(response);
           window.location.replace("/");
