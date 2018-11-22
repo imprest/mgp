@@ -15,7 +15,7 @@ const socket = new Socket(
 socket.connect();
 
 const channel = socket.channel("auto_complete:lobby", {});
-channel.on("phx_reply", msg => console.log("Got msg", msg.response));
+//channel.on("phx_reply", msg => console.log("Got msg", msg.response));
 
 channel
   .join()
@@ -37,6 +37,7 @@ const store = new Vuex.Store({
     pdcs: [],
     invoice: null,
     invoice_ids: [],
+    daily_sales: [],
     authenticated: false
   },
   mutations: {
@@ -79,10 +80,20 @@ const store = new Vuex.Store({
     }
   },
   actions: {
-    GET_CUSTOMERS(context) {
+    GET_CUSTOMERS(context, query) {
+      if (query.length < 3) {
+        return;
+      }
       channel
-        .push("customers", {}, 10000)
+        .push("get_customers", { query: query }, 10000)
         .receive("ok", msg => context.commit("SET_CUSTOMERS", msg.customers))
+        .receive("error", reasons => console.log("error", reasons))
+        .receive("timeout", () => console.log("Networking issue..."));
+    },
+    GET_CUSTOMER(context, customer_id) {
+      channel
+        .push("get_customer", { id: customer_id }, 10000)
+        .receive("ok", msg => context.commit("SET_CUSTOMER", msg.customer))
         .receive("error", reasons => console.log("error", reasons))
         .receive("timeout", () => console.log("Networking issue..."));
     },
@@ -109,12 +120,12 @@ const store = new Vuex.Store({
         .receive("error", reasons => console.log("error", reasons))
         .receive("timeout", () => console.log("Networking issue..."));
     },
-    GET_INVOICE_IDS(context, query) {
+    GET_INVOICES(context, query) {
       if (query.length < 3) {
         return;
       }
       channel
-        .push("invoice", { query: query }, 10000)
+        .push("get_invoices", { query: query }, 10000)
         .receive("ok", msg =>
           context.commit("SET_INVOICE_IDS", msg.invoice_ids)
         )
@@ -125,6 +136,15 @@ const store = new Vuex.Store({
       channel
         .push("get_invoice", { id: invoice_id }, 10000)
         .receive("ok", msg => context.commit("SET_INVOICE", msg.invoice))
+        .receive("error", reasons => console.log("error", reasons))
+        .receive("timeout", () => console.log("Networking issue..."));
+    },
+    GET_DAILY_SALES(context, date) {
+      channel
+        .push("get_daily_sales", { date: date }, 10000)
+        .receive("ok", msg =>
+          context.commit("SET_DAILY_SALES", msg.daily_sales)
+        )
         .receive("error", reasons => console.log("error", reasons))
         .receive("timeout", () => console.log("Networking issue..."));
     },

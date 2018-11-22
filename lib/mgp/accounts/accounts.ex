@@ -182,8 +182,11 @@ defmodule Mgp.Accounts do
           WHERE customer_id = $1::text
             AND date >= $3::date and date < ($3 + interval '1 year')
           ORDER BY date, id
-        )
-        SELECT *, (SELECT * from op_bal) AS op_bal,
+        ),
+        total_debit AS ( SELECT COALESCE(SUM(debit), 0) as total_debit FROM tx ),
+        total_credit AS ( SELECT COALESCE(SUM(credit), 0) as total_credit FROM tx )
+        SELECT id, description, is_gov, region, resp,
+        (SELECT * from op_bal) AS op_bal,
         (
           SELECT COALESCE(json_agg(p), '[]'::json)
           FROM (
@@ -191,13 +194,13 @@ defmodule Mgp.Accounts do
           ) p
         ) AS postings,
         (
-          SELECT SUM(debit) FROM tx
+          SELECT total_debit FROM total_debit
         ) AS total_debit,
         (
-          SELECT SUM(credit) FROM tx
+          SELECT total_credit FROM total_credit
         ) AS total_credit,
         (
-          SELECT op_bal+(SELECT SUM(debit) from tx)-(SELECT SUM(credit) FROM tx)
+          SELECT op_bal+(SELECT total_debit from total_debit)-(SELECT total_credit FROM total_credit)
           FROM op_bal
         ) AS total_bal,
         (

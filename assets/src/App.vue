@@ -18,6 +18,7 @@
           <div class="navbar-start">
             <router-link to="/home" class="navbar-item">Home</router-link>
             <router-link to="/products" class="navbar-item">Products</router-link>
+            <router-link to="/sales" class="navbar-item">Sales</router-link>
             <router-link to="/invoices" class="navbar-item">Invoices</router-link>
             <router-link to="/customers" class="navbar-item">Customers</router-link>
             <router-link to="/pdcs" class="navbar-item">Pdcs</router-link>
@@ -31,7 +32,12 @@
 
       </div>
     </nav>
-    <router-view/>
+    <main v-if="$route.name !== 'login'">
+      <transition>
+        <router-view/>
+      </transition>
+    </main>
+    <div v-else><router-view/></div>
   </div>
 </template>
 <script>

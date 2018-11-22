@@ -6,8 +6,21 @@ defmodule Mgp.Sales do
   import Ecto.Query, warn: false
   alias Mgp.Repo
   alias Mgp.Sales.Invoice
+  alias Mgp.Sales.Customer
 
-  def suggest_invoice_ids(query) do
+  def get_customers(query) do
+    q =
+      from(
+        Customer,
+        order_by: fragment("? <<-> description", ^query),
+        limit: 5,
+        select: [:id, :description, :region, :is_gov, :resp]
+      )
+
+    Repo.all(q)
+  end
+
+  def get_invoices(query) do
     q =
       from(
         Invoice,
@@ -51,8 +64,11 @@ defmodule Mgp.Sales do
 
   def products() do
     q = """
-      select coalesce(json_agg(t), '[]'::json)::text
-      from (select * from products order by id) t
+    select coalesce(json_agg(t), '[]'::json)::text
+    from (
+      select id, spec, sub_qty, cash_price, credit_price, trek_price, lmd
+      from products order by id
+    ) t
     """
 
     r = Repo.query!(q, [])
@@ -69,6 +85,24 @@ defmodule Mgp.Sales do
     """
 
     r = Repo.query!(q, [])
+    r.rows
+  end
+
+  def get_daily_sales(date) do
+    q = """
+    SELECT COALESCE(json_agg(t), '[]'::json)::text
+    FROM (
+      SELECT
+        i.id, i.customer_id, c.description, c.region, c.resp, c.is_gov,
+        cash, cheque, credit, (cash+credit+cheque) AS total
+      FROM invoices i
+      LEFT JOIN customers c ON c.id = i.customer_id
+      WHERE date = $1::date
+      ORDER BY i.id
+    ) t;
+    """
+
+    r = Repo.query!(q, [date])
     r.rows
   end
 end

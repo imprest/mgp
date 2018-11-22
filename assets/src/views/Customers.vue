@@ -2,16 +2,21 @@
   <section class="section">
     <div class="container">
       <b-field>
-        <p class="control"><button class="button is-static">Select Customer
+        <p class="control">
+          <button class="button is-static">
+            Search Customer
           </button>
         </p>
         <b-autocomplete
           expanded
           v-model="name"
-          :data="filteredCustomers"
-          placeholder="e.g. POKU"
+          :data="customers"
+          placeholder="e.g. 37 Chemists"
+          autofocus
           icon="person"
           field="description"
+          :loading="isFetching"
+          @input="getAsyncCustomers"
           @select="option => fetchSelectedCustomer(option)"
           >
           <template slot-scope="props">
@@ -41,7 +46,7 @@
       </b-field>
     </div>
 
-    <div v-if="postings.postings.length > 0" class="section" style="padding-top: 1rem; padding-bottom: 1rem;">
+    <div v-if="postings.op_bal != null" class="section" style="padding-top: 1rem; padding-bottom: 1rem;">
       <div class="container">
         <div class="columns">
           <div class="column">
@@ -50,6 +55,7 @@
             </h1>
             <h2 class="subtitle">
               <b-taglist>
+                <b-tag>{{postings.id}}</b-tag>
                 <b-tag>{{postings.region}}</b-tag>
                 <b-tag>{{postings.is_gov}}</b-tag>
                 <b-tag>{{postings.resp}}</b-tag>
@@ -64,7 +70,7 @@
               <td></td>
               <td></td>
               <td></td>
-              <th>Opening Bal:</th>
+              <th class="has-text-right">Opening Bal:</th>
               <th class="has-text-right">{{postings.op_bal | currency('')}}</th>
             </tr>
             <tr>
@@ -75,7 +81,7 @@
               <td></td>
               <td></td>
             </tr>
-            <tr>
+            <tr class="underline">
               <th>ID</th>
               <th>Date</th>
               <th>Description</th>
@@ -94,7 +100,7 @@
               <td class="has-text-right">{{p.credit | currency('')}}</td>
               <td class="has-text-right">{{p.bal | currency('')}}</td>
             </tr>
-            <tr>
+            <tr class="underline overline">
               <td></td>
               <td></td>
               <th class="has-text-right">Total: </th>
@@ -112,7 +118,7 @@
               <td></td>
               <td></td>
             </tr>
-            <tr v-if="postings.total_pdcs > 0">
+            <tr class="underline" v-if="postings.total_pdcs > 0">
               <th>PDCS</th>
               <td></td>
               <td></td>
@@ -128,7 +134,7 @@
               <td class="has-text-right">{{p.amount | currency('')}}</td>
               <td></td>
             </tr>
-            <tr v-if="postings.total_pdcs > 0">
+            <tr class="underline overline" v-if="postings.total_pdcs > 0">
               <td></td>
               <td></td>
               <th class="has-text-right">Total: </th>
@@ -151,27 +157,28 @@ import { mapState } from "vuex";
 export default {
   name: "Customers",
   computed: {
-    filteredCustomers() {
-      return this.customers.filter(option => {
-        return (
-          option.description
-            .toString()
-            .toLowerCase()
-            .indexOf(this.name.toLowerCase()) >= 0
-        );
-      });
-    },
     ...mapState(["postings", "customers"])
   },
-  created() {
-    // Dispatch getting the data when the view is created
-    this.$store.dispatch("GET_CUSTOMERS");
+  created: function() {
+    this.generateFinYears();
   },
   watch: {
-    // call again if the route changes
-    $route: "this.$store.dispatch('GET_CUSTOMERS')"
+    customers() {
+      this.isFetching = false;
+    }
   },
   methods: {
+    getAsyncCustomers() {
+      if (this.name === undefined) {
+        return;
+      }
+      if (this.name.length > 5) {
+        return;
+      }
+      this.data = [];
+      this.isFetching = true;
+      this.$store.dispatch("GET_CUSTOMERS", this.name);
+    },
     fetchSelectedCustomer: function(option) {
       if (option && option.id) {
         this.selected = option;
@@ -184,14 +191,26 @@ export default {
         let payload = { id: this.selected.id, year: option };
         this.$store.dispatch("GET_POSTINGS", payload);
       }
+    },
+    generateFinYears: function() {
+      // TODO Move to store as state.fin_year, state.fin_years
+      const d = new Date();
+      const y = d.getFullYear();
+      const m = d.getMonth() + 1;
+      const baseYear = 2016;
+      this.year = m < 10 ? y - 1 : y;
+      for (let i = this.year; i >= baseYear; i--) {
+        this.fin_years.push(i);
+      }
     }
   },
   data() {
     return {
       name: "",
       selected: null,
-      fin_years: [2018, 2017, 2016],
-      year: 2018
+      isFetching: false,
+      fin_years: [],
+      year: 2016
     };
   }
 };
@@ -203,5 +222,11 @@ table.table {
 .table td,
 .table th {
   border: none;
+}
+tr.underline {
+  border-bottom: 1px solid grey;
+}
+tr.overline {
+  border-top: 1px solid grey;
 }
 </style>

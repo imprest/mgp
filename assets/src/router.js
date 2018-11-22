@@ -3,6 +3,7 @@ import Router from "vue-router";
 import Home from "./views/Home.vue";
 import Login from "./views/Login.vue";
 // Dynamically load below pages
+const Sales = () => import(/* webpackChunkName: "sales" */ "./views/Sales.vue");
 const Invoices = () =>
   import(/* webpackChunkName: "invoices" */ "./views/Invoices.vue");
 const Products = () =>
@@ -33,6 +34,11 @@ export default new Router({
       path: "/products",
       name: "products",
       component: Products
+    },
+    {
+      path: "/sales",
+      name: "sales",
+      component: Sales
     },
     {
       path: "/invoices",
