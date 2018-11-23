@@ -216,9 +216,6 @@ export default {
 };
 </script>
 <style scoped lang="scss">
-table.table {
-  font-family: "sans-serif";
-}
 .table td,
 .table th {
   border: none;

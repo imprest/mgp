@@ -8,7 +8,6 @@
                           :first-day-of-week="1"
                           :unselectable-days-of-week="[0, 6]"
                           @input="getDailySales(date)"
-                          :position="is-top-right"
                           placeholder="Click to select...">
               <button class="button is-primary"
                       @click="date = new Date()">
@@ -20,52 +19,89 @@
               </button>
             </b-datepicker>
           </b-field>
-          <b-table
-            :data="daily_sales">
-            <template slot-scope="props">
-              <b-table-column field="id" label="ID" width="40">
-                {{ props.row.id }}
-              </b-table-column>
-
-              <b-table-column field="customer_id" label="Customer ID">
-                {{ props.row.customer_id }}
-              </b-table-column>
-
-              <b-table-column field="customer" label="Customer">
-                {{ props.row.customer }}
-              </b-table-column>
-
-              <b-table-column field="cash" label="Cash" numeric>
-                {{ props.row.cash }}
-              </b-table-column>
-
-              <b-table-column field="cheque" label="Cheque" numeric>
-                {{ props.row.cheque }}
-              </b-table-column>
-
-              <b-table-column field="credit" label="Credit" numeric>
-                {{ props.row.credit }}
-              </b-table-column>
-
-              <b-table-column field="total" label="Total" numeric>
-                {{ props.row.total }}
-              </b-table-column>
-            </template>
-
-            <template slot="empty">
-              <section class="section">
-                <div class="content has-text-grey has-text-centered">
-                  <p>
-                    <b-icon
-                      icon="emoticon-sad"
-                      size="is-large">
-                    </b-icon>
-                  </p>
-                  <p>Nothing here.</p>
-                </div>
-              </section>
-            </template>
-          </b-table>
+          <table class="table is-narrow is-fullwidth">
+            <tr>
+              <th style="width: 85px;">ID</th>
+              <th></th>
+              <th>Customer</th>
+              <th class="has-text-right">Cash</th>
+              <th class="has-text-right">Cheque</th>
+              <th class="has-text-right">Credit</th>
+              <th class="has-text-right">Total</th>
+            </tr>
+            <tr v-for="i in summary.local" :key="i.id">
+              <td>{{ i.id }}</td>
+              <td>{{ i.customer_id }}</td>
+              <td>{{ i.description }}</td>
+              <td class="has-text-right">{{ i.cash | currency('') }}</td>
+              <td class="has-text-right">{{ i.cheque | currency('') }}</td>
+              <td class="has-text-right">{{ i.credit | currency('') }}</td>
+              <td class="has-text-right">{{ i.total | currency('') }}</td>
+            </tr>
+            <tr>
+              <th></th>
+              <th></th>
+              <th></th>
+              <th class="has-text-right">{{ summary.m_cash | currency('') }}</th>
+              <th class="has-text-right">{{ summary.m_cheque | currency('') }}</th>
+              <th class="has-text-right">{{ summary.m_credit | currency('') }}</th>
+              <th class="has-text-right">{{ summary.m_total | currency('') }}</th>
+            </tr>
+            <tr>
+              <th>&nbsp;</th>
+              <th></th>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+            </tr>
+            <tr>
+              <th style="width: 85px;">ID</th>
+              <th></th>
+              <th>Customer</th>
+              <th class="has-text-right">Cash</th>
+              <th class="has-text-right">Cheque</th>
+              <th class="has-text-right">Credit</th>
+              <th class="has-text-right">Total</th>
+            </tr>
+            <tr v-for="i in summary.imported" :key="i.id">
+              <td>{{ i.id }}</td>
+              <td>{{ i.customer_id }}</td>
+              <td>{{ i.description }}</td>
+              <td class="has-text-right">{{ i.cash | currency('') }}</td>
+              <td class="has-text-right">{{ i.cheque | currency('') }}</td>
+              <td class="has-text-right">{{ i.credit | currency('') }}</td>
+              <td class="has-text-right">{{ i.total | currency('') }}</td>
+            </tr>
+            <tr>
+              <th></th>
+              <th></th>
+              <th></th>
+              <th class="has-text-right">{{ summary.c_cash | currency('') }}</th>
+              <th class="has-text-right">{{ summary.c_cheque | currency('') }}</th>
+              <th class="has-text-right">{{ summary.c_credit | currency('') }}</th>
+              <th class="has-text-right">{{ summary.c_total | currency('') }}</th>
+            </tr>
+            <tr>
+              <th>&nbsp;</th>
+              <th></th>
+              <th></th>
+              <th></th>
+              <th></th>
+              <th></th>
+              <th></th>
+            </tr>
+            <tr>
+              <th></th>
+              <th></th>
+              <th class="has-text-right">Total: </th>
+              <th class="has-text-right">{{ summary.c_cash + summary.m_cash | currency('') }}</th>
+              <th class="has-text-right">{{ summary.c_cheque + summary.m_cheque | currency('') }}</th>
+              <th class="has-text-right">{{ summary.c_credit + summary.m_credit | currency('') }}</th>
+              <th class="has-text-right">{{ summary.total | currency('') }}</th>
+            </tr>
+          </table>
         </b-tab-item>
 
         <b-tab-item label="Monthly">
@@ -85,11 +121,48 @@ import { mapState } from "vuex";
 export default {
   name: "Sales",
   computed: {
+    summary: function() {
+      let data = {
+        m_cash: 0,
+        m_credit: 0,
+        m_cheque: 0,
+        m_total: 0,
+        c_cash: 0,
+        c_credit: 0,
+        c_cheque: 0,
+        c_total: 0,
+        total: 0,
+        local: [],
+        imported: []
+      };
+      this.daily_sales.forEach(function(x) {
+        if (x.id.startsWith("C")) {
+          data.c_cash += x.cash;
+          data.c_cheque += x.cheque;
+          data.c_credit += x.credit;
+          data.imported.push(x);
+        } else {
+          data.m_cash += x.cash;
+          data.m_cheque += x.cheque;
+          data.m_credit += x.credit;
+          data.local.push(x);
+        }
+        data.c_total = data.c_cash + data.c_cheque + data.c_credit;
+        data.m_total = data.m_cash + data.m_cheque + data.m_credit;
+        data.total = data.c_total + data.m_total;
+      });
+      return data;
+    },
     ...mapState(["daily_sales"])
   },
   methods: {
     getDailySales(date) {
-      this.$store.dispatch("GET_DAILY_SALES", date.toISOstring().substring(0, 10));
+      if (date) {
+        this.$store.dispatch(
+          "GET_DAILY_SALES",
+          date.toISOString().substring(0, 10)
+        );
+      }
     }
   },
   data() {
@@ -100,11 +173,9 @@ export default {
   }
 };
 </script>
-
-<style lang="scss">
+<style scoped lang="scss">
 div.field-label.is-normal,
 div.field-body > div.field {
   flex-grow: 0;
-  color: red;
 }
 </style>

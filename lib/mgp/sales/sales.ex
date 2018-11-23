@@ -93,7 +93,7 @@ defmodule Mgp.Sales do
     SELECT COALESCE(json_agg(t), '[]'::json)::text
     FROM (
       SELECT
-        i.id, i.customer_id, c.description, c.region, c.resp, c.is_gov,
+        i.id, i.customer_id, c.description,
         cash, cheque, credit, (cash+credit+cheque) AS total
       FROM invoices i
       LEFT JOIN customers c ON c.id = i.customer_id

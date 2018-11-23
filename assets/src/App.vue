@@ -87,4 +87,8 @@ export default {
 section.section {
   padding-top: 1rem;
 }
+
+table.table {
+  font-family: "Droid Sans";
+}
 </style>

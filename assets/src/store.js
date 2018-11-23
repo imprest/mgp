@@ -62,6 +62,9 @@ const store = new Vuex.Store({
     SET_INVOICE_IDS(state, invoice_ids) {
       state.invoice_ids = invoice_ids;
     },
+    SET_DAILY_SALES(state, daily_sales) {
+      state.daily_sales = daily_sales;
+    },
     setProfile(state, profile) {
       state.id = profile.id;
       state.username = profile.username;
