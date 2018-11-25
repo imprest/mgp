@@ -3,29 +3,10 @@
     <div class="field is-grouped">
       <div class="control">
         <div class="select">
-          <select v-model="year" @change="getMonthlySales()">
+          <select v-model="year" @change="getYearlySales()">
             <option value=2018>2018</option>
             <option value=2017>2017</option>
-            <option value=2018>2016</option>
-          </select>
-        </div>
-      </div>
-      <span>-&nbsp;&nbsp;</span>
-      <div class="control">
-        <div class="select">
-          <select v-model="month" @change=getMonthlySales()>
-            <option value=1>01</option>
-            <option value=2>02</option>
-            <option value=3>03</option>
-            <option value=4>04</option>
-            <option value=5>05</option>
-            <option value=6>06</option>
-            <option value=7>07</option>
-            <option value=8>08</option>
-            <option value=9>09</option>
-            <option value=10>10</option>
-            <option value=11>11</option>
-            <option value=12>12</option>
+            <option value=2016>2016</option>
           </select>
         </div>
       </div>
@@ -33,15 +14,15 @@
     <table class="table is-bordered is-narrow is-fullwidth is-hoverable is-striped">
       <thead>
         <tr>
-          <th class="has-text-centered">Date</th>
+          <th class="has-text-centered">Month</th>
           <th class="has-text-centered">Local</th>
           <th class="has-text-centered">Imported</th>
           <th class="has-text-centered">Total</th>
         </tr>
       </thead>
       <tbody>
-        <tr v-for="s in monthly_sales" :key="s.date">
-          <td class="has-text-centered">{{s.date}}</td>
+        <tr v-for="s in yearly_sales" :key="s.date">
+          <td class="has-text-centered">{{s.date.substring(0, 7)}}</td>
           <td class="has-text-right">{{s.local | currency('')}}</td>
           <td class="has-text-right">{{s.imported | currency('')}}</td>
           <td class="has-text-right">{{s.total | currency('')}}</td>
@@ -63,35 +44,33 @@
 import { mapState } from "vuex";
 
 export default {
-  name: "MonthlySales",
+  name: "YearlySales",
   computed: {
     summary: function() {
       let data = {
-        total: 0,
         local: 0,
-        imported: 0
+        imported: 0,
+        total: 0
       };
-      this.monthly_sales.forEach(function(x) {
-        data.local += x.local
-        data.imported += x.imported
+      this.yearly_sales.forEach(function(x) {
+        data.local += x.local;
+        data.imported += x.imported;
       });
-      data.total = data.local + data.imported
+      data.total = data.local + data.imported;
       return data;
     },
-    ...mapState(["monthly_sales"])
+    ...mapState(["yearly_sales"])
   },
   methods: {
-    getMonthlySales() {
-      this.$store.dispatch("GET_MONTHLY_SALES", {
-        year: Number(this.year),
-        month: Number(this.month)
+    getYearlySales() {
+      this.$store.dispatch("GET_YEARLY_SALES", {
+        year: Number(this.year)
       });
     }
   },
   data() {
     return {
-      year: 2018,
-      month: 11
+      year: 2018
     };
   }
 };

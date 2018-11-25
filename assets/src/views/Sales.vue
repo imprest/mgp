@@ -11,6 +11,7 @@
         </b-tab-item>
 
         <b-tab-item label="Yearly">
+          <YearlySales/>
         </b-tab-item>
 
       </b-tabs>
@@ -21,12 +22,14 @@
 <script>
 import DailySales from "@/components/DailySales.vue";
 import MonthlySales from "@/components/MonthlySales.vue";
+import YearlySales from "@/components/YearlySales.vue";
 
 export default {
   name: "Sales",
   components: {
     DailySales,
-    MonthlySales
+    MonthlySales,
+    YearlySales
   },
   data() {
     return {

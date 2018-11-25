@@ -105,4 +105,50 @@ defmodule Mgp.Sales do
     r = Repo.query!(q, [date])
     r.rows
   end
+
+  def get_monthly_sales(year, month) do
+    {:ok, date} = Date.new(year, month, 1)
+
+    q = """
+    SELECT COALESCE(json_agg(t), '[]'::json)::text
+    FROM (
+      SELECT
+        i.date,
+        SUM(d.total) FILTER (WHERE i.id ~* 'M') AS local,
+        SUM(d.total) FILTER (WHERE i.id ~* 'C') AS imported,
+        SUM(d.total) AS total
+      FROM invoices i
+      LEFT JOIN invoice_details d ON d.invoice_id = i.id
+      WHERE i.date > $1::date AND i.date < $1::date + interval '1 month'
+      GROUP BY i.date
+      ORDER BY date
+    ) t;
+    """
+
+    r = Repo.query!(q, [date])
+    r.rows
+  end
+
+  def get_yearly_sales(year) do
+    {:ok, date} = Date.new(year, 10, 1)
+
+    q = """
+    SELECT COALESCE(json_agg(t), '[]'::json)::text
+    FROM (
+      SELECT
+      to_char(DATE_TRUNC('month', date), 'YYYY-MM-DD') AS date,
+      SUM(d.total) FILTER (WHERE i.id ~* 'M') AS local,
+      SUM(d.total) FILTER (WHERE i.id ~* 'C') AS imported,
+      SUM(d.total) AS total
+      FROM invoices i
+      LEFT JOIN invoice_details d ON d.invoice_id = i.id
+      WHERE i.date > $1::date AND i.date < $1::date + interval '1 year'
+      GROUP BY DATE_TRUNC('month', date)
+      ORDER BY DATE_TRUNC('month', date)
+    ) t;
+    """
+
+    r = Repo.query!(q, [date])
+    r.rows
+  end
 end

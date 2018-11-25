@@ -3,7 +3,7 @@ defmodule MgpWeb.UserSocket do
 
   ## Channels
   # channel "room:*", MgpWeb.RoomChannel
-  channel "auto_complete:*", MgpWeb.AutoCompleteChannel
+  channel "api:*", MgpWeb.ApiChannel
 
   # Socket params are passed from the client and can
   # be used to verify and authenticate a user. After

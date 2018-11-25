@@ -1,10 +1,10 @@
-defmodule MgpWeb.AutoCompleteChannel do
+defmodule MgpWeb.ApiChannel do
   use MgpWeb, :channel
 
   alias Mgp.Sales
   alias Mgp.Accounts
 
-  def join("auto_complete:lobby", payload, socket) do
+  def join("api:lobby", payload, socket) do
     if authorized?(payload) do
       {:ok, socket}
     else
@@ -57,12 +57,20 @@ defmodule MgpWeb.AutoCompleteChannel do
     {:reply, {:ok, %{daily_sales: json(Sales.get_daily_sales(d))}}, socket}
   end
 
+  def handle_in("get_monthly_sales", %{"year" => year, "month" => month}, socket) do
+    {:reply, {:ok, %{monthly_sales: json(Sales.get_monthly_sales(year, month))}}, socket}
+  end
+
+  def handle_in("get_yearly_sales", %{"year" => year}, socket) do
+    {:reply, {:ok, %{yearly_sales: json(Sales.get_yearly_sales(year))}}, socket}
+  end
+
   def handle_in("ping", payload, socket) do
     {:reply, {:ok, payload}, socket}
   end
 
   # It is also common to receive messages from the client and
-  # broadcast to everyone in the current topic (auto_complete:lobby).
+  # broadcast to everyone in the current topic (api:lobby).
   def handle_in("shout", payload, socket) do
     broadcast(socket, "shout", payload)
     {:noreply, socket}
