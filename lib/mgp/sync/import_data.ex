@@ -601,10 +601,14 @@ defmodule Mgp.Sync.ImportData do
 
   def populate_invoices_partial(invoices) do
     # on_conflict update query
+    # i.e. alittle special check due to timestamp not updated on cash, credit or chq changes
     query =
       from(
         i in Invoice,
-        where: fragment("i0.lmd <> EXCLUDED.lmd OR i0.lmt <> EXCLUDED.lmt"),
+        where:
+          fragment(
+            "i0.lmd <> EXCLUDED.lmd OR i0.lmt <> EXCLUDED.lmt OR i0.cash <> EXCLUDED.cash OR i0.cheque <> EXCLUDED.cheque OR i0.credit <> EXCLUDED.credit"
+          ),
         update: [
           set: [
             customer_id: fragment("EXCLUDED.customer_id"),

@@ -119,7 +119,7 @@ defmodule Mgp.Sales do
         SUM(d.total) AS total
       FROM invoices i
       LEFT JOIN invoice_details d ON d.invoice_id = i.id
-      WHERE i.date > $1::date AND i.date < $1::date + interval '1 month'
+      WHERE i.date >= $1::date AND i.date < $1::date + interval '1 month'
       GROUP BY i.date
       ORDER BY date
     ) t;
@@ -142,7 +142,7 @@ defmodule Mgp.Sales do
       SUM(d.total) AS total
       FROM invoices i
       LEFT JOIN invoice_details d ON d.invoice_id = i.id
-      WHERE i.date > $1::date AND i.date < $1::date + interval '1 year'
+      WHERE i.date >= $1::date AND i.date < $1::date + interval '1 year'
       GROUP BY DATE_TRUNC('month', date)
       ORDER BY DATE_TRUNC('month', date)
     ) t;

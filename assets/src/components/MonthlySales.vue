@@ -72,10 +72,10 @@ export default {
         imported: 0
       };
       this.monthly_sales.forEach(function(x) {
-        data.local += x.local
-        data.imported += x.imported
+        data.local += x.local;
+        data.imported += x.imported;
       });
-      data.total = data.local + data.imported
+      data.total = data.local + data.imported;
       return data;
     },
     ...mapState(["monthly_sales"])
