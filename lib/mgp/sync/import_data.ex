@@ -724,7 +724,49 @@ defmodule Mgp.Sync.ImportData do
 
     Repo.query!(q, [])
 
+    # Delete invoice line numbers that got added to db but are now deleted
+    # Could not find an easy way. Hence the below code i.e. should be robust
+    delete_line_items_from_invoice_details(dbf)
+
     {rows, nil}
+  end
+
+  def delete_line_items_from_invoice_details(dbf) do
+    {csv, 1} = dbf_to_csv(dbf)
+    {:ok, stream} = csv |> StringIO.open()
+
+    records =
+      stream
+      |> IO.binstream(:line)
+      |> MyParser.parse_stream(headers: false)
+      |> Stream.filter(fn x -> !String.starts_with?(hd(x), "B") end)
+      |> Stream.map(fn x ->
+        [
+          Enum.at(x, 0),
+          Enum.at(x, 3)
+        ]
+      end)
+      |> Stream.map(fn [
+                         invoice_id,
+                         sr_no
+                       ] ->
+        invoice_id <> "-" <> sr_no
+      end)
+      |> Enum.to_list()
+
+    StringIO.close(stream)
+
+    q = """
+    SELECT concat(invoice_id, '-', sr_no) AS id
+    FROM invoices i, invoice_details d
+    WHERE i.id = d.invoice_id AND i.date >= '2018-10-01' AND i.date < '2019-10-01'
+    """
+
+    r = Repo.query!(q, [])
+
+    ids = List.flatten(r.rows) -- records
+
+    ids
   end
 
   def populate_invoice_details_partial(invoices) do
