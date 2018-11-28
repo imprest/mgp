@@ -16,7 +16,8 @@
         </button>
       </b-datepicker>
     </b-field>
-    <table class="table is-narrow is-fullwidth">
+    <table class="table is-hoverable is-narrow is-fullwidth">
+      <tbody>
       <tr>
         <th style="width: 85px;">ID</th>
         <th></th>
@@ -98,6 +99,7 @@
         <th class="has-text-right">{{ summary.c_credit + summary.m_credit | currency('') }}</th>
         <th class="has-text-right">{{ summary.total | currency('') }}</th>
       </tr>
+      </tbody>
     </table>
   </div>
 </template>
