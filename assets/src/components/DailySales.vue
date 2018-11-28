@@ -154,7 +154,7 @@ export default {
   },
   data() {
     return {
-      date: null
+      date: new Date()
     };
   }
 };

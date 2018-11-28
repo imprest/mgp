@@ -116,7 +116,7 @@ defmodule Mgp.Sync.ImportData do
          {customers, nil} <- populate_customers(files.customers_dbf),
          {op_bals, nil} <- populate_customer_op_bals(files.customers_dbf, year),
          {invoices, nil} <- populate_invoices(files.invoices_dbf),
-         {inv_details, nil} <- populate_invoice_details(files.invoice_details_dbf),
+         {inv_details, nil} <- populate_invoice_details(files.invoice_details_dbf, year),
          {pdcs, nil} <- populate_pdcs(files.pdcs_dbf),
          {oct, nil} <- populate_postings(p.oct),
          {nov, nil} <- populate_postings(p.nov),
@@ -708,10 +708,11 @@ defmodule Mgp.Sync.ImportData do
   end
 
   # INVOICE_DETAILS
-  def populate_invoice_details(dbf) do
+  def populate_invoice_details(dbf, year) do
+    records = dbf |> parse_invoice_details_from_dbf
+
     rows =
-      dbf
-      |> parse_invoice_details_from_dbf
+      records
       |> Enum.chunk_every(1000)
       |> Enum.map(fn x -> populate_invoice_details_partial(x) end)
       |> Enum.reduce(0, fn x, acc -> elem(x, 0) + acc end)
@@ -725,48 +726,32 @@ defmodule Mgp.Sync.ImportData do
     Repo.query!(q, [])
 
     # Delete invoice line numbers that got added to db but are now deleted
-    # Could not find an easy way. Hence the below code i.e. should be robust
-    delete_line_items_from_invoice_details(dbf)
+    # Could not find an easy way. Hence the below code i.e. slow but ok
+    delete_line_items_from_invoice_details(records, year)
 
     {rows, nil}
   end
 
-  def delete_line_items_from_invoice_details(dbf) do
-    {csv, 1} = dbf_to_csv(dbf)
-    {:ok, stream} = csv |> StringIO.open()
+  def delete_line_items_from_invoice_details(records, year) do
+    records = records |> Enum.map(fn x -> x.invoice_id <> "-" <> to_string(x.sr_no) end)
 
-    records =
-      stream
-      |> IO.binstream(:line)
-      |> MyParser.parse_stream(headers: false)
-      |> Stream.filter(fn x -> !String.starts_with?(hd(x), "B") end)
-      |> Stream.map(fn x ->
-        [
-          Enum.at(x, 0),
-          Enum.at(x, 3)
-        ]
-      end)
-      |> Stream.map(fn [
-                         invoice_id,
-                         sr_no
-                       ] ->
-        invoice_id <> "-" <> sr_no
-      end)
-      |> Enum.to_list()
-
-    StringIO.close(stream)
+    {:ok, d} = Date.new(year, 10, 1)
 
     q = """
     SELECT concat(invoice_id, '-', sr_no) AS id
     FROM invoices i, invoice_details d
-    WHERE i.id = d.invoice_id AND i.date >= '2018-10-01' AND i.date < '2019-10-01'
+    WHERE i.id = d.invoice_id AND i.date >= $1::date AND i.date < $1 + interval '1 year'
     """
 
-    r = Repo.query!(q, [])
+    r = Repo.query!(q, [d])
 
     ids = List.flatten(r.rows) -- records
 
-    ids
+    qd = """
+    DELETE FROM invoice_details WHERE concat(invoice_id, '-', sr_no) = ANY($1)
+    """
+
+    Repo.query!(qd, [ids])
   end
 
   def populate_invoice_details_partial(invoices) do

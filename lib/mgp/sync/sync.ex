@@ -55,7 +55,7 @@ defmodule Mgp.Sync do
          {customers, nil} <- populate_customers(files.customers_dbf, result),
          {op_bals, nil} <- populate_customer_op_bals(files.customers_dbf, year, result),
          {invoices, nil} <- populate_invoices(files.invoices_dbf, result),
-         {inv_details, nil} <- populate_invoice_details(files.invoice_details_dbf, result),
+         {inv_details, nil} <- populate_invoice_details(files.invoice_details_dbf, result, year),
          {pdcs, nil} <- populate_pdcs(files.pdcs_dbf, result),
          {oct, nil} <- populate_postings(p.oct, result),
          {nov, nil} <- populate_postings(p.nov, result),
@@ -154,9 +154,9 @@ defmodule Mgp.Sync do
     end
   end
 
-  defp populate_invoice_details(file, result) do
+  defp populate_invoice_details(file, result, year) do
     case String.contains?(result, Path.basename(file)) do
-      true -> ImportData.populate_invoice_details(file)
+      true -> ImportData.populate_invoice_details(file, year)
       false -> {0, nil}
     end
   end

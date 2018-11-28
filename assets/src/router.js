@@ -41,6 +41,21 @@ export default new Router({
       component: Sales
     },
     {
+      path: "/sales/daily",
+      name: "sales-daily",
+      component: Sales
+    },
+    {
+      path: "/sales/monthly",
+      name: "sales-monthly",
+      component: Sales
+    },
+    {
+      path: "/sales/yearly",
+      name: "sales-yearly",
+      component: Sales
+    },
+    {
       path: "/invoices",
       name: "invoices",
       component: Invoices

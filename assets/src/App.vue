@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-    <nav id="navbar" v-if="$route.name !== 'login'" class="navbar has-shadow is-spaced" role="navigation" aria-label="main navigation">
+    <nav id="navbar" v-if="$route.name !== 'login'" class="navbar is-transparent is-fixed-top has-shadow is-spaced" role="navigation" aria-label="main navigation">
       <div class="container">
         <div class="navbar-brand">
           <a class="navbar-item">
@@ -62,6 +62,18 @@ export default {
 @import "~bulma/sass/utilities/_all";
 
 // Customize Bulma variables here
+$navbar-breakpoint: 950px;
+#navbar {
+  padding: 0;
+}
+@media screen and (min-width: 950px) {
+  div.container > div.navbar-brand {
+    margin: 0 !important;
+  }
+  div.container > div.navbar-menu {
+    margin: 0 !important;
+  }
+}
 
 // Import Bulma and Buefy styles
 @import "~bulma";
@@ -76,11 +88,9 @@ export default {
   */
 }
 
-#navbar {
-  padding: 0;
-}
-
-.navbar-start a.router-link-exact-active {
+a.navbar-item:hover,
+.navbar-start a.router-link-active,
+.navbar-end a.router-link-active {
   color: $red;
 }
 

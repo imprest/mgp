@@ -4,9 +4,7 @@
       <div class="control">
         <div class="select">
           <select v-model="year" @change="getYearlySales()">
-            <option value=2018>2018</option>
-            <option value=2017>2017</option>
-            <option value=2016>2016</option>
+            <option v-for="y in fin_years" :key="y" :value=y>{{y}}</option>
           </select>
         </div>
       </div>
@@ -59,7 +57,7 @@ export default {
       data.total = data.local + data.imported;
       return data;
     },
-    ...mapState(["yearly_sales"])
+    ...mapState(["yearly_sales", "fin_years"])
   },
   methods: {
     getYearlySales() {

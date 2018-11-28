@@ -24,6 +24,24 @@ channel
   .receive("timeout", () => console.log("joined timed out"));
 // Phoenix Socket code
 
+const base_year = 2016;
+
+function generate_fin_years() {
+  const d = new Date();
+  const m = d.getUTCMonth() + 1;
+  let y = d.getUTCFullYear();
+  if (m < 10) {
+    y = y - 1;
+  }
+  const years = [];
+  for (let i = y; i >= base_year; i--) {
+    years.push(i);
+  }
+  return years;
+}
+
+const months = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+
 // export default new Vuex.Store({
 const store = new Vuex.Store({
   strict: true,
@@ -37,9 +55,12 @@ const store = new Vuex.Store({
     pdcs: [],
     invoice: null,
     invoice_ids: [],
+    daily_sales_date: new Date(),
     daily_sales: [],
     monthly_sales: [],
     yearly_sales: [],
+    fin_years: generate_fin_years(),
+    months_array: months,
     authenticated: false
   },
   mutations: {
