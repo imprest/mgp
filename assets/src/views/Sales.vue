@@ -32,22 +32,12 @@ export default {
     MonthlySales,
     YearlySales
   },
+  created() {
+    this.setActiveTab(this.routePath);
+  },
   watch: {
     $route(to) {
-      switch (to.path) {
-        case "/sales/daily":
-          this.activeTab = 0;
-          break;
-        case "/sales/monthly":
-          this.activeTab = 1;
-          break;
-        case "/sales/yearly":
-          this.activeTab = 2;
-          break;
-        default:
-          this.activeTab = 0;
-          break;
-      }
+      this.setActiveTab(to.path);
     }
   },
   methods: {
@@ -66,11 +56,28 @@ export default {
           router.push("/sales/daily");
           break;
       }
+    },
+    setActiveTab(routePath) {
+      switch (routePath) {
+        case "/sales/daily":
+          this.activeTab = 0;
+          break;
+        case "/sales/monthly":
+          this.activeTab = 1;
+          break;
+        case "/sales/yearly":
+          this.activeTab = 2;
+          break;
+        default:
+          this.activeTab = 0;
+          break;
+      }
     }
   },
   data() {
     return {
-      activeTab: 0
+      activeTab: 0,
+      routePath: this.$route.path
     };
   }
 };

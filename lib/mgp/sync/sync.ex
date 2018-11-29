@@ -17,9 +17,10 @@ defmodule Mgp.Sync do
   def sync() do
     receive do
     after
-      30_000 ->
-        nil
-        # rsync() // TODO: UNCOMMENT LATER
+      60_000 ->
+        # nil
+        # TODO: UNCOMMENT LATER
+        rsync()
     end
   end
 
