@@ -3,7 +3,7 @@
     <div class="field is-grouped">
       <div class="control">
         <div class="select">
-          <select v-model="year" @change="getYearlySales()">
+          <select v-model="year" @change="getYearlySales()" @keyup.enter="getYearlySales()">
             <option v-for="y in fin_years" :key="y" :value=y>{{y}}</option>
           </select>
         </div>

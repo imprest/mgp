@@ -51,6 +51,15 @@ import { mapState } from "vuex";
 
 export default {
   name: "MonthlySales",
+  created() {
+    if (!this.month) {
+      this.month = this.cur_month;
+    }
+    if (!this.year) {
+      this.year = this.cur_fin_year;
+    }
+    this.getMonthlySales();
+  },
   computed: {
     summary: function() {
       let data = {
@@ -65,7 +74,13 @@ export default {
       data.total = data.local + data.imported;
       return data;
     },
-    ...mapState(["monthly_sales", "fin_years", "months_array"])
+    ...mapState([
+      "monthly_sales",
+      "fin_years",
+      "months_array",
+      "cur_month",
+      "cur_fin_year"
+    ])
   },
   methods: {
     getMonthlySales() {
@@ -77,8 +92,8 @@ export default {
   },
   data() {
     return {
-      year: 2018,
-      month: 11
+      year: null,
+      month: null
     };
   }
 };

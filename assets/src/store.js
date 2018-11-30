@@ -25,18 +25,20 @@ channel
 // Phoenix Socket code
 
 const base_year = 2016;
+let cur_fin_year = 2016;
+let cur_month = 1;
 
 function generate_fin_years() {
   const d = new Date();
   const m = d.getUTCMonth() + 1;
   let y = d.getUTCFullYear();
-  if (m < 10) {
-    y = y - 1;
-  }
+  y = m < 10 ? y - 1 : y;
   const years = [];
   for (let i = y; i >= base_year; i--) {
     years.push(i);
   }
+  cur_fin_year = y;
+  cur_month = m;
   return years;
 }
 
@@ -55,11 +57,12 @@ const store = new Vuex.Store({
     pdcs: [],
     invoice: null,
     invoice_ids: [],
-    daily_sales_date: new Date(),
     daily_sales: [],
     monthly_sales: [],
     yearly_sales: [],
     fin_years: generate_fin_years(),
+    cur_fin_year: cur_fin_year,
+    cur_month: cur_month,
     months_array: months,
     authenticated: false
   },

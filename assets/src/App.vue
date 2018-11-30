@@ -1,6 +1,8 @@
 <template>
-  <div id="app">
-    <nav id="navbar" v-if="$route.name !== 'login'" class="navbar is-transparent is-fixed-top has-shadow is-spaced" role="navigation" aria-label="main navigation">
+  <div id="app" :class="[{hasTopPadding: !isLogin}]">
+    <nav id="navbar" v-if="$route.name !== 'login'"
+      class="navbar is-transparent is-fixed-top is-spaced"
+      role="navigation" aria-label="main navigation">
       <div class="container">
         <div class="navbar-brand">
           <a class="navbar-item">
@@ -16,13 +18,13 @@
 
         <div class="navbar-menu">
           <div class="navbar-start">
-            <router-link to="/home" class="navbar-item">Home</router-link>
-            <router-link to="/products" class="navbar-item">Products</router-link>
-            <router-link to="/sales" class="navbar-item">Sales</router-link>
-            <router-link to="/invoices" class="navbar-item">Invoices</router-link>
-            <router-link to="/customers" class="navbar-item">Customers</router-link>
-            <router-link to="/pdcs" class="navbar-item">Pdcs</router-link>
-            <router-link to="/reports" class="navbar-item">Reports</router-link>
+            <RouterLink to="/home" class="navbar-item">Home</RouterLink>
+            <RouterLink to="/products" class="navbar-item">Products</RouterLink>
+            <RouterLink to="/sales" class="navbar-item">Sales</RouterLink>
+            <RouterLink to="/invoices" class="navbar-item">Invoices</RouterLink>
+            <RouterLink to="/customers" class="navbar-item">Customers</RouterLink>
+            <RouterLink to="/pdcs" class="navbar-item">Pdcs</RouterLink>
+            <RouterLink to="/reports" class="navbar-item">Reports</RouterLink>
           </div>
 
           <div class="navbar-end">
@@ -33,15 +35,20 @@
       </div>
     </nav>
     <main v-if="$route.name !== 'login'">
-      <transition>
-        <router-view/>
-      </transition>
+      <Transition>
+        <RouterView/>
+      </Transition>
     </main>
-    <div v-else><router-view/></div>
+    <div v-else><RouterView/></div>
   </div>
 </template>
 <script>
 export default {
+  computed: {
+    isLogin: function() {
+      return this.$route.name === "login";
+    }
+  },
   methods: {
     logout() {
       const req = new Request("/api/sessions", { method: "DELETE" });
@@ -58,6 +65,10 @@ export default {
 };
 </script>
 <style lang="scss">
+$family-sans-serif: BlinkMacSystemFont, -apple-system, "Segoe UI", "Roboto",
+  "Oxygen", "Ubuntu", "Fira Sans", "Droid Sans", "Helvetica Neue", "Helvetica",
+  "Arial", sans-serif;
+
 // Import Bulma's core
 @import "~bulma/sass/utilities/_all";
 
@@ -72,6 +83,7 @@ $navbar-breakpoint: 950px;
   }
   div.container > div.navbar-menu {
     margin: 0 !important;
+    box-shadow: none;
   }
 }
 
@@ -79,13 +91,11 @@ $navbar-breakpoint: 950px;
 @import "~bulma";
 @import "~buefy/src/scss/buefy";
 
+.hasTopPadding {
+  padding-top: 3.25rem;
+}
+
 #app {
-  /* -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  font-family: "Avenir", Helvetica, Arial, sans-serif;
-  text-align: center;
-  color: #2c3e50;
-  */
 }
 
 a.navbar-item:hover,
@@ -96,9 +106,5 @@ a.navbar-item:hover,
 
 section.section {
   padding-top: 1rem;
-}
-
-table.table {
-  font-family: "Droid Sans";
 }
 </style>

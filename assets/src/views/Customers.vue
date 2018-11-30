@@ -1,13 +1,13 @@
 <template>
   <section class="section">
     <div class="container">
-      <b-field>
+      <BField>
         <p class="control">
           <button class="button is-static">
             Search Customer
           </button>
         </p>
-        <b-autocomplete
+        <BAutocomplete
           expanded
           v-model="name"
           :data="customers"
@@ -34,16 +34,16 @@
             </div>
           </template>
           <template slot="empty">No results found</template>
-        </b-autocomplete>
-        <b-select placeholder="Fin Year" v-model="year" @input="yearChanged">
+        </BAutocomplete>
+        <BSelect placeholder="Fin Year" v-model="year" @input="yearChanged">
           <option
             v-for="option in fin_years"
             :value="option"
             :key=option>
           {{option}}
           </option>
-        </b-select>
-      </b-field>
+        </BSelect>
+      </BField>
     </div>
 
     <div v-if="postings.op_bal != null" class="section" style="padding-top: 1rem; padding-bottom: 1rem;">
@@ -54,16 +54,16 @@
               {{postings.description}}
             </h1>
             <h2 class="subtitle">
-              <b-taglist>
-                <b-tag>{{postings.id}}</b-tag>
-                <b-tag>{{postings.region}}</b-tag>
-                <b-tag>{{postings.is_gov}}</b-tag>
-                <b-tag>{{postings.resp}}</b-tag>
-              </b-taglist>
+              <BTaglist>
+                <BTag>{{postings.id}}</BTag>
+                <BTag>{{postings.region}}</BTag>
+                <BTag>{{postings.is_gov}}</BTag>
+                <BTag>{{postings.resp}}</BTag>
+              </BTaglist>
             </h2>
           </div>
         </div>
-        <table class="table is-narrow is-hoverable is-fullwidth">
+        <table class="table is-narrow is-fullwidth is-hoverable">
           <tbody>
             <tr>
               <td></td>
@@ -157,11 +157,9 @@ import { mapState } from "vuex";
 export default {
   name: "Customers",
   computed: {
-    ...mapState(["postings", "customers"])
+    ...mapState(["postings", "customers", "fin_years", "cur_fin_year"])
   },
-  created: function() {
-    this.generateFinYears();
-  },
+  created: function() {},
   watch: {
     customers() {
       this.isFetching = false;
@@ -191,17 +189,6 @@ export default {
         let payload = { id: this.selected.id, year: option };
         this.$store.dispatch("GET_POSTINGS", payload);
       }
-    },
-    generateFinYears: function() {
-      // TODO Move to store as state.fin_year, state.fin_years
-      const d = new Date();
-      const y = d.getFullYear();
-      const m = d.getMonth() + 1;
-      const baseYear = 2016;
-      this.year = m < 10 ? y - 1 : y;
-      for (let i = this.year; i >= baseYear; i--) {
-        this.fin_years.push(i);
-      }
     }
   },
   data() {
@@ -209,8 +196,7 @@ export default {
       name: "",
       selected: null,
       isFetching: false,
-      fin_years: [],
-      year: 2016
+      year: 2018
     };
   }
 };
