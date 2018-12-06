@@ -22,7 +22,7 @@ defmodule Mgp.Accounts.User do
   def registration_changeset(user, attrs) do
     user
     |> changeset(attrs)
-    |> cast(attrs, ~w(password), [])
+    |> cast(attrs, [:password], [])
     |> validate_length(:password, min: 4, max: 100)
     |> put_pass_hash()
   end

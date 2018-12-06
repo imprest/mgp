@@ -10,7 +10,7 @@
 # We recommend using the bang functions (`insert!`, `update!`
 # and so on) as they will fail if something goes wrong.
 
-alias Mgp.Repo
+# alias Mgp.Repo
 # alias Mgp.Sales.Product
 
 Mgp.Accounts.create_user(%{username: "hvaria", password: "admin", is_admin: true, role: "manager"})
