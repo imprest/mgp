@@ -7,11 +7,13 @@ defmodule Mgp.Repo.Migrations.CreatePdcs do
       add :date, :date
       add :cheque, :string
       add :amount, :decimal
+      add :adjusted, :string
       add :lmu, :string
       add :lmd, :date
       add :lmt, :time
-      add :customer_id, references(:customers, on_update: :update_all,
-                                   on_delete: :nothing, type: :string)
+
+      add :customer_id,
+          references(:customers, on_update: :update_all, on_delete: :nothing, type: :string)
     end
 
     create index(:pdcs, [:customer_id])

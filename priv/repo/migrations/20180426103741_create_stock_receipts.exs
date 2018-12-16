@@ -20,6 +20,7 @@ defmodule Mgp.Repo.Migrations.CreateStockReceipts do
     end
 
     create(index(:stock_receipts, [:product_id]))
+    create(index(:stock_receipts, [:date]))
 
     execute(
       "ALTER TABLE stock_receipts ADD CONSTRAINT

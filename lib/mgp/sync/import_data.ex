@@ -1051,7 +1051,8 @@ defmodule Mgp.Sync.ImportData do
       |> Enum.reduce(0, fn x, acc -> elem(x, 0) + acc end)
 
     # Delete all pdcs with due date less than today's
-    from(p in Pdc, where: p.date < ^today_date) |> Repo.delete_all()
+    from(p in Pdc, where: p.date < ^today_date or is_nil(p.adjusted) == false)
+    |> Repo.delete_all()
 
     {rows, nil}
   end
@@ -1099,19 +1100,21 @@ defmodule Mgp.Sync.ImportData do
           Enum.at(x, 5),
           Enum.at(x, 6),
           Enum.at(x, 3),
+          Enum.at(x, 11),
           Enum.at(x, 13),
           Enum.at(x, 14),
           Enum.at(x, 15)
         ]
       end)
       |> Stream.filter(fn x -> Enum.member?(customer_ids, Enum.at(x, 2)) end)
-      |> Stream.map(fn [id, date, customer_id, amount, cheque, lmu, lmd, lmt] ->
+      |> Stream.map(fn [id, date, customer_id, amount, cheque, adjusted, lmu, lmd, lmt] ->
         %{
           id: id,
           date: to_date(date),
           customer_id: customer_id,
           amount: to_decimal(amount),
           cheque: clean_string(cheque),
+          adjusted: nil?(adjusted),
           lmu: nil?(lmu),
           lmd: to_date(lmd),
           lmt: to_time(lmt)

@@ -20,5 +20,6 @@ defmodule Mgp.Repo.Migrations.CreateInvoices do
     end
 
     create(index(:invoices, [:customer_id]))
+    create(index(:invoices, [:date]))
   end
 end

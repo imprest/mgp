@@ -32,7 +32,7 @@ defmodule Mgp.Sync do
     years_and_dbf_files = files_to_rsync(years)
 
     years_and_dbf_files |> Enum.map(fn x -> rsync_for_year(x) end)
-    # sync() // TODO: UNCOMMENT LATER
+    sync()
   end
 
   defp rsync_for_year(%{year: year, dbf_files: dbf_files}) do
