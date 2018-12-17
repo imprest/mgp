@@ -65,6 +65,10 @@ defmodule MgpWeb.ApiChannel do
     {:reply, {:ok, %{yearly_sales: json(Sales.get_yearly_sales(year))}}, socket}
   end
 
+  def handle_in("get_events", %{}, socket) do
+    {:reply, {:ok, %{events: json(Sales.get_events())}}, socket}
+  end
+
   def handle_in("ping", payload, socket) do
     {:reply, {:ok, payload}, socket}
   end

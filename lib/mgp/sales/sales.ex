@@ -151,4 +151,47 @@ defmodule Mgp.Sales do
     r = Repo.query!(q, [date])
     r.rows
   end
+
+  def get_events() do
+    date = Date.utc_today()
+
+    q = """
+    with activity as (
+      select
+        lmt as id,
+        'customer' as type,
+        id as event_id, id as customer_id, 0 as amount, description, region, resp, is_gov, null as event_detail
+      from customers
+      where lmd = $1
+    union all
+      select
+        i.lmt as id,
+        'invoice' as type,
+        i.id as event_id, customer_id, credit as amount, c.description, region, resp, is_gov, null as event_detail
+      from invoices i, customers c
+      where i.lmd = $1 and i.customer_id = c.id
+    union all
+      select
+        p.lmt as id,
+        case when amount < 0 then 'credit' else 'debit' end as type,
+        right(p.id, length(p.id)-9) as event_id, customer_id, abs(amount), c.description, region, resp, is_gov, p.description as event_detail
+      from postings p, customers c
+      where p.lmd = $1 and (p.id ~* 'BR' or p.id ~* 'BP') and p.customer_id = c.id
+    union all
+      select
+        p.lmt as id,
+        'pdc' as type,
+        p.id as event_id, customer_id, amount, c.description, region, resp, is_gov, p.cheque as event_detail
+      from pdcs p, customers c
+      where p.lmd = $1 and p.customer_id = c.id
+    )
+    SELECT COALESCE(json_agg(t), '[]'::json)::text FROM (
+      SELECT * FROM activity
+      ORDER BY id DESC)
+    AS t;
+    """
+
+    r = Repo.query!(q, [date])
+    r.rows
+  end
 end

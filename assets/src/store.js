@@ -64,9 +64,13 @@ const store = new Vuex.Store({
     cur_fin_year: cur_fin_year,
     cur_month: cur_month,
     months_array: months,
+    events: [],
     authenticated: false
   },
   mutations: {
+    SET_EVENTS(state, events) {
+      state.events = events;
+    },
     SET_CUSTOMERS(state, customers) {
       state.customers = customers;
     },
@@ -115,6 +119,13 @@ const store = new Vuex.Store({
     }
   },
   actions: {
+    GET_EVENTS(context) {
+      channel
+        .push("get_events", {}, 10000)
+        .receive("ok", msg => context.commit("SET_EVENTS", msg.events))
+        .receive("error", reasons => console.log("error", reasons))
+        .receive("timeout", () => console.log("Networking issue..."));
+    },
     GET_CUSTOMERS(context, query) {
       if (query.length < 3) {
         return;
