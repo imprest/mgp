@@ -153,9 +153,11 @@
 </template>
 <script>
 import { mapState } from "vuex";
+import Invoice from "@/components/Invoice.vue";
 
 export default {
   name: "Customers",
+  // components: { Invoice },
   computed: {
     ...mapState(["postings", "customers", "fin_years", "cur_fin_year"])
   },

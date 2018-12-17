@@ -1040,18 +1040,18 @@ defmodule Mgp.Sync.ImportData do
 
   # PDCS
   def populate_pdcs(dbf) do
-    today_date = Date.utc_today()
+    closest_date = Date.add(Date.utc_today(), -1)
 
     rows =
       dbf
       |> parse_pdcs_from_dbf
-      |> Enum.filter(fn x -> is_record_for_today_onwards(x.date, today_date) end)
+      |> Enum.filter(fn x -> is_record_for_today_onwards(x.date, closest_date) end)
       |> Enum.chunk_every(1000)
       |> Enum.map(fn x -> populate_pdcs_partial(x) end)
       |> Enum.reduce(0, fn x, acc -> elem(x, 0) + acc end)
 
     # Delete all pdcs with due date less than today's
-    from(p in Pdc, where: p.date < ^today_date or is_nil(p.adjusted) == false)
+    from(p in Pdc, where: p.date < ^closest_date or is_nil(p.adjusted) == false)
     |> Repo.delete_all()
 
     {rows, nil}

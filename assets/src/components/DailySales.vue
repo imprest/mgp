@@ -33,7 +33,11 @@
         <tr v-for="i in summary.local" :key="i.id">
           <td @click="fetchSelectedInvoice(i.id)"><a>{{i.id}}</a></td>
           <td>{{ i.customer_id }}</td>
-          <td>{{ i.description }}</td>
+          <td>
+            {{ i.description }}
+            <span class="tag">{{i.region}}</span>
+            <span class="tag">{{i.resp}}</span>
+          </td>
           <td class="has-text-right">{{ i.cash | currency('') }}</td>
           <td class="has-text-right">{{ i.cheque | currency('') }}</td>
           <td class="has-text-right">{{ i.credit | currency('') }}</td>
@@ -69,7 +73,11 @@
         <tr v-for="i in summary.imported" :key="i.id">
           <td @click="fetchSelectedInvoice(i.id)"><a>{{i.id}}</a></td>
           <td>{{ i.customer_id }}</td>
-          <td>{{ i.description }}</td>
+          <td>
+            {{ i.description }}
+            <span class="tag">{{i.region}}</span>
+            <span class="tag">{{i.resp}}</span>
+          </td>
           <td class="has-text-right">{{ i.cash | currency('') }}</td>
           <td class="has-text-right">{{ i.cheque | currency('') }}</td>
           <td class="has-text-right">{{ i.credit | currency('') }}</td>
