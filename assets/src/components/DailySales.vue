@@ -192,9 +192,4 @@ export default {
 div.field > div {
   width: 120px;
 }
-
-.invoice {
-  padding: 2rem 1.2rem;
-  background-color: white;
-}
 </style>

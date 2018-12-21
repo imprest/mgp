@@ -107,4 +107,10 @@ a.navbar-item:hover,
 section.section {
   padding-top: 1rem;
 }
+
+.invoice {
+  max-width: 960px;
+  padding: 2rem 1.2rem;
+  background-color: white;
+}
 </style>

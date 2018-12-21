@@ -1,5 +1,8 @@
 <template>
   <section class="section">
+    <BModal :active.sync="isInvoiceModelActive" has-modal-card>
+      <Invoice class="invoice"/>
+    </BModal>
     <div class="container">
       <BField>
         <p class="control">
@@ -95,9 +98,14 @@
                 <span v-else>{{p.id.substring(8, p.id.length)}}</span>
               </td>
               <td>{{p.date}}</td>
-              <td>{{p.description}}</td>
-              <td class="has-text-right">{{p.debit | currency('')}}</td>
-              <td class="has-text-right">{{p.credit | currency('')}}</td>
+              <td>
+                <span v-if="p.description.startsWith('M ') || p.description.startsWith('C ')">
+                  <a @click="fetchSelectedInvoice(p.description)">{{p.description}}</a>
+                </span>
+                <span v-else>{{p.description}}</span>
+              </td>
+              <td class="has-text-right" @click="addCell(p.debit)">{{p.debit | currency('')}}</td>
+              <td class="has-text-right" @click="addCell(-p.credit)">{{p.credit | currency('')}}</td>
               <td class="has-text-right">{{p.bal | currency('')}}</td>
             </tr>
             <tr class="underline overline">
@@ -157,7 +165,7 @@ import Invoice from "@/components/Invoice.vue";
 
 export default {
   name: "Customers",
-  // components: { Invoice },
+  components: { Invoice },
   computed: {
     ...mapState(["postings", "customers", "fin_years", "cur_fin_year"])
   },
@@ -179,12 +187,29 @@ export default {
       this.isFetching = true;
       this.$store.dispatch("GET_CUSTOMERS", this.name);
     },
+    addCell(value) {
+      this.total = this.total + value;
+      console.log(this.total);
+      this.$snackbar.open({
+        message: `Total: ${this.total.toLocaleString()}`,
+        position: "is-bottom",
+        actionText: "Reset",
+        queue: false,
+        onAction: () => {
+          this.total = 0;
+        }
+      });
+    },
     fetchSelectedCustomer: function(option) {
       if (option && option.id) {
         this.selected = option;
         let payload = { id: option.id, year: this.year };
         this.$store.dispatch("GET_POSTINGS", payload);
       }
+    },
+    fetchSelectedInvoice(invoice_id) {
+      this.$store.dispatch("GET_INVOICE", invoice_id);
+      this.isInvoiceModelActive = true;
     },
     yearChanged: function(option) {
       if (this.selected) {
@@ -198,7 +223,9 @@ export default {
       name: "",
       selected: null,
       isFetching: false,
-      year: 2018
+      year: 2018,
+      total: 0,
+      isInvoiceModelActive: false
     };
   }
 };
