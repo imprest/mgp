@@ -51,6 +51,7 @@ const store = new Vuex.Store({
     username: "",
     id: "",
     customers: [],
+    payroll: [],
     products: [],
     product: null,
     postings: { postings: [] },
@@ -101,6 +102,9 @@ const store = new Vuex.Store({
     SET_YEARLY_SALES(state, yearly_sales) {
       state.yearly_sales = yearly_sales;
     },
+    SET_PAYROLL(state, payroll) {
+      state.payroll = payroll;
+    },
     setProfile(state, profile) {
       state.id = profile.id;
       state.username = profile.username;
@@ -123,6 +127,13 @@ const store = new Vuex.Store({
       channel
         .push("get_events", {}, 10000)
         .receive("ok", msg => context.commit("SET_EVENTS", msg.events))
+        .receive("error", reasons => console.log("error", reasons))
+        .receive("timeout", () => console.log("Networking issue..."));
+    },
+    GET_PAYROLL(context, month) {
+      channel
+        .push("get_payroll", { month: month }, 10000)
+        .receive("ok", msg => context.commit("SET_PAYROLL", msg.payroll))
         .receive("error", reasons => console.log("error", reasons))
         .receive("timeout", () => console.log("Networking issue..."));
     },

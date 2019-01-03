@@ -24,6 +24,7 @@
             <RouterLink to="/invoices" class="navbar-item">Invoices</RouterLink>
             <RouterLink to="/customers" class="navbar-item">Customers</RouterLink>
             <RouterLink to="/pdcs" class="navbar-item">Pdcs</RouterLink>
+            <RouterLink to="/payroll" class="navbar-item">Payroll</RouterLink>
             <RouterLink to="/reports" class="navbar-item">Reports</RouterLink>
           </div>
 

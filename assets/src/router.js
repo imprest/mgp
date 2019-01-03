@@ -11,6 +11,8 @@ const Products = () =>
 const Customers = () =>
   import(/* webpackChunkName: "customers" */ "./views/Customers.vue");
 const Pdcs = () => import(/* webpackChunkName: "pdcs" */ "./views/Pdcs.vue");
+const Payroll = () =>
+  import(/* webpackChunkName: "payroll" */ "./views/Payroll.vue");
 const Reports = () =>
   import(/* webpackChunkName: "reports" */ "./views/Reports.vue");
 
@@ -69,6 +71,11 @@ export default new Router({
       path: "/pdcs",
       name: "pdcs",
       component: Pdcs
+    },
+    {
+      path: "/payroll",
+      name: "payroll",
+      component: Payroll
     },
     {
       path: "/reports",

@@ -69,6 +69,11 @@ defmodule MgpWeb.ApiChannel do
     {:reply, {:ok, %{events: json(Sales.get_events())}}, socket}
   end
 
+  def handle_in("get_payroll", %{"month" => month}, socket) do
+    payroll = Mgp.Sync.ImportPayroll.import_month(month)
+    {:reply, {:ok, %{payroll: payroll}}, socket}
+  end
+
   def handle_in("ping", payload, socket) do
     {:reply, {:ok, payload}, socket}
   end

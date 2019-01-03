@@ -8,7 +8,7 @@ defmodule Mgp.Sync.ImportPayroll do
   @calculated_payroll "H1DETPAY.DBF"
 
   def import_month(folder \\ @root_folder, month) do
-    files = generate_file_paths(folder, month)
+    files = generate_file_paths(folder)
 
     with employees <- parse_employee_master(files.employee_master),
          payroll <- parse_and_calculate_monthly_payroll(files.payroll, month, employees) do
@@ -16,7 +16,7 @@ defmodule Mgp.Sync.ImportPayroll do
     end
   end
 
-  def generate_file_paths(folder, month) do
+  def generate_file_paths(folder) do
     %{
       payroll: folder <> @calculated_payroll,
       employee_master: folder <> @employee_master
@@ -262,6 +262,7 @@ defmodule Mgp.Sync.ImportPayroll do
           earned_salary: earned_salary,
           ssnit_amount: ssnit_amount,
           pf_amount: pf_amount,
+          taxable_income: taxable_income,
           total_cash: total_cash,
           total_relief: total_relief,
           tax_ded: tax_ded,
