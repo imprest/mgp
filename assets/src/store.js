@@ -8,7 +8,7 @@ Vue.use(Vuex);
 const socket = new Socket(
   process.env.NODE_ENV === "production"
     ? "wss://localhost:4000/socket"
-    : "ws://localhost:4000/socket",
+    : "ws://192.168.0.151:4000/socket",
   { opts: { hearbeatIntervalMs: 60000 } },
   { params: { userToken: "123" } }
 );
@@ -26,7 +26,28 @@ channel
 
 const base_year = 2016;
 let cur_fin_year = 2016;
-let cur_month = 1;
+let cur_month = get_cur_month();
+
+function get_cur_year() {
+  const d = new Date();
+  return d.getUTCFullYear();
+}
+
+function get_cur_month() {
+  const d = new Date();
+  return d.getUTCMonth() + 1;
+}
+
+function generate_years() {
+  const d = new Date();
+  let y = d.getUTCFullYear();
+
+  const years = [];
+  for (let i = y; i >= base_year; i--) {
+    years.push(i);
+  }
+  return years;
+}
 
 function generate_fin_years() {
   const d = new Date();
@@ -62,7 +83,9 @@ const store = new Vuex.Store({
     monthly_sales: [],
     yearly_sales: [],
     fin_years: generate_fin_years(),
+    cur_years: generate_years(),
     cur_fin_year: cur_fin_year,
+    cur_year: get_cur_year(),
     cur_month: cur_month,
     months_array: months,
     events: [],

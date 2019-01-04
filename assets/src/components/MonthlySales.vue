@@ -4,7 +4,7 @@
       <div class="control">
         <div class="select">
           <select v-model="year" @change="getMonthlySales()">
-            <option v-for="y in fin_years" :key="y" :value=y>{{y}}</option>
+            <option v-for="y in cur_years" :key="y" :value=y>{{y}}</option>
           </select>
         </div>
       </div>
@@ -56,7 +56,7 @@ export default {
       this.month = this.cur_month;
     }
     if (!this.year) {
-      this.year = this.cur_fin_year;
+      this.year = this.cur_year;
     }
     this.getMonthlySales();
   },
@@ -76,10 +76,10 @@ export default {
     },
     ...mapState([
       "monthly_sales",
-      "fin_years",
+      "cur_years",
       "months_array",
       "cur_month",
-      "cur_fin_year"
+      "cur_year"
     ])
   },
   methods: {

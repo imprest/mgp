@@ -180,7 +180,7 @@ export default {
       if (this.name === undefined) {
         return;
       }
-      if (this.name.length > 5) {
+      if (this.name.length > 10) {
         return;
       }
       this.data = [];

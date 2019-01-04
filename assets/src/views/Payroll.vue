@@ -1,16 +1,16 @@
 <template>
   <section class="section">
     <div class="container">
-      <b-field grouped position="is-right">
-        <b-input
+      <BField grouped position="is-right">
+        <BInput
           v-model="month"
           @keyup.native.enter="getPayroll()"
           placeholder="Enter Month e.g. 1812M"
-        ></b-input>
+        ></BInput>
         <p class="control">
           <button @click="getPayroll()" class="button is-primary">Fetch</button>
         </p>
-      </b-field>
+      </BField>
     </div>
     <br>
     <div v-if="view==='daysView'" class="container">
@@ -36,6 +36,36 @@
             <th></th>
             <th></th>
             <th class="has-text-centered">{{ sums.days_worked | currency('')}}</th>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+    <div v-if="view==='overtimeView'" class="container">
+      <table class="table is-striped is-bordered is-hoverable is-narrow">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th @click="setView('')" class="has-text-centered">Overtime</th>
+            <th @click="setView('')" class="has-text-centered">Overtime Tax</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="p in payrollOvertimeView" :key="p.id">
+            <td>
+              <span class="white-cell">{{p.id}}</span>
+            </td>
+            <td>{{p.name}}</td>
+            <td class="has-text-right">{{p.overtime_earned}}</td>
+            <td class="has-text-right">{{p.overtime_tax}}</td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr>
+            <th></th>
+            <th></th>
+            <th class="has-text-right">{{ sums.overtime_earned | currency('')}}</th>
+            <th class="has-text-right">{{ sums.overtime_tax | currency('')}}</th>
           </tr>
         </tfoot>
       </table>
@@ -165,7 +195,7 @@
               <th class="has-text-centered">Total Relief</th>
               <th class="has-text-centered">Taxable Income</th>
               <th class="has-text-centered">Tax Ded.</th>
-              <th class="has-text-centered">Overtime</th>
+              <th @click="setView('overtimeView')" class="has-text-centered">Overtime</th>
               <th class="has-text-centered">Overtime Tax</th>
               <th class="has-text-centered">Total Tax</th>
               <th class="has-text-centered">TUC Ded.</th>
@@ -304,6 +334,11 @@ export default {
     payrollPFView: function() {
       return this.payroll.filter(function(x) {
         return x.pf_amount !== "0.00";
+      });
+    },
+    payrollOvertimeView: function() {
+      return this.payroll.filter(function(x) {
+        return x.overtime_earned !== "0.00";
       });
     },
     payrollAdvanceView: function() {
