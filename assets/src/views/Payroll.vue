@@ -76,23 +76,32 @@
           <tr>
             <th>ID</th>
             <th>Name</th>
-            <th @click="setView('')" class="has-text-centered">PF</th>
+            <th class="has-text-centered">Basic Income</th>
+            <th @click="setView('')" class="has-text-centered">PF 8%</th>
+            <th @click="setView('')" class="has-text-centered">PF 2%</th>
+            <th @click="setView('')" class="has-text-centered">Total</th>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="p in payrollPFView" :key="p.id">
+          <tr v-for="p in pf.employees" :key="p.id">
             <td>
               <span class="white-cell">{{p.id}}</span>
             </td>
             <td>{{p.name}}</td>
-            <td class="has-text-right">{{p.pf_amount}}</td>
+            <td class="has-text-right">{{p.earned_salary | currency('')}}</td>
+            <td class="has-text-right">{{p.pf_amount | currency('')}}</td>
+            <td class="has-text-right">{{p.pf_employee_contrib | currency('')}}</td>
+            <td class="has-text-right">{{p.pf_total_contrib | currency('')}}</td>
           </tr>
         </tbody>
         <tfoot>
           <tr>
             <th></th>
             <th></th>
-            <th class="has-text-centered">{{ sums.pf_amount | currency('')}}</th>
+            <td class="has-text-right">{{ pf.summary.earned_salary | currency('')}}</td>
+            <th class="has-text-centered">{{ pf.summary.employer_contrib | currency('')}}</th>
+            <th class="has-text-centered">{{ pf.summary.employees_contrib | currency('')}}</th>
+            <th class="has-text-centered">{{ pf.summary.total_contrib | currency('')}}</th>
           </tr>
         </tfoot>
       </table>
@@ -120,6 +129,51 @@
             <th></th>
             <th></th>
             <th class="has-text-right">{{ sums.loan | currency('')}}</th>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+    <div v-if="view==='ssnitView'" class="container">
+      <table class="table is-striped is-bordered is-hoverable is-narrow">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th class="has-text-centered">Basic Income</th>
+            <th class="has-text-centered">SSNIT #</th>
+            <th @click="setView('')" class="has-text-centered">SSNIT (13.0%)</th>
+            <th @click="setView('')" class="has-text-centered">SSNIT (5.5%)</th>
+            <th @click="setView('')" class="has-text-centered">SSNIT Total</th>
+            <th @click="setView('')" class="has-text-centered">SSNIT Tier 1</th>
+            <th @click="setView('')" class="has-text-centered">SSNIT Tier 2</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="p in ssnit.employees" :key="p.id">
+            <td>
+              <span class="white-cell">{{p.id}}</span>
+            </td>
+            <td>{{p.name}}</td>
+            <td class="has-text-right">{{p.earned_salary | currency('')}}</td>
+            <td class="has-text-centered">{{p.ssnit_no}}</td>
+            <td class="has-text-right">{{p.ssnit_emp_contrib | currency('')}}</td>
+            <td class="has-text-right">{{p.ssnit_amount | currency('')}}</td>
+            <td class="has-text-right">{{p.ssnit_total_contrib | currency('')}}</td>
+            <td class="has-text-right">{{p.ssnit_tier_1 | currency('')}}</td>
+            <td class="has-text-right">{{p.ssnit_tier_2 | currency('')}}</td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr>
+            <th></th>
+            <th></th>
+            <th class="has-text-right">{{ ssnit.summary.earned_salary | currency('')}}</th>
+            <th></th>
+            <th class="has-text-right">{{ ssnit.summary.employer_contrib | currency('')}}</th>
+            <th class="has-text-right">{{ ssnit.summary.employees_contrib | currency('')}}</th>
+            <th class="has-text-right">{{ ssnit.summary.total_contrib | currency('')}}</th>
+            <th class="has-text-right">{{ ssnit.summary.ssnit_tier_1 | currency('')}}</th>
+            <th class="has-text-right">{{ ssnit.summary.ssnit_tier_2 | currency('')}}</th>
           </tr>
         </tfoot>
       </table>
@@ -188,7 +242,7 @@
               <th @click="setView('daysView')" class="has-text-centered">Days</th>
               <th class="has-text-centered">Basic Salary</th>
               <th class="has-text-centered">Earned Salary</th>
-              <th class="has-text-centered">SSNIT</th>
+              <th @click="setView('ssnitView')" class="has-text-centered">SSNIT</th>
               <th @click="setView('pfView')" class="has-text-centered">PF</th>
               <th class="has-text-centered">Cash Allow.</th>
               <th class="has-text-centered">Total Income</th>
@@ -208,7 +262,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="p in payroll" :key="p.id">
+            <tr v-for="p in payroll" :key="p.id" :class="[ p.net_pay !== p.total_pay ? 'has-background-warning' : '']">
               <td>
                 <span class="white-cell">{{p.id}}</span>
               </td>
@@ -279,6 +333,106 @@ export default {
   },
   name: "Payroll",
   computed: {
+    pf: function() {
+      const summary = {
+        earned_salary: 0,
+        employer_contrib: 0,
+        employees_contrib: 0,
+        total_contrib: 0
+      };
+      const employees = [];
+      let t_employer_contrib = 0;
+      let t_employee_contrib = 0;
+      let t_total_contrib = 0;
+      this.payroll.forEach(function(x) {
+        if (x.pf_amount !== "0.00") {
+          t_employer_contrib = Number.parseFloat(x.pf_amount);
+          t_employee_contrib = +(
+            Math.round(0.25 * t_employer_contrib + "e+2") + "e-2"
+          );
+          t_total_contrib = t_employer_contrib + t_employee_contrib;
+
+          summary.earned_salary += Number.parseFloat(x.earned_salary);
+          summary.employer_contrib += t_employer_contrib;
+          summary.employees_contrib += t_employee_contrib;
+          summary.total_contrib += t_total_contrib;
+
+          x.pf_employee_contrib = t_employee_contrib;
+          x.pf_total_contrib = t_total_contrib;
+
+          employees.push(x);
+        }
+      });
+
+      return { employees: employees, summary: summary };
+    },
+    ssnit: function() {
+      const summary = {
+        earned_salary: 0,
+        employer_contrib: 0,
+        employees_contrib: 0,
+        total_contrib: 0,
+        ssnit_tier_1: 0,
+        ssnit_tier_2: 0
+      };
+      const employees = [];
+      let t_employer_contrib = 0;
+      let t_employee_contrib = 0;
+      let t_total_contrib = 0;
+      let t_ssnit_tier_1 = 0;
+      let t_ssnit_tier_2 = 0;
+      this.payroll.forEach(function(x) {
+        if (x.ssnit_amount !== "0.00") {
+          if (x.id === "E0053") {
+            t_employee_contrib = Number.parseFloat(x.ssnit_amount);
+            t_employer_contrib = (12.5 / 5) * t_employee_contrib;
+            t_total_contrib = t_employer_contrib + t_employee_contrib;
+            t_ssnit_tier_1 = t_total_contrib;
+            t_ssnit_tier_2 = t_total_contrib - t_ssnit_tier_1;
+
+            summary.earned_salary += Number.parseFloat(x.earned_salary);
+            summary.employer_contrib += t_employer_contrib;
+            summary.employees_contrib += t_employee_contrib;
+            summary.total_contrib += t_total_contrib;
+            summary.ssnit_tier_1 += t_ssnit_tier_1;
+            summary.ssnit_tier_2 += t_ssnit_tier_2;
+
+            x.ssnit_emp_contrib = t_employer_contrib;
+            x.ssnit_total_contrib = t_total_contrib;
+            x.ssnit_tier_1 = t_ssnit_tier_1;
+            x.ssnit_tier_2 = t_ssnit_tier_2;
+
+            employees.push(x);
+          } else {
+            t_employee_contrib = Number.parseFloat(x.ssnit_amount);
+            t_employer_contrib = Number.parseFloat(
+              ((13 / 5.5) * t_employee_contrib).toFixed(2)
+            );
+            t_total_contrib = t_employer_contrib + t_employee_contrib;
+            t_ssnit_tier_1 = Number.parseFloat(
+              ((13.5 / 18.5) * t_total_contrib).toFixed(2)
+            );
+            t_ssnit_tier_2 = t_total_contrib - t_ssnit_tier_1;
+
+            summary.earned_salary += Number.parseFloat(x.earned_salary);
+            summary.employer_contrib += t_employer_contrib;
+            summary.employees_contrib += t_employee_contrib;
+            summary.total_contrib += t_total_contrib;
+            summary.ssnit_tier_1 += t_ssnit_tier_1;
+            summary.ssnit_tier_2 += t_ssnit_tier_2;
+
+            x.ssnit_emp_contrib = t_employer_contrib;
+            x.ssnit_total_contrib = t_total_contrib;
+            x.ssnit_tier_1 = t_ssnit_tier_1;
+            x.ssnit_tier_2 = t_ssnit_tier_2;
+
+            employees.push(x);
+          }
+        }
+      });
+
+      return { employees: employees, summary: summary };
+    },
     sums: function() {
       let data = {
         days_worked: 0,
