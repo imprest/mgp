@@ -25,6 +25,9 @@ defmodule Mgp.Sync do
   end
 
   def rsync() do
+    # rsync payroll files to
+    rsync_payroll_dbf_files()
+
     # Try and sync files from base fin year to now
     # But only on files that rsync was able to sync on
     # in order of base year and master dbfs first else whatever that got synced
@@ -33,6 +36,17 @@ defmodule Mgp.Sync do
 
     years_and_dbf_files |> Enum.map(fn x -> rsync_for_year(x) end)
     sync()
+  end
+
+  defp rsync_payroll_dbf_files() do
+    args =
+      Enum.concat(["--timeout=60", "-av"], [
+        "/mnt/scl/HPMG18/H1EMP.DBF",
+        "/mnt/scl/HPMG18/H1DETPAY.DBF"
+      ])
+
+    cmd = Enum.concat(args, [Path.join(ImportData.root_folder(), "/HPMG18")])
+    System.cmd("rsync", cmd)
   end
 
   defp rsync_for_year(%{year: year, dbf_files: dbf_files}) do

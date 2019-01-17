@@ -53,4 +53,4 @@ config :mgp, Mgp.Repo,
   password: "postgres",
   database: "mgp_dev",
   hostname: "localhost",
-  pool_size: 10
+  pool_size: 3

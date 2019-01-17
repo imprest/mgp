@@ -232,7 +232,7 @@ defmodule Mgp.Sync.ImportPayroll do
     taxable_income = Decimal.sub(total_cash, total_relief)
 
     # TODO: depending on month route tax calculation to appropriate functions
-    tax_ded = gra_income_tax(taxable_income)
+    tax_ded = gra_income_tax(taxable_income, "2019")
 
     overtime_tax = gra_overtime_tax(emp.overtime_earned, earned_salary)
 
@@ -288,21 +288,68 @@ defmodule Mgp.Sync.ImportPayroll do
     end
   end
 
-  defp gra_income_tax(i) do
+  defp gra_income_tax(i, "2019") do
+    decimal_1 = Decimal.new("1")
+
     cond do
-      Decimal.compare(i, Decimal.new("216")) !== Decimal.new("1") ->
+      Decimal.compare(i, Decimal.new("288")) !== decimal_1 ->
         Decimal.new("0")
 
-      Decimal.compare(i, Decimal.new("331")) !== Decimal.new("1") ->
+      Decimal.compare(i, Decimal.new("388")) !== decimal_1 ->
+        Decimal.round(Decimal.mult(Decimal.sub(i, 288), Decimal.new("0.05")), 2)
+
+      Decimal.compare(i, Decimal.new("528")) !== decimal_1 ->
+        Decimal.round(
+          Decimal.add(Decimal.mult(Decimal.sub(i, 388), Decimal.new("0.1")), Decimal.new("5")),
+          2
+        )
+
+      Decimal.compare(i, Decimal.new("3528")) !== decimal_1 ->
+        Decimal.round(
+          Decimal.add(
+            Decimal.mult(Decimal.sub(i, 528), Decimal.new("0.175")),
+            Decimal.new("19")
+          ),
+          2
+        )
+
+      Decimal.compare(i, Decimal.new("20000")) !== decimal_1 ->
+        Decimal.round(
+          Decimal.add(
+            Decimal.mult(Decimal.sub(i, 3528), Decimal.new("0.25")),
+            Decimal.new("544")
+          ),
+          2
+        )
+
+      true ->
+        Decimal.round(
+          Decimal.add(
+            Decimal.mult(Decimal.sub(i, 20000), Decimal.new("0.3")),
+            Decimal.new("4662")
+          ),
+          2
+        )
+    end
+  end
+
+  defp gra_income_tax(i, _) do
+    decimal_1 = Decimal.new("1")
+
+    cond do
+      Decimal.compare(i, Decimal.new("216")) !== decimal_1 ->
+        Decimal.new("0")
+
+      Decimal.compare(i, Decimal.new("331")) !== decimal_1 ->
         Decimal.round(Decimal.mult(Decimal.sub(i, 216), Decimal.new("0.05")), 2)
 
-      Decimal.compare(i, Decimal.new("431")) !== Decimal.new("1") ->
+      Decimal.compare(i, Decimal.new("431")) !== decimal_1 ->
         Decimal.round(
           Decimal.add(Decimal.mult(Decimal.sub(i, 331), Decimal.new("0.1")), Decimal.new("3.5")),
           2
         )
 
-      Decimal.compare(i, Decimal.new("3241")) !== Decimal.new("1") ->
+      Decimal.compare(i, Decimal.new("3241")) !== decimal_1 ->
         Decimal.round(
           Decimal.add(
             Decimal.mult(Decimal.sub(i, 431), Decimal.new("0.175")),
@@ -311,7 +358,7 @@ defmodule Mgp.Sync.ImportPayroll do
           2
         )
 
-      Decimal.compare(i, Decimal.new("10000")) !== Decimal.new("1") ->
+      Decimal.compare(i, Decimal.new("10000")) !== decimal_1 ->
         Decimal.round(
           Decimal.add(
             Decimal.mult(Decimal.sub(i, 3241), Decimal.new("0.25")),
