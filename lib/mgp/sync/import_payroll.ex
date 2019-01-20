@@ -27,12 +27,18 @@ defmodule Mgp.Sync.ImportPayroll do
     {csv, 1} = dbf_to_csv(dbf_file)
     {:ok, stream} = csv |> StringIO.open()
 
+    tax_year =
+      cond do
+        month > "1812M" -> 2019
+        month <= "1812M" -> 2018
+      end
+
     records =
       stream
       |> IO.binstream(:line)
       |> MyParser.parse_stream(headers: false)
       |> Stream.filter(fn x -> hd(x) == month end)
-      |> Task.async_stream(&parse_payroll_record(&1, employees))
+      |> Task.async_stream(&parse_payroll_record(&1, employees, tax_year))
       |> Stream.map(fn {:ok, res} -> res end)
       # |> Stream.map(&parse_payroll_record(&1))
       |> Enum.to_list()
@@ -59,7 +65,7 @@ defmodule Mgp.Sync.ImportPayroll do
   end
 
   ### Private Functions ###
-  defp parse_payroll_record(list, employees) do
+  defp parse_payroll_record(list, employees, tax_year) do
     [
       month,
       id,
@@ -231,8 +237,7 @@ defmodule Mgp.Sync.ImportPayroll do
 
     taxable_income = Decimal.sub(total_cash, total_relief)
 
-    # TODO: depending on month route tax calculation to appropriate functions
-    tax_ded = gra_income_tax(taxable_income, "2019")
+    tax_ded = gra_income_tax(taxable_income, tax_year)
 
     overtime_tax = gra_overtime_tax(emp.overtime_earned, earned_salary)
 
@@ -288,7 +293,7 @@ defmodule Mgp.Sync.ImportPayroll do
     end
   end
 
-  defp gra_income_tax(i, "2019") do
+  defp gra_income_tax(i, 2019) do
     decimal_1 = Decimal.new("1")
 
     cond do
