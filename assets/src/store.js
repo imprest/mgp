@@ -8,8 +8,8 @@ Vue.use(Vuex);
 const socket = new Socket(
   process.env.NODE_ENV === "production"
     ? "wss://localhost:4000/socket"
-    : "ws://localhost:4000/socket",
-  // : "ws://192.168.0.151:4000/socket",
+    : // : "ws://localhost:4000/socket",
+      "ws://192.168.0.151:4000/socket",
   { opts: { hearbeatIntervalMs: 60000 } },
   { params: { userToken: "123" } }
 );

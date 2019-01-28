@@ -259,6 +259,7 @@
               <th @click="setView('pvtLoansView')" class="has-text-centered">Pvt Loan</th>
               <th class="has-text-centered">Total Ded.</th>
               <th class="has-text-centered">Total Pay</th>
+              <th class="has-text-centered">Net Pay</th>
             </tr>
           </thead>
           <tbody>
@@ -289,6 +290,7 @@
               <td class="has-text-right">{{p.pvt_loan | currency('')}}</td>
               <td class="has-text-right">{{p.total_ded | currency('')}}</td>
               <td class="has-text-right">{{p.total_pay | currency('')}}</td>
+              <td class="has-text-right">{{p.net_pay | currency('')}}</td>
             </tr>
           </tbody>
           <tfoot>
@@ -315,6 +317,7 @@
               <th class="has-text-right">{{sums.pvt_loan | currency('')}}</th>
               <th class="has-text-right">{{sums.total_ded | currency('')}}</th>
               <th class="has-text-right">{{sums.total_pay | currency('')}}</th>
+              <th class="has-text-right"></th>
             </tr>
           </tfoot>
         </table>
