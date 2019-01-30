@@ -547,6 +547,11 @@ div.container {
       top: 0;
       background-color: white;
     }
+    > tfoot tr th {
+      position: sticky;
+      bottom: 0;
+      background-color: white;
+    }
     > tbody tr td:first-child {
       position: sticky;
       left: 0;
@@ -567,6 +572,11 @@ div.container {
         background-color: white;
         padding: 0.25em 0.5em;
         margin: 0;
+      }
+    }
+    > tbody tr:nth-child(2n) td {
+      > .white-cell {
+        background-color: lightgoldenrodyellow;
       }
     }
   }
