@@ -44,7 +44,8 @@ defmodule Mgp.MixProject do
       {:nimble_csv, "~> 0.4.0"},
       {:comeonin, "~> 4.0"},
       {:argon2_elixir, "~> 1.3.1"},
-      {:distillery, "~> 1.5", runtime: false}
+      {:distillery, "~> 1.5", runtime: false},
+      {:benchee, "~> 0.13", only: :dev}
     ]
   end
 
