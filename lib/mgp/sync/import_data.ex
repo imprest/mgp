@@ -1021,14 +1021,40 @@ defmodule Mgp.Sync.ImportData do
 
   # POSTINGS
   def populate_postings(dbf) do
+    records = parse_postings_from_dbf(dbf)
+
     rows =
-      dbf
-      |> parse_postings_from_dbf
+      records
       |> Enum.chunk_every(1000)
       |> Enum.map(fn x -> populate_postings_partial(x) end)
       |> Enum.reduce(0, fn x, acc -> elem(x, 0) + acc end)
 
+    # DELETE any ids that are now missing in import for that month
+    ids = Enum.map(records, fn x -> x.id end)
+    date = posting_dbf_file_to_start_date(dbf)
+
+    r =
+      Repo.query!(
+        "SELECT id FROM postings WHERE date >= $1::date and date < $1 + interval '1 month'",
+        [date]
+      )
+
+    missing_ids = List.flatten(r.rows) -- ids
+
+    qd = """
+    DELETE FROM postings WHERE id = ANY($1)
+    """
+
+    Repo.query!(qd, [missing_ids])
+
     {rows, nil}
+  end
+
+  defp posting_dbf_file_to_start_date(dbf) do
+    basename = Path.basename(dbf, ".dbf")
+    <<"FIT", y0, y1, m0, m1>> = basename
+    {:ok, d} = Date.new(String.to_integer(<<"20", y0, y1>>), String.to_integer(<<m0, m1>>), 1)
+    d
   end
 
   def populate_postings_partial(postings) do

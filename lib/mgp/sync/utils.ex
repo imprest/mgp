@@ -8,10 +8,7 @@ defmodule Mgp.Sync.Utils do
   def pluck(_, [], _, agg), do: :lists.reverse(agg)
   def pluck([], _, _, agg), do: :lists.reverse(agg)
 
-  def pluck(list, indexes, index, agg) do
-    [cur_idx | rest_idx] = indexes
-    [head | tail] = list
-
+  def pluck([head | tail], [cur_idx | rest_idx] = indexes, index, agg) do
     case cur_idx == index do
       true -> pluck(tail, rest_idx, index + 1, [head | agg])
       false -> pluck(tail, indexes, index + 1, agg)
