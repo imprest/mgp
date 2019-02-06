@@ -1,7 +1,7 @@
 <template>
   <section class="section">
     <BModal :active.sync="isInvoiceModelActive" has-modal-card>
-      <Invoice class="invoice"/>
+      <Invoice class="invoice" />
     </BModal>
     <div class="container">
       <BField>
@@ -21,47 +21,51 @@
           :loading="isFetching"
           @input="getAsyncCustomers"
           @select="option => fetchSelectedCustomer(option)"
-          >
+        >
           <template slot-scope="props">
             <div class="media">
               <div class="media-content">
                 {{ props.option.description }}
-                <br>
+                <br />
                 <small>
-                  <b>{{ props.option.id }}</b>,
-                  <b>{{ props.option.region }}</b>,
-                  <b>{{ props.option.is_gov }}</b>,
+                  <b>{{ props.option.id }}</b
+                  >, <b>{{ props.option.region }}</b
+                  >, <b>{{ props.option.is_gov }}</b
+                  >,
                   <b>{{ props.option.resp }}</b>
                 </small>
               </div>
             </div>
           </template>
-          <template slot="empty">No results found</template>
+          <template slot="empty"
+            >No results found</template
+          >
         </BAutocomplete>
         <BSelect placeholder="Fin Year" v-model="year" @input="yearChanged">
-          <option
-            v-for="option in fin_years"
-            :value="option"
-            :key=option>
-          {{option}}
+          <option v-for="option in fin_years" :value="option" :key="option">
+            {{ option }}
           </option>
         </BSelect>
       </BField>
     </div>
 
-    <div v-if="postings.op_bal != null" class="section" style="padding-top: 1rem; padding-bottom: 1rem;">
+    <div
+      v-if="postings.op_bal != null"
+      class="section"
+      style="padding-top: 1rem; padding-bottom: 1rem;"
+    >
       <div class="container">
         <div class="columns">
           <div class="column">
             <h1 class="title">
-              {{postings.description}}
+              {{ postings.description }}
             </h1>
             <h2 class="subtitle">
               <BTaglist>
-                <BTag>{{postings.id}}</BTag>
-                <BTag>{{postings.region}}</BTag>
-                <BTag>{{postings.is_gov}}</BTag>
-                <BTag>{{postings.resp}}</BTag>
+                <BTag>{{ postings.id }}</BTag>
+                <BTag>{{ postings.region }}</BTag>
+                <BTag>{{ postings.is_gov }}</BTag>
+                <BTag>{{ postings.resp }}</BTag>
               </BTaglist>
             </h2>
           </div>
@@ -74,7 +78,9 @@
               <td></td>
               <td></td>
               <th class="has-text-right">Opening Bal:</th>
-              <th class="has-text-right">{{postings.op_bal | currency('')}}</th>
+              <th class="has-text-right">
+                {{ postings.op_bal | currency("") }}
+              </th>
             </tr>
             <tr>
               <td></td>
@@ -94,28 +100,43 @@
             </tr>
             <tr v-for="p in postings.postings" :key="p.id">
               <td>
-                <span v-if="p.id.startsWith('S')">{{p.id}}</span>
-                <span v-else>{{p.id.substring(8, p.id.length)}}</span>
+                <span v-if="p.id.startsWith('S')">{{ p.id }}</span>
+                <span v-else>{{ p.id.substring(8, p.id.length) }}</span>
               </td>
-              <td>{{p.date}}</td>
+              <td>{{ p.date | date }}</td>
               <td>
-                <span v-if="p.description.startsWith('M ') || p.description.startsWith('C ')">
-                  <a @click="fetchSelectedInvoice(p.description)">{{p.description}}</a>
+                <span
+                  v-if="
+                    p.description.startsWith('M ') ||
+                      p.description.startsWith('C ')
+                  "
+                >
+                  <a @click="fetchSelectedInvoice(p.description)">{{
+                    p.description
+                  }}</a>
                 </span>
-                <span v-else>{{p.description}}</span>
+                <span v-else>{{ p.description }}</span>
               </td>
-              <td class="has-text-right" @click="addCell(p.debit)">{{p.debit | currency('')}}</td>
-              <td class="has-text-right" @click="addCell(-p.credit)">{{p.credit | currency('')}}</td>
-              <td class="has-text-right">{{p.bal | currency('')}}</td>
+              <td class="has-text-right" @click="addCell(p.debit)">
+                {{ p.debit | currency("") }}
+              </td>
+              <td class="has-text-right" @click="addCell(-p.credit)">
+                {{ p.credit | currency("") }}
+              </td>
+              <td class="has-text-right">{{ p.bal | currency("") }}</td>
             </tr>
             <tr class="underline overline">
               <td></td>
               <td></td>
-              <th class="has-text-right">Total: </th>
-              <th class="has-text-right">{{postings.total_debit | currency('')}}</th>
-              <th class="has-text-right">{{postings.total_credit | currency('')}}</th>
+              <th class="has-text-right">Total:</th>
               <th class="has-text-right">
-              {{postings.total_bal | currency('') }}
+                {{ postings.total_debit | currency("") }}
+              </th>
+              <th class="has-text-right">
+                {{ postings.total_credit | currency("") }}
+              </th>
+              <th class="has-text-right">
+                {{ postings.total_bal | currency("") }}
               </th>
             </tr>
             <tr>
@@ -135,21 +156,23 @@
               <td></td>
             </tr>
             <tr v-for="p in postings.pdcs" :key="p.id">
-              <td>{{p.id}}</td>
-              <td>{{p.date}}</td>
-              <td>{{p.cheque}}</td>
+              <td>{{ p.id }}</td>
+              <td>{{ p.date | date }}</td>
+              <td>{{ p.cheque }}</td>
               <td></td>
-              <td class="has-text-right">{{p.amount | currency('')}}</td>
+              <td class="has-text-right">{{ p.amount | currency("") }}</td>
               <td></td>
             </tr>
             <tr class="underline overline" v-if="postings.total_pdcs > 0">
               <td></td>
               <td></td>
-              <th class="has-text-right">Total: </th>
+              <th class="has-text-right">Total:</th>
               <th class="has-text-right"></th>
-              <th class="has-text-right">{{postings.total_pdcs | currency('')}}</th>
               <th class="has-text-right">
-              {{postings.total_bal - postings.total_pdcs | currency('') }}
+                {{ postings.total_pdcs | currency("") }}
+              </th>
+              <th class="has-text-right">
+                {{ (postings.total_bal - postings.total_pdcs) | currency("") }}
               </th>
             </tr>
           </tbody>
@@ -157,7 +180,6 @@
       </div>
     </div>
   </section>
-
 </template>
 <script>
 import { mapState } from "vuex";

@@ -3,45 +3,47 @@
     <div class="level">
       <div class="level-left align-self-baseline">
         <div class="level-item flex-column align-items-start">
-        <h1 class="title is-4 is-marginless text-left">
-          {{invoice.customer.description}}
-        </h1>
-        <b-taglist class="is-marginless">
-          <b-tag>{{invoice.customer.is_gov}}</b-tag>
-          <b-tag>{{invoice.customer.region}}</b-tag>
-          <b-tag>{{invoice.customer.resp}}</b-tag>
-        </b-taglist>
-        <div class="text-left">{{invoice.customer.add1}}</div>
-        <div class="text-left">{{invoice.customer.add2}}</div>
-        <div class="text-left">{{invoice.customer.add3}}</div>
+          <h1 class="title is-4 is-marginless text-left">
+            {{ invoice.customer.description }}
+          </h1>
+          <b-taglist class="is-marginless">
+            <b-tag>{{ invoice.customer.is_gov }}</b-tag>
+            <b-tag>{{ invoice.customer.region }}</b-tag>
+            <b-tag>{{ invoice.customer.resp }}</b-tag>
+          </b-taglist>
+          <div class="text-left">{{ invoice.customer.add1 }}</div>
+          <div class="text-left">{{ invoice.customer.add2 }}</div>
+          <div class="text-left">{{ invoice.customer.add3 }}</div>
         </div>
       </div>
       <div class="level-right">
         <div class="level-item">
-        <table class="table is-marginless is-pulled-right is-borderless is-narrow is-hoverable">
-          <tbody>
-            <tr>
-              <th>Invoice No.:</th>
-              <td>{{invoice.id}}</td>
-            </tr>
-            <tr>
-              <th>Date:</th>
-              <td>{{invoice.date}}</td>
-            </tr>
-            <tr>
-              <th>Created by:</th>
-              <td>{{invoice.lmu}}</td>
-            </tr>
-            <tr>
-              <th>From Stock:</th>
-              <td>{{invoice.from_stock}}</td>
-            </tr>
-            <tr>
-              <th>Price Level:</th>
-              <td>{{invoice.price_level}}</td>
-            </tr>
-          </tbody>
-        </table>
+          <table
+            class="table is-marginless is-pulled-right is-borderless is-narrow is-hoverable"
+          >
+            <tbody>
+              <tr>
+                <th>Invoice No.:</th>
+                <td>{{ invoice.id }}</td>
+              </tr>
+              <tr>
+                <th>Date:</th>
+                <td>{{ invoice.date | date }}</td>
+              </tr>
+              <tr>
+                <th>Created by:</th>
+                <td>{{ invoice.lmu }}</td>
+              </tr>
+              <tr>
+                <th>From Stock:</th>
+                <td>{{ invoice.from_stock }}</td>
+              </tr>
+              <tr>
+                <th>Price Level:</th>
+                <td>{{ invoice.price_level }}</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
@@ -52,17 +54,17 @@
           <th class="text-right">No.</th>
           <th class="text-center">Qty x Pack</th>
           <th>Description</th>
-          <th class="text-right">Pack Rate<br/>(GHS)</th>
-          <th class="text-right">Net Value<br/>(GHS)</th>
+          <th class="text-right">Pack Rate<br />(GHS)</th>
+          <th class="text-right">Net Value<br />(GHS)</th>
         </tr>
       </thead>
       <tbody>
         <tr v-for="(item, index) in invoice.items" :key="item.sr_no">
-          <td class="text-right">{{index+1}}</td>
-          <td class="text-center">{{item.qty}} x {{item.sub_qty}}</td>
-          <td>{{item.product_id}}</td>
-          <td class="text-right">{{item.rate | currency('')}}</td>
-          <td class="text-right">{{item.total | currency('')}}</td>
+          <td class="text-right">{{ index + 1 }}</td>
+          <td class="text-center">{{ item.qty }} x {{ item.sub_qty }}</td>
+          <td>{{ item.product_id }}</td>
+          <td class="text-right">{{ item.rate | currency("") }}</td>
+          <td class="text-right">{{ item.total | currency("") }}</td>
         </tr>
       </tbody>
       <tfoot>
@@ -71,7 +73,7 @@
           <td></td>
           <td></td>
           <td class="text-right"><b class="subtitle">Total:</b></td>
-          <td class="text-right">{{total | currency('')}}</td>
+          <td class="text-right">{{ total | currency("") }}</td>
         </tr>
       </tfoot>
     </table>

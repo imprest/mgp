@@ -11,6 +11,11 @@ Vue.config.productionTip = false;
 Vue.use(Vue2Filters);
 Vue.use(Buefy);
 
+Vue.filter("date", function(value) {
+  let date = new Intl.DateTimeFormat("en-GB").format(Date.parse(value));
+  return date.replace(/\//g, "-");
+});
+
 new Vue({
   router,
   store,
