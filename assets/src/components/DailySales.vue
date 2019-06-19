@@ -1,20 +1,20 @@
 <template>
   <div>
     <BModal :active.sync="isInvoiceModelActive" has-modal-card>
-      <Invoice class="invoice"/>
+      <Invoice class="invoice" />
     </BModal>
-    <BField horizontal  @keyup.enter="getDailySales()" label="Date: ">
-      <BDatepicker v-model="date"
-                    :first-day-of-week="1"
-                    :unselectable-days-of-week="[0, 6]"
-                    @input="getDailySales()"
-                    placeholder="Click to select...">
-        <button class="button is-primary"
-                @click="date = new Date()">
+    <BField horizontal @keyup.enter="getDailySales()" label="Date: ">
+      <BDatepicker
+        v-model="date"
+        :first-day-of-week="1"
+        :unselectable-days-of-week="[0, 6]"
+        @input="getDailySales()"
+        placeholder="Click to select..."
+      >
+        <button class="button is-primary" @click="date = new Date()">
           <span>Today</span>
         </button>
-        <button class="button is-danger"
-                @click="date = null">
+        <button class="button is-danger" @click="date = null">
           <span>Clear</span>
         </button>
       </BDatepicker>
@@ -31,26 +31,28 @@
           <th class="has-text-right">Total</th>
         </tr>
         <tr v-for="i in summary.local" :key="i.id">
-          <td @click="fetchSelectedInvoice(i.id)"><a>{{i.id}}</a></td>
+          <td @click="fetchSelectedInvoice(i.id)">
+            <a>{{ i.id }}</a>
+          </td>
           <td>{{ i.customer_id }}</td>
           <td>
             {{ i.description }}
-            <span class="tag">{{i.region}}</span>
-            <span class="tag">{{i.resp}}</span>
+            <span class="tag">{{ i.region }}</span>
+            <span class="tag">{{ i.resp }}</span>
           </td>
-          <td class="has-text-right">{{ i.cash | currency('') }}</td>
-          <td class="has-text-right">{{ i.cheque | currency('') }}</td>
-          <td class="has-text-right">{{ i.credit | currency('') }}</td>
-          <td class="has-text-right">{{ i.total | currency('') }}</td>
+          <td class="has-text-right">{{ i.cash | currency("") }}</td>
+          <td class="has-text-right">{{ i.cheque | currency("") }}</td>
+          <td class="has-text-right">{{ i.credit | currency("") }}</td>
+          <td class="has-text-right">{{ i.total | currency("") }}</td>
         </tr>
         <tr>
           <th></th>
           <th></th>
           <th></th>
-          <th class="has-text-right">{{ summary.m_cash | currency('') }}</th>
-          <th class="has-text-right">{{ summary.m_cheque | currency('') }}</th>
-          <th class="has-text-right">{{ summary.m_credit | currency('') }}</th>
-          <th class="has-text-right">{{ summary.m_total | currency('') }}</th>
+          <th class="has-text-right">{{ summary.m_cash | currency("") }}</th>
+          <th class="has-text-right">{{ summary.m_cheque | currency("") }}</th>
+          <th class="has-text-right">{{ summary.m_credit | currency("") }}</th>
+          <th class="has-text-right">{{ summary.m_total | currency("") }}</th>
         </tr>
         <tr>
           <th>&nbsp;</th>
@@ -71,26 +73,28 @@
           <th class="has-text-right">Total</th>
         </tr>
         <tr v-for="i in summary.imported" :key="i.id">
-          <td @click="fetchSelectedInvoice(i.id)"><a>{{i.id}}</a></td>
+          <td @click="fetchSelectedInvoice(i.id)">
+            <a>{{ i.id }}</a>
+          </td>
           <td>{{ i.customer_id }}</td>
           <td>
             {{ i.description }}
-            <span class="tag">{{i.region}}</span>
-            <span class="tag">{{i.resp}}</span>
+            <span class="tag">{{ i.region }}</span>
+            <span class="tag">{{ i.resp }}</span>
           </td>
-          <td class="has-text-right">{{ i.cash | currency('') }}</td>
-          <td class="has-text-right">{{ i.cheque | currency('') }}</td>
-          <td class="has-text-right">{{ i.credit | currency('') }}</td>
-          <td class="has-text-right">{{ i.total | currency('') }}</td>
+          <td class="has-text-right">{{ i.cash | currency("") }}</td>
+          <td class="has-text-right">{{ i.cheque | currency("") }}</td>
+          <td class="has-text-right">{{ i.credit | currency("") }}</td>
+          <td class="has-text-right">{{ i.total | currency("") }}</td>
         </tr>
         <tr>
           <th></th>
           <th></th>
           <th></th>
-          <th class="has-text-right">{{ summary.c_cash | currency('') }}</th>
-          <th class="has-text-right">{{ summary.c_cheque | currency('') }}</th>
-          <th class="has-text-right">{{ summary.c_credit | currency('') }}</th>
-          <th class="has-text-right">{{ summary.c_total | currency('') }}</th>
+          <th class="has-text-right">{{ summary.c_cash | currency("") }}</th>
+          <th class="has-text-right">{{ summary.c_cheque | currency("") }}</th>
+          <th class="has-text-right">{{ summary.c_credit | currency("") }}</th>
+          <th class="has-text-right">{{ summary.c_total | currency("") }}</th>
         </tr>
         <tr>
           <th>&nbsp;</th>
@@ -104,11 +108,17 @@
         <tr>
           <th></th>
           <th></th>
-          <th class="has-text-right">Total: </th>
-          <th class="has-text-right">{{ summary.c_cash + summary.m_cash | currency('') }}</th>
-          <th class="has-text-right">{{ summary.c_cheque + summary.m_cheque | currency('') }}</th>
-          <th class="has-text-right">{{ summary.c_credit + summary.m_credit | currency('') }}</th>
-          <th class="has-text-right">{{ summary.total | currency('') }}</th>
+          <th class="has-text-right">Total:</th>
+          <th class="has-text-right">
+            {{ (summary.c_cash + summary.m_cash) | currency("") }}
+          </th>
+          <th class="has-text-right">
+            {{ (summary.c_cheque + summary.m_cheque) | currency("") }}
+          </th>
+          <th class="has-text-right">
+            {{ (summary.c_credit + summary.m_credit) | currency("") }}
+          </th>
+          <th class="has-text-right">{{ summary.total | currency("") }}</th>
         </tr>
       </tbody>
     </table>

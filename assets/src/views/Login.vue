@@ -7,39 +7,53 @@
           <!--<p class="subtitle has-text-grey">Please login to proceed.</p>-->
           <div class="box">
             <figure class="avatar">
-              <img src="../assets/mgp.png">
+              <img src="../assets/mgp.png" />
             </figure>
             <form>
               <div class="field">
                 <div class="control">
-                  <input v-model="form.username" class="input is-large" required
-                  type="text" placeholder="Your Username" autofocus=""
-                  :class="{'is-danger': error.username}">
+                  <input
+                    v-model="form.username"
+                    class="input is-large"
+                    required
+                    type="text"
+                    placeholder="Your Username"
+                    autofocus=""
+                    :class="{ 'is-danger': error.username }"
+                  />
                 </div>
               </div>
 
               <div class="field">
                 <div class="control">
-                  <input v-model="form.password" class="input is-large" required
-                  type="password" placeholder="Your Password"
-                  :class="{'is-danger': error.password}">
+                  <input
+                    v-model="form.password"
+                    class="input is-large"
+                    required
+                    type="password"
+                    placeholder="Your Password"
+                    :class="{ 'is-danger': error.password }"
+                  />
                 </div>
               </div>
               <!--<div class="field">-->
-                <!--<label class="checkbox">-->
-                  <!--<input type="checkbox">-->
-                  <!--Remember me-->
-                <!--</label>-->
+              <!--<label class="checkbox">-->
+              <!--<input type="checkbox">-->
+              <!--Remember me-->
+              <!--</label>-->
               <!--</div>-->
-              <button @click.prevent="tryLogin" class="button is-block is-danger is-outlined is-large is-fullwidth">
+              <button
+                @click.prevent="tryLogin"
+                class="button is-block is-danger is-outlined is-large is-fullwidth"
+              >
                 Login
               </button>
             </form>
           </div>
           <!--<p class="has-text-grey">-->
-            <!--<a href="../">Sign Up</a> &nbsp;·&nbsp;-->
-            <!--<a href="../">Forgot Password</a> &nbsp;·&nbsp;-->
-            <!--<a href="../">Need Help?</a>-->
+          <!--<a href="../">Sign Up</a> &nbsp;·&nbsp;-->
+          <!--<a href="../">Forgot Password</a> &nbsp;·&nbsp;-->
+          <!--<a href="../">Need Help?</a>-->
           <!--</p>-->
         </div>
       </div>

@@ -12,8 +12,8 @@
         </p>
       </BField>
     </div>
-    <br>
-    <div v-if="view==='daysView'" class="container">
+    <br />
+    <div v-if="view === 'daysView'" class="container">
       <table class="table is-striped is-bordered is-hoverable is-narrow">
         <thead>
           <tr>
@@ -25,22 +25,24 @@
         <tbody>
           <tr v-for="p in payrollDaysView" :key="p.id">
             <td>
-              <span class="white-cell">{{p.id}}</span>
+              <span class="white-cell">{{ p.id }}</span>
             </td>
-            <td>{{p.name}}</td>
-            <td class="has-text-centered">{{p.days_worked}}</td>
+            <td>{{ p.name }}</td>
+            <td class="has-text-centered">{{ p.days_worked }}</td>
           </tr>
         </tbody>
         <tfoot>
           <tr>
             <th></th>
             <th></th>
-            <th class="has-text-centered">{{ sums.days_worked | currency('')}}</th>
+            <th class="has-text-centered">
+              {{ sums.days_worked | currency("") }}
+            </th>
           </tr>
         </tfoot>
       </table>
     </div>
-    <div v-if="view==='overtimeView'" class="container">
+    <div v-if="view === 'overtimeView'" class="container">
       <table class="table is-striped is-bordered is-hoverable is-narrow">
         <thead>
           <tr>
@@ -53,24 +55,28 @@
         <tbody>
           <tr v-for="p in payrollOvertimeView" :key="p.id">
             <td>
-              <span class="white-cell">{{p.id}}</span>
+              <span class="white-cell">{{ p.id }}</span>
             </td>
-            <td>{{p.name}}</td>
-            <td class="has-text-right">{{p.overtime_earned}}</td>
-            <td class="has-text-right">{{p.overtime_tax}}</td>
+            <td>{{ p.name }}</td>
+            <td class="has-text-right">{{ p.overtime_earned }}</td>
+            <td class="has-text-right">{{ p.overtime_tax }}</td>
           </tr>
         </tbody>
         <tfoot>
           <tr>
             <th></th>
             <th></th>
-            <th class="has-text-right">{{ sums.overtime_earned | currency('')}}</th>
-            <th class="has-text-right">{{ sums.overtime_tax | currency('')}}</th>
+            <th class="has-text-right">
+              {{ sums.overtime_earned | currency("") }}
+            </th>
+            <th class="has-text-right">
+              {{ sums.overtime_tax | currency("") }}
+            </th>
           </tr>
         </tfoot>
       </table>
     </div>
-    <div v-if="view==='pfView'" class="container">
+    <div v-if="view === 'pfView'" class="container">
       <table class="table is-striped is-bordered is-hoverable is-narrow">
         <thead>
           <tr>
@@ -85,28 +91,40 @@
         <tbody>
           <tr v-for="p in pf.employees" :key="p.id">
             <td>
-              <span class="white-cell">{{p.id}}</span>
+              <span class="white-cell">{{ p.id }}</span>
             </td>
-            <td>{{p.name}}</td>
-            <td class="has-text-right">{{p.earned_salary | currency('')}}</td>
-            <td class="has-text-right">{{p.pf_amount | currency('')}}</td>
-            <td class="has-text-right">{{p.pf_employee_contrib | currency('')}}</td>
-            <td class="has-text-right">{{p.pf_total_contrib | currency('')}}</td>
+            <td>{{ p.name }}</td>
+            <td class="has-text-right">{{ p.earned_salary | currency("") }}</td>
+            <td class="has-text-right">{{ p.pf_amount | currency("") }}</td>
+            <td class="has-text-right">
+              {{ p.pf_employee_contrib | currency("") }}
+            </td>
+            <td class="has-text-right">
+              {{ p.pf_total_contrib | currency("") }}
+            </td>
           </tr>
         </tbody>
         <tfoot>
           <tr>
             <th></th>
             <th></th>
-            <td class="has-text-right">{{ pf.summary.earned_salary | currency('')}}</td>
-            <th class="has-text-centered">{{ pf.summary.employer_contrib | currency('')}}</th>
-            <th class="has-text-centered">{{ pf.summary.employees_contrib | currency('')}}</th>
-            <th class="has-text-centered">{{ pf.summary.total_contrib | currency('')}}</th>
+            <td class="has-text-right">
+              {{ pf.summary.earned_salary | currency("") }}
+            </td>
+            <th class="has-text-centered">
+              {{ pf.summary.employer_contrib | currency("") }}
+            </th>
+            <th class="has-text-centered">
+              {{ pf.summary.employees_contrib | currency("") }}
+            </th>
+            <th class="has-text-centered">
+              {{ pf.summary.total_contrib | currency("") }}
+            </th>
           </tr>
         </tfoot>
       </table>
     </div>
-    <div v-if="view==='loansView'" class="container">
+    <div v-if="view === 'loansView'" class="container">
       <table class="table is-striped is-bordered is-hoverable is-narrow">
         <thead>
           <tr>
@@ -118,22 +136,22 @@
         <tbody>
           <tr v-for="p in payrollLoansView" :key="p.id">
             <td>
-              <span class="white-cell">{{p.id}}</span>
+              <span class="white-cell">{{ p.id }}</span>
             </td>
-            <td>{{p.name}}</td>
-            <td class="has-text-right">{{p.loan | currency('')}}</td>
+            <td>{{ p.name }}</td>
+            <td class="has-text-right">{{ p.loan | currency("") }}</td>
           </tr>
         </tbody>
         <tfoot>
           <tr>
             <th></th>
             <th></th>
-            <th class="has-text-right">{{ sums.loan | currency('')}}</th>
+            <th class="has-text-right">{{ sums.loan | currency("") }}</th>
           </tr>
         </tfoot>
       </table>
     </div>
-    <div v-if="view==='ssnitView'" class="container">
+    <div v-if="view === 'ssnitView'" class="container">
       <table class="table is-striped is-bordered is-hoverable is-narrow">
         <thead>
           <tr>
@@ -141,7 +159,9 @@
             <th>Name</th>
             <th class="has-text-centered">Basic Income</th>
             <th class="has-text-centered">SSNIT #</th>
-            <th @click="setView('')" class="has-text-centered">SSNIT (13.0%)</th>
+            <th @click="setView('')" class="has-text-centered">
+              SSNIT (13.0%)
+            </th>
             <th @click="setView('')" class="has-text-centered">SSNIT (5.5%)</th>
             <th @click="setView('')" class="has-text-centered">SSNIT Total</th>
             <th @click="setView('')" class="has-text-centered">SSNIT Tier 1</th>
@@ -151,34 +171,50 @@
         <tbody>
           <tr v-for="p in ssnit.employees" :key="p.id">
             <td>
-              <span class="white-cell">{{p.id}}</span>
+              <span class="white-cell">{{ p.id }}</span>
             </td>
-            <td>{{p.name}}</td>
-            <td class="has-text-right">{{p.earned_salary | currency('')}}</td>
-            <td class="has-text-centered">{{p.ssnit_no}}</td>
-            <td class="has-text-right">{{p.ssnit_emp_contrib | currency('')}}</td>
-            <td class="has-text-right">{{p.ssnit_amount | currency('')}}</td>
-            <td class="has-text-right">{{p.ssnit_total_contrib | currency('')}}</td>
-            <td class="has-text-right">{{p.ssnit_tier_1 | currency('')}}</td>
-            <td class="has-text-right">{{p.ssnit_tier_2 | currency('')}}</td>
+            <td>{{ p.name }}</td>
+            <td class="has-text-right">{{ p.earned_salary | currency("") }}</td>
+            <td class="has-text-centered">{{ p.ssnit_no }}</td>
+            <td class="has-text-right">
+              {{ p.ssnit_emp_contrib | currency("") }}
+            </td>
+            <td class="has-text-right">{{ p.ssnit_amount | currency("") }}</td>
+            <td class="has-text-right">
+              {{ p.ssnit_total_contrib | currency("") }}
+            </td>
+            <td class="has-text-right">{{ p.ssnit_tier_1 | currency("") }}</td>
+            <td class="has-text-right">{{ p.ssnit_tier_2 | currency("") }}</td>
           </tr>
         </tbody>
         <tfoot>
           <tr>
             <th></th>
             <th></th>
-            <th class="has-text-right">{{ ssnit.summary.earned_salary | currency('')}}</th>
+            <th class="has-text-right">
+              {{ ssnit.summary.earned_salary | currency("") }}
+            </th>
             <th></th>
-            <th class="has-text-right">{{ ssnit.summary.employer_contrib | currency('')}}</th>
-            <th class="has-text-right">{{ ssnit.summary.employees_contrib | currency('')}}</th>
-            <th class="has-text-right">{{ ssnit.summary.total_contrib | currency('')}}</th>
-            <th class="has-text-right">{{ ssnit.summary.ssnit_tier_1 | currency('')}}</th>
-            <th class="has-text-right">{{ ssnit.summary.ssnit_tier_2 | currency('')}}</th>
+            <th class="has-text-right">
+              {{ ssnit.summary.employer_contrib | currency("") }}
+            </th>
+            <th class="has-text-right">
+              {{ ssnit.summary.employees_contrib | currency("") }}
+            </th>
+            <th class="has-text-right">
+              {{ ssnit.summary.total_contrib | currency("") }}
+            </th>
+            <th class="has-text-right">
+              {{ ssnit.summary.ssnit_tier_1 | currency("") }}
+            </th>
+            <th class="has-text-right">
+              {{ ssnit.summary.ssnit_tier_2 | currency("") }}
+            </th>
           </tr>
         </tfoot>
       </table>
     </div>
-    <div v-if="view==='advanceView'" class="container">
+    <div v-if="view === 'advanceView'" class="container">
       <table class="table is-striped is-bordered is-hoverable is-narrow">
         <thead>
           <tr>
@@ -190,22 +226,22 @@
         <tbody>
           <tr v-for="p in payrollAdvanceView" :key="p.id">
             <td>
-              <span class="white-cell">{{p.id}}</span>
+              <span class="white-cell">{{ p.id }}</span>
             </td>
-            <td>{{p.name}}</td>
-            <td class="has-text-right">{{p.advance | currency('')}}</td>
+            <td>{{ p.name }}</td>
+            <td class="has-text-right">{{ p.advance | currency("") }}</td>
           </tr>
         </tbody>
         <tfoot>
           <tr>
             <th></th>
             <th></th>
-            <th class="has-text-right">{{ sums.advance | currency('')}}</th>
+            <th class="has-text-right">{{ sums.advance | currency("") }}</th>
           </tr>
         </tfoot>
       </table>
     </div>
-    <div v-if="view==='pvtLoansView'" class="container">
+    <div v-if="view === 'pvtLoansView'" class="container">
       <table class="table is-striped is-bordered is-hoverable is-narrow">
         <thead>
           <tr>
@@ -217,106 +253,172 @@
         <tbody>
           <tr v-for="p in payrollPvtLoansView" :key="p.id">
             <td>
-              <span class="white-cell">{{p.id}}</span>
+              <span class="white-cell">{{ p.id }}</span>
             </td>
-            <td>{{p.name}}</td>
-            <td class="has-text-right">{{p.pvt_loan | currency('')}}</td>
+            <td>{{ p.name }}</td>
+            <td class="has-text-right">{{ p.pvt_loan | currency("") }}</td>
           </tr>
         </tbody>
         <tfoot>
           <tr>
             <th></th>
             <th></th>
-            <th class="has-text-right">{{ sums.pvt_loan | currency('')}}</th>
+            <th class="has-text-right">{{ sums.pvt_loan | currency("") }}</th>
           </tr>
         </tfoot>
       </table>
     </div>
-    <div v-if="view===''" class="container is-fluid">
+    <div v-if="view === ''" class="container is-fluid">
       <div class="table-responsive">
         <table class="table is-striped is-bordered is-hoverable is-narrow">
           <thead>
             <tr>
               <th>ID</th>
               <th>Name</th>
-              <th @click="setView('daysView')" class="has-text-centered">Days</th>
+              <th @click="setView('daysView')" class="has-text-centered">
+                Days
+              </th>
               <th class="has-text-centered">Basic Salary</th>
               <th class="has-text-centered">Earned Salary</th>
-              <th @click="setView('ssnitView')" class="has-text-centered">SSNIT</th>
+              <th @click="setView('ssnitView')" class="has-text-centered">
+                SSNIT
+              </th>
               <th @click="setView('pfView')" class="has-text-centered">PF</th>
               <th class="has-text-centered">Cash Allow.</th>
               <th class="has-text-centered">Total Income</th>
               <th class="has-text-centered">Total Relief</th>
               <th class="has-text-centered">Taxable Income</th>
               <th class="has-text-centered">Tax Ded.</th>
-              <th @click="setView('overtimeView')" class="has-text-centered">Overtime</th>
+              <th @click="setView('overtimeView')" class="has-text-centered">
+                Overtime
+              </th>
               <th class="has-text-centered">Overtime Tax</th>
               <th class="has-text-centered">Total Tax</th>
               <th class="has-text-centered">TUC Ded.</th>
-              <th @click="setView('advanceView')" class="has-text-centered">Advance</th>
-              <th @click="setView('loansView')" class="has-text-centered">Loan</th>
+              <th @click="setView('advanceView')" class="has-text-centered">
+                Advance
+              </th>
+              <th @click="setView('loansView')" class="has-text-centered">
+                Loan
+              </th>
               <th class="has-text-centered">Welfare Ded.</th>
-              <th @click="setView('pvtLoansView')" class="has-text-centered">Pvt Loan</th>
+              <th @click="setView('pvtLoansView')" class="has-text-centered">
+                Pvt Loan
+              </th>
               <th class="has-text-centered">Total Ded.</th>
               <th class="has-text-centered">Total Pay</th>
               <th class="has-text-centered">Net Pay</th>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="p in payroll" :key="p.id" :class="[ p.net_pay !== p.total_pay ? 'has-background-warning' : '']">
+            <tr
+              v-for="p in payroll"
+              :key="p.id"
+              :class="[
+                p.net_pay !== p.total_pay ? 'has-background-warning' : ''
+              ]"
+            >
               <td>
-                <span class="white-cell">{{p.id}}</span>
+                <span class="white-cell">{{ p.id }}</span>
               </td>
               <td>
-                <p class="white-cell">{{p.name}}</p>
+                <p class="white-cell">{{ p.name }}</p>
               </td>
-              <td class="has-text-centered">{{p.days_worked}}</td>
-              <td class="has-text-right">{{p.base_salary | currency('')}}</td>
-              <td class="has-text-right">{{p.earned_salary | currency('')}}</td>
-              <td class="has-text-right">{{p.ssnit_amount | currency('')}}</td>
-              <td class="has-text-right">{{p.pf_amount | currency('')}}</td>
-              <td class="has-text-right">{{p.cash_allowance | currency('')}}</td>
-              <td class="has-text-right">{{p.total_cash | currency('')}}</td>
-              <td class="has-text-right">{{p.total_relief | currency('')}}</td>
-              <td class="has-text-right">{{p.taxable_income | currency('')}}</td>
-              <td class="has-text-right">{{p.tax_ded | currency('')}}</td>
-              <td class="has-text-right">{{p.overtime_earned | currency('')}}</td>
-              <td class="has-text-right">{{p.overtime_tax | currency('')}}</td>
-              <td class="has-text-right">{{p.total_tax | currency('')}}</td>
-              <td class="has-text-right">{{p.tuc_amount | currency('')}}</td>
-              <td class="has-text-right">{{p.advance | currency('')}}</td>
-              <td class="has-text-right">{{p.loan | currency('')}}</td>
-              <td class="has-text-right">{{p.staff_welfare_ded | currency('')}}</td>
-              <td class="has-text-right">{{p.pvt_loan | currency('')}}</td>
-              <td class="has-text-right">{{p.total_ded | currency('')}}</td>
-              <td class="has-text-right">{{p.total_pay | currency('')}}</td>
-              <td class="has-text-right">{{p.net_pay | currency('')}}</td>
+              <td class="has-text-centered">{{ p.days_worked }}</td>
+              <td class="has-text-right">{{ p.base_salary | currency("") }}</td>
+              <td class="has-text-right">
+                {{ p.earned_salary | currency("") }}
+              </td>
+              <td class="has-text-right">
+                {{ p.ssnit_amount | currency("") }}
+              </td>
+              <td class="has-text-right">{{ p.pf_amount | currency("") }}</td>
+              <td class="has-text-right">
+                {{ p.cash_allowance | currency("") }}
+              </td>
+              <td class="has-text-right">{{ p.total_cash | currency("") }}</td>
+              <td class="has-text-right">
+                {{ p.total_relief | currency("") }}
+              </td>
+              <td class="has-text-right">
+                {{ p.taxable_income | currency("") }}
+              </td>
+              <td class="has-text-right">{{ p.tax_ded | currency("") }}</td>
+              <td class="has-text-right">
+                {{ p.overtime_earned | currency("") }}
+              </td>
+              <td class="has-text-right">
+                {{ p.overtime_tax | currency("") }}
+              </td>
+              <td class="has-text-right">{{ p.total_tax | currency("") }}</td>
+              <td class="has-text-right">{{ p.tuc_amount | currency("") }}</td>
+              <td class="has-text-right">{{ p.advance | currency("") }}</td>
+              <td class="has-text-right">{{ p.loan | currency("") }}</td>
+              <td class="has-text-right">
+                {{ p.staff_welfare_ded | currency("") }}
+              </td>
+              <td class="has-text-right">{{ p.pvt_loan | currency("") }}</td>
+              <td class="has-text-right">{{ p.total_ded | currency("") }}</td>
+              <td class="has-text-right">{{ p.total_pay | currency("") }}</td>
+              <td class="has-text-right">{{ p.net_pay | currency("") }}</td>
             </tr>
           </tbody>
           <tfoot>
             <tr>
               <th></th>
               <th></th>
-              <th class="has-text-centered">{{ sums.days_worked | currency('')}}</th>
-              <th class="has-text-right">{{sums.base_salary | currency('')}}</th>
-              <th class="has-text-right">{{sums.earned_salary | currency('')}}</th>
-              <th class="has-text-right">{{sums.ssnit_amount | currency('')}}</th>
-              <th class="has-text-right">{{sums.pf_amount | currency('')}}</th>
-              <th class="has-text-right">{{sums.cash_allowance | currency('')}}</th>
-              <th class="has-text-right">{{sums.total_cash | currency('')}}</th>
-              <th class="has-text-right">{{sums.total_relief | currency('')}}</th>
-              <th class="has-text-right">{{sums.taxable_income | currency('')}}</th>
-              <th class="has-text-right">{{sums.tax_ded | currency('')}}</th>
-              <th class="has-text-right">{{sums.overtime_earned | currency('')}}</th>
-              <th class="has-text-right">{{sums.overtime_tax | currency('')}}</th>
-              <th class="has-text-right">{{sums.total_tax | currency('')}}</th>
-              <th class="has-text-right">{{sums.tuc_amount | currency('')}}</th>
-              <th class="has-text-right">{{sums.advance | currency('')}}</th>
-              <th class="has-text-right">{{sums.loan | currency('')}}</th>
-              <th class="has-text-right">{{sums.staff_welfare_ded | currency('')}}</th>
-              <th class="has-text-right">{{sums.pvt_loan | currency('')}}</th>
-              <th class="has-text-right">{{sums.total_ded | currency('')}}</th>
-              <th class="has-text-right">{{sums.total_pay | currency('')}}</th>
+              <th class="has-text-centered">
+                {{ sums.days_worked | currency("") }}
+              </th>
+              <th class="has-text-right">
+                {{ sums.base_salary | currency("") }}
+              </th>
+              <th class="has-text-right">
+                {{ sums.earned_salary | currency("") }}
+              </th>
+              <th class="has-text-right">
+                {{ sums.ssnit_amount | currency("") }}
+              </th>
+              <th class="has-text-right">
+                {{ sums.pf_amount | currency("") }}
+              </th>
+              <th class="has-text-right">
+                {{ sums.cash_allowance | currency("") }}
+              </th>
+              <th class="has-text-right">
+                {{ sums.total_cash | currency("") }}
+              </th>
+              <th class="has-text-right">
+                {{ sums.total_relief | currency("") }}
+              </th>
+              <th class="has-text-right">
+                {{ sums.taxable_income | currency("") }}
+              </th>
+              <th class="has-text-right">{{ sums.tax_ded | currency("") }}</th>
+              <th class="has-text-right">
+                {{ sums.overtime_earned | currency("") }}
+              </th>
+              <th class="has-text-right">
+                {{ sums.overtime_tax | currency("") }}
+              </th>
+              <th class="has-text-right">
+                {{ sums.total_tax | currency("") }}
+              </th>
+              <th class="has-text-right">
+                {{ sums.tuc_amount | currency("") }}
+              </th>
+              <th class="has-text-right">{{ sums.advance | currency("") }}</th>
+              <th class="has-text-right">{{ sums.loan | currency("") }}</th>
+              <th class="has-text-right">
+                {{ sums.staff_welfare_ded | currency("") }}
+              </th>
+              <th class="has-text-right">{{ sums.pvt_loan | currency("") }}</th>
+              <th class="has-text-right">
+                {{ sums.total_ded | currency("") }}
+              </th>
+              <th class="has-text-right">
+                {{ sums.total_pay | currency("") }}
+              </th>
               <th class="has-text-right"></th>
             </tr>
           </tfoot>

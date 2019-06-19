@@ -3,17 +3,16 @@
     <div class="container">
       <b-tabs v-model="activeTab" @change="tabChanged()">
         <b-tab-item label="Daily" class="adjust-padding">
-          <DailySales/>
+          <DailySales />
         </b-tab-item>
 
         <b-tab-item label="Monthly">
-          <MonthlySales/>
+          <MonthlySales />
         </b-tab-item>
 
         <b-tab-item label="Yearly">
-          <YearlySales/>
+          <YearlySales />
         </b-tab-item>
-
       </b-tabs>
     </div>
   </section>

@@ -3,13 +3,19 @@
     <div class="field is-grouped">
       <div class="control">
         <div class="select">
-          <select v-model="year" @change="getYearlySales()" @keyup.enter="getYearlySales()">
-            <option v-for="y in fin_years" :key="y" :value=y>{{y}}</option>
+          <select
+            v-model="year"
+            @change="getYearlySales()"
+            @keyup.enter="getYearlySales()"
+          >
+            <option v-for="y in fin_years" :key="y" :value="y">{{ y }}</option>
           </select>
         </div>
       </div>
     </div>
-    <table class="table is-bordered is-narrow is-fullwidth is-hoverable is-striped">
+    <table
+      class="table is-bordered is-narrow is-fullwidth is-hoverable is-striped"
+    >
       <thead>
         <tr>
           <th class="has-text-centered">Month</th>
@@ -20,18 +26,24 @@
       </thead>
       <tbody>
         <tr v-for="s in yearly_sales" :key="s.date">
-          <td class="has-text-centered">{{s.date.substring(0, 7)}}</td>
-          <td class="has-text-right">{{s.local | currency('')}}</td>
-          <td class="has-text-right">{{s.imported | currency('')}}</td>
-          <td class="has-text-right">{{s.total | currency('')}}</td>
+          <td class="has-text-centered">{{ s.date.substring(0, 7) }}</td>
+          <td class="has-text-right">{{ s.local | currency("") }}</td>
+          <td class="has-text-right">{{ s.imported | currency("") }}</td>
+          <td class="has-text-right">{{ s.total | currency("") }}</td>
         </tr>
       </tbody>
       <tfoot>
         <tr>
-          <th class="has-text-right">Total: </th>
-          <th class="has-text-right">{{this.summary.local | currency('')}}</th>
-          <th class="has-text-right">{{this.summary.imported | currency('')}}</th>
-          <th class="has-text-right">{{this.summary.total | currency('')}}</th>
+          <th class="has-text-right">Total:</th>
+          <th class="has-text-right">
+            {{ this.summary.local | currency("") }}
+          </th>
+          <th class="has-text-right">
+            {{ this.summary.imported | currency("") }}
+          </th>
+          <th class="has-text-right">
+            {{ this.summary.total | currency("") }}
+          </th>
         </tr>
       </tfoot>
     </table>

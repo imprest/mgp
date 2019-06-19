@@ -3,7 +3,7 @@
     <div class="container">
       <b-field>
         <p class="control">
-          <button class="button is-static">Search for Invoice: </button>
+          <button class="button is-static">Search for Invoice:</button>
         </p>
         <b-autocomplete
           expanded
@@ -12,26 +12,29 @@
           placeholder="e.g. 95632"
           field="id"
           :loading="isFetching"
-          :max-results=12
+          :max-results="12"
           :maxlength="10"
           @input="suggestInvoiceIds"
-          @select="option => fetchSelectedInvoice(option.id)">
+          @select="option => fetchSelectedInvoice(option.id)"
+        >
           <template slot-scope="props">
             <div class="media">
               <div class="media-left">
-                <img width="32">
+                <img width="32" />
               </div>
               <div class="media-content">
                 {{ props.option.id }}
-                <br>
+                <br />
                 <small>
-                  Customer ID: <b>{{ props.option.customer_id }}</b>,
-                  Date: <b>{{ props.option.date }}</b>
+                  Customer ID: <b>{{ props.option.customer_id }}</b
+                  >, Date: <b>{{ props.option.date }}</b>
                 </small>
               </div>
             </div>
           </template>
-          <template slot="empty">No results found</template>
+          <template slot="empty"
+            >No results found</template
+          >
         </b-autocomplete>
       </b-field>
     </div>
@@ -88,5 +91,4 @@ export default {
 };
 </script>
 
-<style>
-</style>
+<style></style>

@@ -11,14 +11,12 @@
         <li>Dev to Production</li>
       </ul>
     </div>
-    <br>
+    <br />
     <div class="container">
       <article v-for="e in events" :key="e.id" class="message">
         <div class="message-body">
-          {{e.id}} - {{e.event_id}} - {{e.description}} - {{e.amount}}
-          <span v-if="e.event_detail != null">
-          - {{e.event_detail}}
-          </span>
+          {{ e.id }} - {{ e.event_id }} - {{ e.description }} - {{ e.amount }}
+          <span v-if="e.event_detail != null"> - {{ e.event_detail }} </span>
         </div>
       </article>
     </div>
