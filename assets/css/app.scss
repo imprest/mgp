@@ -1,0 +1,59 @@
+/* This file is for your main application css. */
+
+// Customize Bulma variables here
+$family-sans-serif: BlinkMacSystemFont, -apple-system, "Segoe UI", "Roboto",
+  "Oxygen", "Ubuntu", "Droid Sans", "Fira Sans", "Helvetica Neue", "Helvetica",
+  "Arial", sans-serif;
+$table-striped-row-even-background-color: lightgoldenrodyellow;
+$modal-content-width: 90vw;
+
+@import "../node_modules/bulma/sass/utilities/_all.sass";
+@import "../node_modules/bulma/sass/base/_all.sass";
+@import "../node_modules/bulma/sass/form/_all.sass";
+
+$navbar-item-active-color: $red;
+$navbar-item-hover-color: $red;
+$navbar-dropdown-item-active-color: $red;
+$navbar-breakpoint: 892px + (1 * $gap);
+
+$tabs-link-active-border-bottom-color: $red;
+$tabs-link-active-color: $red;
+$tabs-link-hover-color: $red;
+$tabs-link-hover-border-bottom-color: $red;
+
+@import "../node_modules/bulma/sass/layout/section.sass";
+@import "../node_modules/bulma/sass/grid/columns.sass";
+@import "../node_modules/bulma/sass/elements/table.sass";
+@import "../node_modules/bulma/sass/elements/tag.sass";
+@import "../node_modules/bulma/sass/elements/container.sass";
+@import "../node_modules/bulma/sass/elements/button.sass";
+@import "../node_modules/bulma/sass/elements/notification.sass";
+@import "../node_modules/bulma/sass/elements/title.sass";
+@import "../node_modules/bulma/sass/components/modal.sass";
+@import "../node_modules/bulma/sass/components/navbar.sass";
+@import "../node_modules/bulma/sass/components/tabs.sass";
+
+div.section, section.section { padding-top: 0.5rem; padding-bottom: 1rem; }
+.modal-content { background: white }
+
+@media screen and (min-width: 892px + (2 * $gap)) {
+  #navbar.is-spaced { padding: 0 1.5rem; }
+}
+@media screen and (max-width: 893px + (2 * $gap)) {
+  div.navbar-brand>a.navbar-item:first-child { padding-left: 1.5rem; }
+}
+a.navbar-brand>a.navbar-item:first-child { padding: 0; }
+
+.has-underline {
+  border-bottom: 1px solid grey;
+}
+
+.has-overline {
+  border-top: 1px solid grey;
+}
+
+.modal-content { max-width: 960px; }
+
+h1.title.has-small-margin-bottom { margin-bottom: 0.5rem; }
+
+.has-small-padding { padding-top: 0.5rem; padding-bottom: 0.5rem !important; } 

@@ -2,7 +2,6 @@ defmodule MgpWeb.UserSocket do
   use Phoenix.Socket
 
   ## Channels
-  # channel "room:*", MgpWeb.RoomChannel
   channel "api:*", MgpWeb.ApiChannel
 
   # Socket params are passed from the client and can

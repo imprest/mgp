@@ -1,5 +1,14 @@
 use Mix.Config
 
+# Configure your database
+config :mgp, Mgp.Repo,
+  username: "postgres",
+  password: "postgres",
+  database: "mgp_dev",
+  hostname: "localhost",
+  show_sensitive_data_on_connection_error: true,
+  pool_size: 5
+
 # For development, we disable any cache and enable
 # debugging and code reloading.
 #
@@ -11,7 +20,13 @@ config :mgp, MgpWeb.Endpoint,
   debug_errors: true,
   code_reloader: true,
   check_origin: false,
-  watchers: []
+  watchers: [
+    npm: [
+      "run",
+      "watch",
+      cd: Path.expand("../assets", __DIR__)
+    ]
+  ]
 
 # ## SSL Support
 #
@@ -37,6 +52,17 @@ config :mgp, MgpWeb.Endpoint,
 # configured to run both http and https servers on
 # different ports.
 
+# Watch static and templates for browser reloading.
+config :mgp, MgpWeb.Endpoint,
+  live_reload: [
+    patterns: [
+      ~r"priv/static/.*(js|css|png|jpeg|jpg|gif|svg)$",
+      ~r"priv/gettext/.*(po)$",
+      ~r"lib/mgp_web/{live,views}/.*(ex)$",
+      ~r"lib/mgp_web/templates/.*(eex)$"
+    ]
+  ]
+
 # Do not include metadata nor timestamps in development logs
 config :logger, :console, format: "[$level] $message\n"
 
@@ -46,11 +72,3 @@ config :phoenix, :stacktrace_depth, 20
 
 # Initialize plugs at runtime for faster development compilation
 config :phoenix, :plug_init_mode, :runtime
-
-# Configure your database
-config :mgp, Mgp.Repo,
-  username: "postgres",
-  password: "postgres",
-  database: "mgp_dev",
-  hostname: "localhost",
-  pool_size: 3

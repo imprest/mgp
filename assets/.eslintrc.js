@@ -1,18 +1,20 @@
 module.exports = {
-  root: true,
-
-  env: {
-    node: true
-  },
-
-  rules: {
-    "no-console": "off",
-    "no-debugger": "off"
-  },
-
-  parserOptions: {
-    parser: "babel-eslint"
-  },
-
-  extends: ["plugin:vue/strongly-recommended", "@vue/prettier"]
+    "env": {
+        "browser": true,
+        "es6": true
+    },
+    "plugins": [
+        "svelte3"
+    ],
+    "extends": "eslint:recommended",
+    "globals": {
+        "Atomics": "readonly",
+        "SharedArrayBuffer": "readonly"
+    },
+    "parserOptions": {
+        "ecmaVersion": 2019,
+        "sourceType": "module",
+        "allowImportExportEverywhere": true
+    },
+    "rules": {}
 };

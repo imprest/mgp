@@ -51,6 +51,7 @@ defmodule Mgp.Sales do
             SELECT sr_no as id, product_id, qty, sub_qty, rate, total
             FROM invoice_details
             WHERE invoice_id = $1::text
+            ORDER BY product_id
           ) i
         ) AS items
         FROM invoices
@@ -93,7 +94,7 @@ defmodule Mgp.Sales do
     SELECT COALESCE(json_agg(t), '[]'::json)::text
     FROM (
       SELECT
-        i.id, i.customer_id, c.description, c.resp, c.region,
+        i.id, i.customer_id, c.description, c.resp, c.region, c.is_gov,
         cash, cheque, credit, (cash+credit+cheque) AS total
       FROM invoices i
       LEFT JOIN customers c ON c.id = i.customer_id
@@ -136,7 +137,7 @@ defmodule Mgp.Sales do
     SELECT COALESCE(json_agg(t), '[]'::json)::text
     FROM (
       SELECT
-      to_char(DATE_TRUNC('month', date), 'YYYY-MM-DD') AS date,
+      to_char(DATE_TRUNC('month', date), 'YYYY-MM') AS date,
       SUM(d.total) FILTER (WHERE i.id ~* 'M') AS local,
       SUM(d.total) FILTER (WHERE i.id ~* 'C') AS imported,
       SUM(d.total) AS total

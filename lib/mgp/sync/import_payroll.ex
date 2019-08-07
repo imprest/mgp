@@ -36,7 +36,7 @@ defmodule Mgp.Sync.ImportPayroll do
     records =
       stream
       |> IO.binstream(:line)
-      |> MyParser.parse_stream(headers: false)
+      |> MyParser.parse_stream(skip_headers: false)
       |> Stream.filter(fn x -> hd(x) == month end)
       |> Task.async_stream(&parse_payroll_record(&1, employees, tax_year))
       |> Stream.map(fn {:ok, res} -> res end)
@@ -54,7 +54,7 @@ defmodule Mgp.Sync.ImportPayroll do
     records =
       stream
       |> IO.binstream(:line)
-      |> MyParser.parse_stream(headers: false)
+      |> MyParser.parse_stream(skip_headers: false)
       |> Enum.reduce(%{}, fn x, acc ->
         id = hd(x)
         Map.put(acc, id, parse_employee_record(x))
@@ -148,6 +148,23 @@ defmodule Mgp.Sync.ImportPayroll do
 
     ssnit_amount = Decimal.round(Decimal.mult(Decimal.div(emp.ssnit_ded, 100), earned_salary), 2)
 
+    {ssnit_emp_contrib, ssnit_total, ssnit_tier_1, ssnit_tier_2} =
+    case emp.id === "E0053" do
+    true ->
+      ssnit_emp_contrib = Decimal.round(Decimal.mult(Decimal.from_float(2.5), ssnit_amount), 2) # 12.5 div 5
+      ssnit_total = Decimal.add(ssnit_amount, ssnit_emp_contrib)
+      ssnit_tier_1 = ssnit_total
+      ssnit_tier_2 = Decimal.new(0)
+      {ssnit_emp_contrib, ssnit_total, ssnit_tier_1, ssnit_tier_2}
+    false ->
+      ssnit_emp_contrib = Decimal.round(Decimal.mult(Decimal.from_float(2.363636364), ssnit_amount), 2) # 13 div 5.5
+      ssnit_total = Decimal.add(ssnit_amount, ssnit_emp_contrib)
+      ssnit_tier_1 = Decimal.round(Decimal.mult(Decimal.from_float(0.72972973), ssnit_total), 2)
+      ssnit_tier_2 = Decimal.sub(ssnit_total, ssnit_tier_1)
+      {ssnit_emp_contrib, ssnit_total, ssnit_tier_1, ssnit_tier_2}
+    end
+
+
     pf_amount = Decimal.round(Decimal.mult(Decimal.div(emp.pf_ded, 100), earned_salary), 2)
 
     total_cash = Decimal.add(earned_salary, emp.cash_allowance)
@@ -184,7 +201,11 @@ defmodule Mgp.Sync.ImportPayroll do
         employees[emp.id],
         %{
           earned_salary: earned_salary,
+          ssnit_emp_contrib: ssnit_emp_contrib,
           ssnit_amount: ssnit_amount,
+          ssnit_total: ssnit_total,
+          ssnit_tier_1: ssnit_tier_1,
+          ssnit_tier_2: ssnit_tier_2,
           pf_amount: pf_amount,
           taxable_income: taxable_income,
           total_cash: total_cash,

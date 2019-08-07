@@ -13,8 +13,8 @@ config :mgp,
 # Configures the endpoint
 config :mgp, MgpWeb.Endpoint,
   url: [host: "localhost"],
-  secret_key_base: "1WrpHSu9SdP93NLJgdN8Jlbr1pWo3bIestyBsqogkbMybzD0l+9tvL6m6VJIbFO0",
-  render_errors: [view: MgpWeb.ErrorView, accepts: ~w(json)],
+  secret_key_base: "qvs2W+PxLNhjT/W1mwAP6HmZMO9AnVVuz9ZNjGJys7PeZkoSmCSFLw72uPpnv/m0",
+  render_errors: [view: MgpWeb.ErrorView, accepts: ~w(html json)],
   pubsub: [name: Mgp.PubSub, adapter: Phoenix.PubSub.PG2]
 
 # Configures Elixir's Logger
