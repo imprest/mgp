@@ -14,8 +14,7 @@ defmodule Mgp.Repo.Migrations.CreateProducts do
       add :sub_qty, :integer
       add :spec, :string
       add :lmu, :string
-      add :lmd, :date
-      add :lmt, :time
+      add :lmt, :naive_datetime
 
     end
 

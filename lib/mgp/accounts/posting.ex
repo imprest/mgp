@@ -11,17 +11,15 @@ defmodule Mgp.Accounts.Posting do
     field :amount, :decimal
     field :date, :date
     field :description, :string
-    field :lmd, :date
-    field :lmt, :time
+    field :lmt, :naive_datetime
     field :lmu, :string
     belongs_to :customer, Customer, type: :string
-
   end
 
   @doc false
   def changeset(%Posting{} = posting, attrs) do
     posting
-    |> cast(attrs, [:date, :description, :amount, :lmu, :lmd, :lmt])
-    |> validate_required([:date, :description, :amount, :lmu, :lmd, :lmt])
+    |> cast(attrs, [:date, :description, :amount, :lmu, :lmt])
+    |> validate_required([:date, :description, :amount, :lmu, :lmt])
   end
 end

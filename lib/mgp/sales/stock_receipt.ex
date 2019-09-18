@@ -3,13 +3,13 @@ defmodule Mgp.Sales.StockReceipt do
   import Ecto.Changeset
   alias Mgp.Sales.Product
 
+  @primary_key {:id, :string, []}
   schema "stock_receipts" do
     field(:batch, :string)
     field(:date, :date)
     field(:doc_id, :string)
     field(:expiry, :date)
-    field(:lmd, :date)
-    field(:lmt, :time)
+    field(:lmt, :naive_datetime)
     field(:lmu, :string)
     field(:qty, :integer)
     field(:sr_no, :integer)
@@ -19,7 +19,7 @@ defmodule Mgp.Sales.StockReceipt do
   @doc false
   def changeset(stock_receipt, attrs) do
     stock_receipt
-    |> cast(attrs, [:doc_id, :date, :sr_no, :qty, :batch, :expiry, :lmu, :lmd, :lmt])
-    |> validate_required([:doc_id, :date, :sr_no, :qty, :batch, :expiry, :lmu, :lmd, :lmt])
+    |> cast(attrs, [:doc_id, :date, :sr_no, :qty, :batch, :expiry, :lmu, :lmt])
+    |> validate_required([:doc_id, :date, :sr_no, :qty, :batch, :expiry, :lmu, :lmt])
   end
 end

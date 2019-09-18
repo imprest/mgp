@@ -6,20 +6,19 @@ defmodule Mgp.Accounts.OpBalance do
   alias Mgp.Accounts.OpBalance
   alias Mgp.Sales.Customer
 
+  @primary_key false
   schema "op_balances" do
     field :op_bal, :decimal
     field :year, :integer
-    field :lmd, :date
-    field :lmt, :time
+    field :lmt, :naive_datetime
     field :lmu, :string
     belongs_to :customer, Customer, type: :string
-
   end
 
   @doc false
   def changeset(%OpBalance{} = op_balance, attrs) do
     op_balance
-    |> cast(attrs, [:year, :op_bal])
-    |> validate_required([:year, :op_bal])
+    |> cast(attrs, [:year, :op_bal, :lmt, :lmu])
+    |> validate_required([:year, :op_bal, :lmt, :lmu])
   end
 end

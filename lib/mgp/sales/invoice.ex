@@ -15,8 +15,7 @@ defmodule Mgp.Sales.Invoice do
     field(:detail2, :string)
     field(:detail3, :string)
     field(:from_stock, :string)
-    field(:lmd, :date)
-    field(:lmt, :time)
+    field(:lmt, :naive_datetime)
     field(:lmu, :string)
     field(:price_level, :string)
     belongs_to(:customer, Customer, type: :string)
@@ -37,7 +36,6 @@ defmodule Mgp.Sales.Invoice do
       :detail2,
       :detail3,
       :lmu,
-      :lmd,
       :lmt
     ])
     |> validate_required([
@@ -51,7 +49,6 @@ defmodule Mgp.Sales.Invoice do
       :detail2,
       :detail3,
       :lmu,
-      :lmd,
       :lmt
     ])
   end

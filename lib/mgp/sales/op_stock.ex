@@ -4,6 +4,7 @@ defmodule Mgp.Sales.OpStock do
   alias Mgp.Sales.OpStock
   alias Mgp.Sales.Product
 
+  @primary_key false
   schema "op_stocks" do
     field(:year, :integer)
     field(:location, :string)

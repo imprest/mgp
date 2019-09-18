@@ -16,7 +16,7 @@ defmodule MgpWeb.Router do
   scope "/", MgpWeb do
     pipe_through :browser
 
-    get "/", PageController, :index
+    get "/", PageConroller, :index
     get "/*path", PageController, :index
   end
 

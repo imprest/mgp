@@ -2,7 +2,8 @@ defmodule Mgp.Repo.Migrations.CreateStockReceipts do
   use Ecto.Migration
 
   def change do
-    create table(:stock_receipts) do
+    create table(:stock_receipts, primary_key: false) do
+      add :id, :string, primary_key: true
       add(:doc_id, :string)
       add(:date, :date)
       add(:sr_no, :integer)
@@ -10,8 +11,7 @@ defmodule Mgp.Repo.Migrations.CreateStockReceipts do
       add(:batch, :string)
       add(:expiry, :date)
       add(:lmu, :string)
-      add(:lmd, :date)
-      add(:lmt, :time)
+      add(:lmt, :naive_datetime)
 
       add(
         :product_id,

@@ -11,8 +11,7 @@ defmodule Mgp.Accounts.Pdc do
     field :cheque, :string
     field :date, :date
     field :adjusted, :string
-    field :lmd, :date
-    field :lmt, :time
+    field :lmt, :naive_datetime
     field :lmu, :string
     belongs_to :customer, Customer, type: :string
   end
@@ -20,7 +19,7 @@ defmodule Mgp.Accounts.Pdc do
   @doc false
   def changeset(%Pdc{} = pdc, attrs) do
     pdc
-    |> cast(attrs, [:date, :cheque, :amount, :lmu, :lmd, :lmt])
-    |> validate_required([:date, :cheque, :amount, :lmu, :lmd, :lmt])
+    |> cast(attrs, [:date, :cheque, :amount, :lmu, :lmt])
+    |> validate_required([:date, :cheque, :amount, :lmu, :lmt])
   end
 end

@@ -8,8 +8,7 @@ defmodule Mgp.Repo.Migrations.CreatePostings do
       add :description, :string
       add :amount, :decimal
       add :lmu, :string
-      add :lmd, :date
-      add :lmt, :time
+      add :lmt, :naive_datetime
       add :customer_id, references(:customers, on_update: :update_all,
                                    on_delete: :nothing, type: :string)
     end

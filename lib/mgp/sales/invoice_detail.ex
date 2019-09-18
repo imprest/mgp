@@ -5,10 +5,10 @@ defmodule Mgp.Sales.InvoiceDetail do
   alias Mgp.Sales.InvoiceDetail
   alias Mgp.Sales.Product
 
+  @primary_key false
   schema "invoice_details" do
     field(:description, :string)
-    field(:lmd, :date)
-    field(:lmt, :time)
+    field(:lmt, :naive_datetime)
     field(:lmu, :string)
     field(:qty, :integer)
     field(:rate, :decimal)
@@ -33,7 +33,6 @@ defmodule Mgp.Sales.InvoiceDetail do
       :tax_rate,
       :from_stock,
       :lmu,
-      :lmd,
       :lmt
     ])
     |> validate_required([
@@ -46,7 +45,6 @@ defmodule Mgp.Sales.InvoiceDetail do
       :tax_rate,
       :from_stock,
       :lmu,
-      :lmd,
       :lmt
     ])
   end

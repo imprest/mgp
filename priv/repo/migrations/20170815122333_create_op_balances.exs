@@ -2,18 +2,21 @@ defmodule Mgp.Repo.Migrations.CreateOpBalances do
   use Ecto.Migration
 
   def change do
-    create table(:op_balances) do
-      add :year, :integer
-      add :op_bal, :decimal
-      add :lmu, :string
-      add :lmd, :date
-      add :lmt, :time
-      add :customer_id, references(:customers, on_update: :update_all,
-                                   on_delete: :nothing, type: :string)
+    create table(:op_balances, primary_key: false) do
+      add(:year, :integer, primary_key: true)
+      add(:op_bal, :decimal)
+      add(:lmu, :string)
+      add(:lmt, :naive_datetime)
+
+      add(
+        :customer_id,
+        references(:customers, on_update: :update_all, on_delete: :nothing, type: :string),
+        primary_key: true
+      )
     end
 
-    create index(:op_balances, [:customer_id])
-    create unique_index(:op_balances, [:year, :customer_id])
+    create(index(:op_balances, [:customer_id]))
+
     execute(
       "ALTER TABLE op_balances
       ADD CONSTRAINT opbal_customer_id_year_key UNIQUE(year, customer_id)",

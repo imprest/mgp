@@ -2,7 +2,8 @@ defmodule Mgp.Repo.Migrations.CreateStockTransfers do
   use Ecto.Migration
 
   def change do
-    create table(:stock_transfers) do
+    create table(:stock_transfers, primary_key: false) do
+      add(:id, :string, primary_key: true)
       add(:date, :date)
       add(:doc_id, :string)
       add(:sr_no, :integer)
@@ -10,9 +11,7 @@ defmodule Mgp.Repo.Migrations.CreateStockTransfers do
       add(:from_stock, :string)
       add(:to_stock, :string)
       add(:lmu, :string)
-      add(:lmd, :date)
-      add(:lmt, :time)
-
+      add(:lmt, :naive_datetime)
       add(
         :product_id,
         references(:products, on_update: :update_all, on_delete: :nothing, type: :string)

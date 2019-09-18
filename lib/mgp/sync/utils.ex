@@ -29,6 +29,11 @@ defmodule Mgp.Sync.Utils do
   def to_decimal(""), do: nil
   def to_decimal(n), do: Decimal.new(n)
 
+  def to_timestamp(lmd, lmt) do
+    {:ok, timestamp} = NaiveDateTime.new(to_date(lmd), to_time(lmt))
+    timestamp
+  end
+
   @spec to_date(<<_::_*64>>) :: Date.t()
   def to_date(<<y0, y1, y2, y3, m0, m1, d0, d1>>) do
     Date.from_iso8601!(<<y0, y1, y2, y3, "-", m0, m1, "-", d0, d1>>)

@@ -102,127 +102,46 @@ defmodule Mgp.Sync.ImportData do
   end
 
   def populate(year) do
+    Repo.checkout(fn -> populate_from_year(year) end)
+  end
+
+  defp populate_from_year(year) do
     files = generate_file_paths(@root_folder, year)
     p = generate_postings_file_paths(@root_folder, year)
 
+    ctx = %{:year => year, :success => false, :upserted => %{}, :error => nil}
+
     with :ok <- check_files(files),
          :ok <- check_files(p),
-         {products, nil} <- populate_products(files.products_dbf),
-         {op_stocks, nil} <- populate_stock_op_qtys(files.op_stocks_dbf, year),
-         {stock_receipts_dbf, nil} <- populate_stock_receipts(files.stock_receipts_dbf),
-         {stock_transfers, nil} <- populate_stock_transfers(files.invoice_details_dbf),
-         {prices, nil} <- populate_prices(files.prices_dbf),
-         {customers, nil} <- populate_customers(files.customers_dbf),
-         {op_bals, nil} <- populate_customer_op_bals(files.customers_dbf, year),
-         {invoices, nil} <- populate_invoices(files.invoices_dbf),
-         {inv_details, nil} <- populate_invoice_details(files.invoice_details_dbf, year),
-         {pdcs, nil} <- populate_pdcs(files.pdcs_dbf),
-         {oct, nil} <- populate_postings(p.oct),
-         {nov, nil} <- populate_postings(p.nov),
-         {dec, nil} <- populate_postings(p.dec),
-         {jan, nil} <- populate_postings(p.jan),
-         {feb, nil} <- populate_postings(p.feb),
-         {mar, nil} <- populate_postings(p.mar),
-         {apr, nil} <- populate_postings(p.apr),
-         {may, nil} <- populate_postings(p.may),
-         {jun, nil} <- populate_postings(p.jun),
-         {jul, nil} <- populate_postings(p.jul),
-         {aug, nil} <- populate_postings(p.aug),
-         {sep, nil} <- populate_postings(p.sep) do
-      Logger.info(fn -> "Products  upserted: #{products}" end)
-      Logger.info(fn -> "Op Stock  upserted: #{op_stocks}" end)
-      Logger.info(fn -> "Stk Recp  upserted: #{stock_receipts_dbf}" end)
-      Logger.info(fn -> "Stk Tran  upserted: #{stock_transfers}" end)
-      Logger.info(fn -> "Prices    upserted: #{prices}" end)
-      Logger.info(fn -> "Customers upserted: #{customers}" end)
-      Logger.info(fn -> "Op. Bals  upserted: #{op_bals}" end)
-      Logger.info(fn -> "Invoices  upserted: #{invoices}" end)
-      Logger.info(fn -> "InvDetail upserted: #{inv_details}" end)
-      Logger.info(fn -> "Pdcs      upserted: #{pdcs}" end)
-      Logger.info(fn -> "FIN Oct   upserted: #{oct}" end)
-      Logger.info(fn -> "FIN Nov   upserted: #{nov}" end)
-      Logger.info(fn -> "FIN Dec   upserted: #{dec}" end)
-      Logger.info(fn -> "FIN Jan   upserted: #{jan}" end)
-      Logger.info(fn -> "FIN Feb   upserted: #{feb}" end)
-      Logger.info(fn -> "FIN Mar   upserted: #{mar}" end)
-      Logger.info(fn -> "FIN Apr   upserted: #{apr}" end)
-      Logger.info(fn -> "FIN May   upserted: #{may}" end)
-      Logger.info(fn -> "FIN Jun   upserted: #{jun}" end)
-      Logger.info(fn -> "FIN Jul   upserted: #{jul}" end)
-      Logger.info(fn -> "FIN Aug   upserted: #{aug}" end)
-      Logger.info(fn -> "FIN Sep   upserted: #{sep}" end)
+         {:ok, ctx} <- import_products(ctx, files.products_dbf),
+         {:ok, ctx} <- import_stock_openings(ctx, files.op_stocks_dbf),
+         {:ok, ctx} <- import_prices(ctx, files.prices_dbf),
+         {:ok, ctx} <- import_stock_receipts(ctx, files.stock_receipts_dbf),
+         {:ok, ctx} <- import_customers(ctx, files.customers_dbf),
+         {:ok, ctx} <- import_invoices(ctx, files.invoices_dbf),
+         {:ok, ctx} <- import_invoice_stock_transfers(ctx, files.invoice_details_dbf),
+         {:ok, ctx} <- import_pdcs(ctx, files.pdcs_dbf),
+         {:ok, ctx} <- import_postings(ctx, p.oct),
+         {:ok, ctx} <- import_postings(ctx, p.nov),
+         {:ok, ctx} <- import_postings(ctx, p.dec),
+         {:ok, ctx} <- import_postings(ctx, p.jan),
+         {:ok, ctx} <- import_postings(ctx, p.mar),
+         {:ok, ctx} <- import_postings(ctx, p.apr),
+         {:ok, ctx} <- import_postings(ctx, p.may),
+         {:ok, ctx} <- import_postings(ctx, p.jun),
+         {:ok, ctx} <- import_postings(ctx, p.jul),
+         {:ok, ctx} <- import_postings(ctx, p.aug),
+         {:ok, ctx} <- import_postings(ctx, p.sep) do
+      Logger.info("Import from DBF Summary: #{inspect(%{ctx | :success => true}, pretty: true)}")
+      ctx
     else
       unexpected ->
-        Logger.error("Error occurred #{inspect(unexpected)}")
+        Logger.error("Error occurred #{inspect(%{ctx | :error => unexpected})}")
+        ctx
     end
   end
 
-  def last_record_lmd_lmt(table) do
-    query = from(t in table, order_by: [desc: :lmd, desc: :lmt], limit: 1, select: [t.lmd, t.lmt])
-
-    case Repo.all(query) do
-      [[lmd, lmt]] -> [lmd, lmt]
-      [] -> [default_date(), default_time()]
-    end
-  end
-
-  def is_record_for_today_onwards(record_date, date) do
-    case Date.compare(record_date, date) do
-      :lt -> false
-      :gt -> true
-      :eq -> true
-    end
-  end
-
-  def is_record_newer_than(record, lmd_lmt) do
-    case Date.compare(record.lmd, Enum.at(lmd_lmt, 0)) do
-      :gt ->
-        true
-
-      :lt ->
-        false
-
-      :eq ->
-        case Time.compare(record.lmt, Enum.at(lmd_lmt, 1)) do
-          :gt -> true
-          :lt -> false
-          :eq -> false
-        end
-    end
-  end
-
-  # PRODUCTS
-  def populate_products(dbf) do
-    products = parse_products_from_dbf(dbf)
-
-    # on_conflict update query
-    query =
-      from(
-        p in Product,
-        where: fragment("p0.lmd <> EXCLUDED.lmd OR p0.lmt <> EXCLUDED.lmt"),
-        update: [
-          set: [
-            group: fragment("EXCLUDED.group"),
-            description: fragment("EXCLUDED.description"),
-            tax_type: fragment("EXCLUDED.tax_type"),
-            tax_tat: fragment("EXCLUDED.tax_tat"),
-            cash_price: fragment("EXCLUDED.cash_price"),
-            credit_price: fragment("EXCLUDED.credit_price"),
-            trek_price: fragment("EXCLUDED.trek_price"),
-            sub_qty: fragment("EXCLUDED.sub_qty"),
-            spec: fragment("EXCLUDED.spec"),
-            lmu: fragment("EXCLUDED.lmu"),
-            lmd: fragment("EXCLUDED.lmd"),
-            lmt: fragment("EXCLUDED.lmt")
-          ]
-        ]
-      )
-
-    # upsert the records into actual db
-    Repo.insert_all(Product, products, on_conflict: query, conflict_target: :id)
-  end
-
-  def parse_products_from_dbf(dbf) do
+  def import_products(ctx, dbf) do
     {csv, 1} = dbf_to_csv(dbf)
     {:ok, stream} = csv |> StringIO.open()
 
@@ -258,25 +177,341 @@ defmodule Mgp.Sync.ImportData do
           sub_qty: to_integer(sub_qty),
           spec: spec,
           lmu: nil?(lmu),
-          lmd: to_date(lmd),
-          lmt: to_time(lmt)
+          lmt: to_timestamp(lmd, lmt)
         }
       end)
       |> Enum.to_list()
 
     StringIO.close(stream)
-    records
+
+    rows =
+      records
+      |> Stream.chunk_every(1000)
+      |> Stream.map(fn x -> upsert_products(x) end)
+      |> Enum.reduce(0, fn x, acc -> x + acc end)
+
+    {:ok, %{ctx | upserted: Map.put(ctx.upserted, :products, rows)}}
+  end
+
+  defp upsert_products(products) do
+    query =
+      from(
+        p in Product,
+        where: fragment("p0.lmt < EXCLUDED.lmt"),
+        update: [
+          set: [
+            group: fragment("EXCLUDED.group"),
+            description: fragment("EXCLUDED.description"),
+            tax_type: fragment("EXCLUDED.tax_type"),
+            tax_tat: fragment("EXCLUDED.tax_tat"),
+            cash_price: fragment("EXCLUDED.cash_price"),
+            credit_price: fragment("EXCLUDED.credit_price"),
+            trek_price: fragment("EXCLUDED.trek_price"),
+            sub_qty: fragment("EXCLUDED.sub_qty"),
+            spec: fragment("EXCLUDED.spec"),
+            lmt: fragment("EXCLUDED.lmt")
+          ]
+        ]
+      )
+
+    {rows, _} = Repo.insert_all(Product, products, on_conflict: query, conflict_target: :id)
+    rows
+  end
+
+  # OPENING STOCKS per fin year
+  def import_stock_openings(ctx, dbf) do
+    {csv, 1} = dbf_to_csv(dbf)
+    {:ok, stream} = csv |> StringIO.open()
+    y = ctx.year
+    product_ids = MapSet.new(Repo.all(from(p in Product, select: p.id)))
+
+    records =
+      stream
+      |> IO.binstream(:line)
+      |> MyParser.parse_stream(skip_headers: false)
+      |> Stream.filter(fn x -> Enum.member?(["A", "V", "W"], hd(x)) end)
+      |> Stream.map(fn x -> [y | pluck(x, [0, 2, 3])] end)
+      |> Stream.map(fn [year, location, product_id, op_qty] ->
+        %{
+          location: location,
+          product_id: product_id,
+          op_qty: to_integer(op_qty),
+          year: year
+        }
+      end)
+      |> Stream.filter(fn x -> MapSet.member?(product_ids, x.product_id) end)
+      |> Enum.to_list()
+
+    StringIO.close(stream)
+
+    rows =
+      records
+      |> Stream.chunk_every(1000)
+      |> Stream.map(fn x -> import_stock_openings(x) end)
+      |> Enum.reduce(0, fn x, acc -> x + acc end)
+
+    {:ok, %{ctx | upserted: Map.put(ctx.upserted, :stock_openings, rows)}}
+  end
+
+  defp import_stock_openings(op_stocks) do
+    query =
+      from(
+        o in OpStock,
+        where: fragment("o0.op_qty <> EXCLUDED.op_qty"),
+        update: [
+          set: [
+            op_qty: fragment("EXCLUDED.op_qty")
+          ]
+        ]
+      )
+
+    {rows, _} =
+      Repo.insert_all(
+        OpStock,
+        op_stocks,
+        on_conflict: query,
+        conflict_target: {:constraint, :op_stocks_pkey}
+      )
+
+    rows
+  end
+
+  # PRICES
+  def import_prices(ctx, dbf) do
+    {csv, 1} = dbf_to_csv(dbf)
+    {:ok, stream} = csv |> StringIO.open()
+
+    query = from(p in Product, select: p.id)
+    product_ids = MapSet.new(Repo.all(query))
+
+    # Need to do this due to possible zombie ids
+    records =
+      stream
+      |> IO.binstream(:line)
+      |> MyParser.parse_stream(skip_headers: false)
+      |> Stream.map(fn x -> pluck(x, [0, 1, 2, 3, 4, 10, 11, 12]) end)
+      |> Stream.filter(&MapSet.member?(product_ids, hd(&1)))
+      |> Stream.map(fn [product_id, date, credit, cash, trek, lmu, lmd, lmt] ->
+        %{
+          product_id: product_id,
+          date: to_date(date),
+          cash: to_decimal(cash),
+          credit: to_decimal(credit),
+          trek: to_decimal(trek),
+          lmu: nil?(lmu),
+          lmt: to_timestamp(lmd, lmt)
+        }
+      end)
+      |> Enum.to_list()
+
+    StringIO.close(stream)
+
+    rows =
+      records
+      |> Stream.chunk_every(1000)
+      |> Stream.map(fn x -> import_prices(x) end)
+      |> Enum.reduce(0, fn x, acc -> x + acc end)
+
+    {:ok, %{ctx | upserted: Map.put(ctx.upserted, :prices, rows)}}
+  end
+
+  defp import_prices(prices) do
+    query =
+      from(
+        p in Price,
+        where: fragment("p0.lmt < EXCLUDED.lmt"),
+        update: [
+          set: [
+            cash: fragment("EXCLUDED.cash"),
+            credit: fragment("EXCLUDED.credit"),
+            trek: fragment("EXCLUDED.trek"),
+            lmu: fragment("EXCLUDED.lmu"),
+            lmt: fragment("EXCLUDED.lmt")
+          ]
+        ]
+      )
+
+    {rows, _} =
+      Repo.insert_all(
+        Price,
+        prices,
+        on_conflict: query,
+        conflict_target: {:constraint, :prices_product_id_date_lmt_key}
+      )
+
+    rows
+  end
+
+  # STOCK RECEIPTS
+  def import_stock_receipts(ctx, dbf) do
+    {csv, 1} = dbf_to_csv(dbf)
+    {:ok, stream} = csv |> StringIO.open()
+    y = to_string(ctx.year) <> " "
+
+    records =
+      stream
+      |> IO.binstream(:line)
+      |> MyParser.parse_stream(skip_headers: false)
+      |> Stream.filter(fn x -> String.starts_with?(hd(x), "A") end)
+      |> Stream.map(fn x -> pluck(x, [0, 1, 3, 6, 8, 10, 23, 29, 30, 31]) end)
+      |> Stream.map(fn [
+                         doc_id,
+                         date,
+                         sr_no,
+                         batch,
+                         product_id,
+                         qty,
+                         expiry,
+                         lmu,
+                         lmd,
+                         lmt
+                       ] ->
+        %{
+          id: y <> doc_id <> " " <> sr_no,
+          doc_id: doc_id,
+          date: to_date(date),
+          sr_no: to_integer(sr_no),
+          product_id: product_id,
+          qty: to_integer(qty),
+          batch: nil?(batch),
+          expiry: to_date(expiry),
+          lmu: nil?(lmu),
+          lmt: to_timestamp(lmd, lmt)
+        }
+      end)
+      |> Enum.to_list()
+
+    StringIO.close(stream)
+
+    rows =
+      records
+      |> Stream.chunk_every(1000)
+      |> Stream.map(fn x -> upsert_stock_receipts(x) end)
+      |> Enum.reduce(0, fn x, acc -> x + acc end)
+
+    {:ok, %{ctx | upserted: Map.put(ctx.upserted, :stock_receipts, rows)}}
+  end
+
+  defp upsert_stock_receipts(receipts) do
+    query =
+      from(
+        s in StockReceipt,
+        where: fragment("s0.lmt < EXCLUDED.lmt"),
+        update: [
+          set: [
+            doc_id: fragment("EXCLUDED.doc_id"),
+            sr_no: fragment("EXCLUDED.sr_no"),
+            date: fragment("EXCLUDED.date"),
+            product_id: fragment("EXCLUDED.product_id"),
+            qty: fragment("EXCLUDED.qty"),
+            batch: fragment("EXCLUDED.batch"),
+            expiry: fragment("EXCLUDED.expiry"),
+            lmu: fragment("EXCLUDED.lmu"),
+            lmt: fragment("EXCLUDED.lmt")
+          ]
+        ]
+      )
+
+    {rows, _} =
+      Repo.insert_all(
+        StockReceipt,
+        receipts,
+        on_conflict: query,
+        conflict_target: {:constraint, :stock_receipts_doc_id_no_key}
+      )
+
+    rows
   end
 
   # CUSTOMERS
-  def populate_customers(dbf) do
-    customers = parse_customers_from_dbf(dbf)
+  def import_customers(ctx, dbf) do
+    {csv, 1} = dbf_to_csv(dbf)
+    {:ok, stream} = csv |> StringIO.open()
+    y = ctx.year
 
+    [customers, op_bals] =
+      stream
+      |> IO.binstream(:line)
+      |> MyParser.parse_stream(skip_headers: false)
+      |> Stream.filter(fn x -> hd(x) == "203000" end)
+      |> Stream.map(fn x -> pluck(x, [1, 2, 3, 4, 29, 30, 31, 32, 33, 34, 35, 36, 92, 93, 94]) end)
+      |> Enum.reduce([[], []], fn [
+                                    id,
+                                    region,
+                                    description,
+                                    op_bal,
+                                    attn,
+                                    add1,
+                                    add2,
+                                    add3,
+                                    phone,
+                                    is_gov,
+                                    resp,
+                                    email,
+                                    lmu,
+                                    lmd,
+                                    lmt
+                                  ],
+                                  [customers, op_bals] ->
+        [
+          [
+            %{
+              id: id,
+              region: nil?(region),
+              description: description,
+              attn: nil?(attn),
+              add1: nil?(add1),
+              add2: nil?(add2),
+              add3: nil?(add3),
+              phone: nil?(phone),
+              is_gov: nil?(is_gov),
+              resp: nil?(resp),
+              email: nil?(email),
+              lmu: nil?(lmu),
+              lmt: to_timestamp(lmd, lmt)
+            }
+            | customers
+          ],
+          [
+            %{
+              customer_id: id,
+              op_bal: to_decimal(op_bal),
+              year: y,
+              lmu: nil?(lmu),
+              lmt: to_timestamp(lmd, lmt)
+            }
+            | op_bals
+          ]
+        ]
+      end)
+
+    StringIO.close(stream)
+
+    rows =
+      customers
+      |> :lists.reverse()
+      |> Stream.chunk_every(1000)
+      |> Stream.map(fn x -> upsert_customers(x) end)
+      |> Enum.reduce(0, fn x, acc -> x + acc end)
+
+    ctx = %{ctx | upserted: Map.put(ctx.upserted, :customers, rows)}
+
+    rows =
+      op_bals
+      |> :lists.reverse()
+      |> Stream.chunk_every(1000)
+      |> Stream.map(fn x -> upsert_customers_op_bals(x) end)
+      |> Enum.reduce(0, fn x, acc -> x + acc end)
+
+    {:ok, %{ctx | upserted: Map.put(ctx.upserted, :customer_op_bals, rows)}}
+  end
+
+  defp upsert_customers(customers) do
     # on_conflict update query
     query =
       from(
         c in Customer,
-        where: fragment("c0.lmd <> EXCLUDED.lmd OR c0.lmt <> EXCLUDED.lmt"),
+        where: fragment("c0.lmt < EXCLUDED.lmt"),
         update: [
           set: [
             region: fragment("EXCLUDED.region"),
@@ -290,305 +525,51 @@ defmodule Mgp.Sync.ImportData do
             resp: fragment("EXCLUDED.resp"),
             email: fragment("EXCLUDED.email"),
             lmu: fragment("EXCLUDED.lmu"),
-            lmd: fragment("EXCLUDED.lmd"),
             lmt: fragment("EXCLUDED.lmt")
           ]
         ]
       )
 
-    # upsert the records into actual db
-    Repo.insert_all(
-      Customer,
-      customers,
-      on_conflict: query,
-      conflict_target: :id
-    )
+    {rows, _} =
+      Repo.insert_all(
+        Customer,
+        customers,
+        on_conflict: query,
+        conflict_target: :id
+      )
+
+    rows
   end
 
-  def parse_customers_from_dbf(dbf) do
-    {csv, 1} = dbf_to_csv(dbf)
-    {:ok, stream} = csv |> StringIO.open()
-
-    records =
-      stream
-      |> IO.binstream(:line)
-      |> MyParser.parse_stream(skip_headers: false)
-      |> Stream.filter(fn x -> hd(x) == "203000" end)
-      |> Stream.map(fn x -> pluck(x, [1, 2, 3, 29, 30, 31, 32, 33, 34, 35, 36, 92, 93, 94]) end)
-      |> Stream.map(fn [
-                         id,
-                         region,
-                         description,
-                         attn,
-                         add1,
-                         add2,
-                         add3,
-                         phone,
-                         is_gov,
-                         resp,
-                         email,
-                         lmu,
-                         lmd,
-                         lmt
-                       ] ->
-        %{
-          id: id,
-          region: nil?(region),
-          description: description,
-          attn: nil?(attn),
-          add1: nil?(add1),
-          add2: nil?(add2),
-          add3: nil?(add3),
-          phone: nil?(phone),
-          is_gov: nil?(is_gov),
-          resp: nil?(resp),
-          email: nil?(email),
-          lmu: nil?(lmu),
-          lmd: to_date(lmd),
-          lmt: to_time(lmt)
-        }
-      end)
-      |> Enum.to_list()
-
-    StringIO.close(stream)
-    records
-  end
-
-  # CUSTOMERS OPENING BALANCE
-  def populate_customer_op_bals(dbf, year) do
-    op_bals = parse_customer_op_bal_from_dbf(dbf, year)
-
-    # on_conflict update query
-    query =
+  defp upsert_customers_op_bals(op_bals) do
+    q =
       from(
         o in OpBalance,
-        where: fragment("o0.lmd <> EXCLUDED.lmd OR o0.lmt <> EXCLUDED.lmt"),
+        where: fragment("o0.lmt < EXCLUDED.lmt OR o0.op_bal <> EXCLUDED.op_bal"),
         update: [
           set: [
             customer_id: fragment("EXCLUDED.customer_id"),
             op_bal: fragment("EXCLUDED.op_bal"),
             year: fragment("EXCLUDED.year"),
             lmu: fragment("EXCLUDED.lmu"),
-            lmd: fragment("EXCLUDED.lmd"),
             lmt: fragment("EXCLUDED.lmt")
           ]
         ]
       )
 
-    # upsert the records into actual db
-    Repo.insert_all(
-      OpBalance,
-      op_bals,
-      on_conflict: query,
-      conflict_target: {:constraint, :opbal_customer_id_year_key}
-    )
-  end
-
-  def parse_customer_op_bal_from_dbf(dbf, year) do
-    {csv, 1} = dbf_to_csv(dbf)
-    {:ok, stream} = csv |> StringIO.open()
-
-    records =
-      stream
-      |> IO.binstream(:line)
-      |> MyParser.parse_stream(skip_headers: false)
-      |> Stream.filter(fn x -> hd(x) == "203000" end)
-      |> Stream.map(fn x -> [year | pluck(x, [1, 4, 92, 93, 94])] end)
-      |> Stream.map(fn [year, customer_id, op_bal, lmu, lmd, lmt] ->
-        %{
-          customer_id: customer_id,
-          op_bal: to_decimal(op_bal),
-          year: year,
-          lmu: nil?(lmu),
-          lmd: to_date(lmd),
-          lmt: to_time(lmt)
-        }
-      end)
-      |> Enum.to_list()
-
-    StringIO.close(stream)
-    records
-  end
-
-  # STOCK OPENING BALANCE
-  def populate_stock_op_qtys(dbf, year) do
-    # Get valid product_ids from product table
-    # filter op_stocks with invalid product_id
-    q = from(p in Product, select: p.id)
-    product_ids = Repo.all(q)
-
-    op_stocks =
-      parse_stock_op_qty_from_dbf(dbf, year)
-      |> Enum.filter(fn x -> Enum.member?(product_ids, x.product_id) end)
-
-    # on_conflict update query
-    query =
-      from(
-        o in OpStock,
-        update: [
-          set: [
-            op_qty: fragment("EXCLUDED.op_qty")
-          ]
-        ]
+    {rows, _} =
+      Repo.insert_all(
+        OpBalance,
+        op_bals,
+        on_conflict: q,
+        conflict_target: {:constraint, :opbal_customer_id_year_key}
       )
 
-    # upsert the records into actual db
-    Repo.insert_all(
-      OpStock,
-      op_stocks,
-      on_conflict: query,
-      conflict_target: {:constraint, :opstock_product_id_year_loc_key}
-    )
-  end
-
-  def parse_stock_op_qty_from_dbf(dbf, year) do
-    {csv, 1} = dbf_to_csv(dbf)
-    {:ok, stream} = csv |> StringIO.open()
-
-    records =
-      stream
-      |> IO.binstream(:line)
-      |> MyParser.parse_stream(skip_headers: false)
-      |> Stream.filter(fn x -> Enum.member?(["A", "V", "W"], hd(x)) end)
-      |> Stream.map(fn x -> [year | pluck(x, [0, 2, 3])] end)
-      |> Stream.map(fn [year, location, product_id, op_qty] ->
-        %{
-          location: location,
-          product_id: product_id,
-          op_qty: to_integer(op_qty),
-          year: year
-        }
-      end)
-      |> Enum.to_list()
-
-    StringIO.close(stream)
-    records
-  end
-
-  # PRICES
-  def populate_prices(dbf) do
-    lmd_lmt = last_record_lmd_lmt(Price)
-
-    rows =
-      dbf
-      |> parse_prices_from_dbf
-      |> Enum.filter(fn x -> is_record_newer_than(x, lmd_lmt) end)
-      |> Enum.chunk_every(1000)
-      |> Enum.map(fn x -> populate_prices_partial(x) end)
-      |> Enum.reduce(0, fn x, acc -> elem(x, 0) + acc end)
-
-    {rows, nil}
-  end
-
-  def populate_prices_partial(prices) do
-    # on_conflict update query
-    query =
-      from(
-        p in Price,
-        where: fragment("p0.lmd <> EXCLUDED.lmd OR p0.lmt <> EXCLUDED.lmt"),
-        update: [
-          set: [
-            cash: fragment("EXCLUDED.cash"),
-            credit: fragment("EXCLUDED.credit"),
-            trek: fragment("EXCLUDED.trek"),
-            lmu: fragment("EXCLUDED.lmu"),
-            lmd: fragment("EXCLUDED.lmd"),
-            lmt: fragment("EXCLUDED.lmt")
-          ]
-        ]
-      )
-
-    Repo.insert_all(
-      Price,
-      prices,
-      on_conflict: query,
-      conflict_target: {:constraint, :prices_product_id_date_key}
-    )
-  end
-
-  def parse_prices_from_dbf(dbf) do
-    {csv, 1} = dbf_to_csv(dbf)
-    {:ok, stream} = csv |> StringIO.open()
-
-    query = from(p in Product, select: p.id)
-    product_ids = Repo.all(query)
-
-    # Need to do this due to possible zombie ids
-    records =
-      stream
-      |> IO.binstream(:line)
-      |> MyParser.parse_stream(skip_headers: false)
-      |> Stream.map(fn x -> pluck(x, [0, 1, 2, 3, 4, 10, 11, 12]) end)
-      |> Stream.filter(&Enum.member?(product_ids, hd(&1)))
-      |> Stream.map(fn [product_id, date, credit, cash, trek, lmu, lmd, lmt] ->
-        %{
-          product_id: product_id,
-          date: to_date(date),
-          cash: to_decimal(cash),
-          credit: to_decimal(credit),
-          trek: to_decimal(trek),
-          lmu: nil?(lmu),
-          lmd: to_date(lmd),
-          lmt: to_time(lmt)
-        }
-      end)
-      |> Enum.to_list()
-
-    StringIO.close(stream)
-    records
+    rows
   end
 
   # INVOICES
-  def populate_invoices(dbf) do
-    rows =
-      dbf
-      |> parse_invoices_from_dbf
-      |> Enum.chunk_every(1000)
-      |> Enum.map(fn x -> populate_invoices_partial(x) end)
-      |> Enum.reduce(0, fn x, acc -> elem(x, 0) + acc end)
-
-    {rows, nil}
-  end
-
-  def populate_invoices_partial(invoices) do
-    # on_conflict update query
-    # i.e. alittle special check due to timestamp not updated on cash, credit or chq changes
-    query =
-      from(
-        i in Invoice,
-        where:
-          fragment(
-            "i0.lmd <> EXCLUDED.lmd OR i0.lmt <> EXCLUDED.lmt OR i0.cash <> EXCLUDED.cash OR i0.cheque <> EXCLUDED.cheque OR i0.credit <> EXCLUDED.credit"
-          ),
-        update: [
-          set: [
-            customer_id: fragment("EXCLUDED.customer_id"),
-            date: fragment("EXCLUDED.date"),
-            detail1: fragment("EXCLUDED.detail1"),
-            detail2: fragment("EXCLUDED.detail2"),
-            detail3: fragment("EXCLUDED.detail3"),
-            from_stock: fragment("EXCLUDED.from_stock"),
-            cash: fragment("EXCLUDED.cash"),
-            credit: fragment("EXCLUDED.credit"),
-            cheque: fragment("EXCLUDED.cheque"),
-            price_level: fragment("EXCLUDED.price_level"),
-            lmu: fragment("EXCLUDED.lmu"),
-            lmd: fragment("EXCLUDED.lmd"),
-            lmt: fragment("EXCLUDED.lmt")
-          ]
-        ]
-      )
-
-    # upsert the records into actual db
-    Repo.insert_all(
-      Invoice,
-      invoices,
-      on_conflict: query,
-      conflict_target: :id
-    )
-  end
-
-  def parse_invoices_from_dbf(dbf) do
+  def import_invoices(ctx, dbf) do
     {csv, 1} = dbf_to_csv(dbf)
     {:ok, stream} = csv |> StringIO.open()
 
@@ -628,46 +609,195 @@ defmodule Mgp.Sync.ImportData do
           detail2: nil?(clean_string(detail2)),
           detail3: nil?(detail3),
           lmu: nil?(lmu),
-          lmd: to_date(lmd),
-          lmt: to_time(lmt)
+          lmt: to_timestamp(lmd, lmt)
         }
       end)
       |> Enum.to_list()
 
     StringIO.close(stream)
-    records
-  end
-
-  def to_invoice_id(code, num) do
-    code <> String.duplicate(" ", 9 - String.length(num)) <> num
-  end
-
-  # INVOICE_DETAILS
-  def populate_invoice_details(dbf, year) do
-    records = dbf |> parse_invoice_details_from_dbf
 
     rows =
       records
-      |> Enum.chunk_every(1000)
-      |> Enum.map(fn x -> populate_invoice_details_partial(x) end)
-      |> Enum.reduce(0, fn x, acc -> elem(x, 0) + acc end)
+      |> Stream.chunk_every(1000)
+      |> Stream.map(fn x -> upsert_invoices(x) end)
+      |> Enum.reduce(0, fn x, acc -> x + acc end)
 
-    # Delete all invoice_details where invoice was set to cancelled
-    q = """
-      DELETE FROM invoice_details
-      WHERE invoice_id IN (SELECT id FROM invoices WHERE customer_id = 'Zzzc')
-    """
+    {:ok, %{ctx | upserted: Map.put(ctx.upserted, :invoices, rows)}}
+  end
 
-    Repo.query!(q, [])
+  defp upsert_invoices(invoices) do
+    # on_conflict update query
+    # i.e. alittle special check due to timestamp not updated on cash, credit or chq changes
+    query =
+      from(
+        i in Invoice,
+        where:
+          fragment(
+            "i0.lmt < EXCLUDED.lmt OR i0.cash <> EXCLUDED.cash OR i0.cheque <> EXCLUDED.cheque OR i0.credit <> EXCLUDED.credit"
+          ),
+        update: [
+          set: [
+            customer_id: fragment("EXCLUDED.customer_id"),
+            date: fragment("EXCLUDED.date"),
+            detail1: fragment("EXCLUDED.detail1"),
+            detail2: fragment("EXCLUDED.detail2"),
+            detail3: fragment("EXCLUDED.detail3"),
+            from_stock: fragment("EXCLUDED.from_stock"),
+            cash: fragment("EXCLUDED.cash"),
+            credit: fragment("EXCLUDED.credit"),
+            cheque: fragment("EXCLUDED.cheque"),
+            price_level: fragment("EXCLUDED.price_level"),
+            lmu: fragment("EXCLUDED.lmu"),
+            lmt: fragment("EXCLUDED.lmt")
+          ]
+        ]
+      )
+
+    {rows, _} =
+      Repo.insert_all(
+        Invoice,
+        invoices,
+        on_conflict: query,
+        conflict_target: :id
+      )
+
+    rows
+  end
+
+  # INVOICE DETAILS AND STOCK TRANSFERS
+  def import_invoice_stock_transfers(ctx, dbf) do
+    {csv, 1} = dbf_to_csv(dbf)
+    {:ok, stream} = csv |> StringIO.open()
+    y = to_string(ctx.year) <> " "
+
+    [invoices, stock_transfers] =
+      stream
+      |> IO.binstream(:line)
+      |> MyParser.parse_stream(skip_headers: false)
+      |> Stream.map(fn x -> pluck(x, [0, 1, 2, 3, 5, 6, 8, 11, 13, 15, 18, 24, 32, 33, 34]) end)
+      |> Enum.reduce([[], []], fn [
+                                    invoice_id,
+                                    date,
+                                    to_stock,
+                                    sr_no,
+                                    product_id,
+                                    description,
+                                    qty,
+                                    rate,
+                                    total,
+                                    tax_rate,
+                                    from_stock,
+                                    sub_qty,
+                                    lmu,
+                                    lmd,
+                                    lmt
+                                  ],
+                                  [invoice_details, stock_transfers] ->
+        case String.starts_with?(invoice_id, "B") do
+          true ->
+            [
+              invoice_details,
+              [
+                %{
+                  id: y <> invoice_id <> " " <> sr_no,
+                  doc_id: invoice_id,
+                  date: to_date(date),
+                  sr_no: to_integer(sr_no),
+                  product_id: product_id,
+                  qty: to_integer(qty),
+                  from_stock: from_stock,
+                  to_stock: String.slice(to_stock, 5, 1),
+                  lmu: nil?(lmu),
+                  lmt: to_timestamp(lmd, lmt)
+                }
+                | stock_transfers
+              ]
+            ]
+
+          _ ->
+            [
+              [
+                %{
+                  invoice_id: invoice_id,
+                  sr_no: to_integer(sr_no),
+                  product_id: product_id,
+                  description: description,
+                  sub_qty: to_integer(sub_qty),
+                  qty: to_integer(qty),
+                  rate: to_decimal(rate),
+                  total: to_decimal(total),
+                  tax_rate: tax_rate,
+                  lmu: nil?(lmu),
+                  lmt: to_timestamp(lmd, lmt)
+                }
+                | invoice_details
+              ],
+              stock_transfers
+            ]
+        end
+      end)
+
+    StringIO.close(stream)
+
+    rows =
+      invoices
+      |> :lists.reverse()
+      |> Stream.chunk_every(1000)
+      |> Enum.map(fn x -> import_invoice_details(x) end)
+      |> Enum.reduce(0, fn x, acc -> x + acc end)
+
+    Repo.query!("""
+    DELETE FROM invoice_details
+    WHERE invoice_id IN (SELECT id FROM invoices WHERE customer_id = 'Zzzc')
+    """)
 
     # Delete invoice line numbers that got added to db but are now deleted
     # Could not find an easy way. Hence the below code i.e. slow but ok
-    delete_line_items_from_invoice_details(records, year)
+    delete_line_items_from_invoice_details(invoices, ctx.year)
+    ctx = %{ctx | upserted: Map.put(ctx.upserted, :invoice_details, rows)}
 
-    {rows, nil}
+    rows =
+      stock_transfers
+      |> :lists.reverse()
+      |> Stream.chunk_every(1000)
+      |> Enum.map(fn x -> import_stock_transfers(x) end)
+      |> Enum.reduce(0, fn x, acc -> x + acc end)
+
+    {:ok, %{ctx | upserted: Map.put(ctx.upserted, :stock_transfers, rows)}}
   end
 
-  def delete_line_items_from_invoice_details(records, year) do
+  defp import_invoice_details(invoices) do
+    query =
+      from(
+        i in InvoiceDetail,
+        where: fragment("i0.lmt < EXCLUDED.lmt"),
+        update: [
+          set: [
+            product_id: fragment("EXCLUDED.product_id"),
+            description: fragment("EXCLUDED.description"),
+            sub_qty: fragment("EXCLUDED.sub_qty"),
+            qty: fragment("EXCLUDED.qty"),
+            rate: fragment("EXCLUDED.rate"),
+            total: fragment("EXCLUDED.total"),
+            tax_rate: fragment("EXCLUDED.tax_rate"),
+            lmu: fragment("EXCLUDED.lmu"),
+            lmt: fragment("EXCLUDED.lmt")
+          ]
+        ]
+      )
+
+    {rows, _} =
+      Repo.insert_all(
+        InvoiceDetail,
+        invoices,
+        on_conflict: query,
+        conflict_target: {:constraint, :invoice_details_pkey}
+      )
+
+    rows
+  end
+
+  defp delete_line_items_from_invoice_details(records, year) do
     records = records |> Enum.map(fn x -> x.invoice_id <> "-" <> to_string(x.sr_no) end)
 
     {:ok, d} = Date.new(year, 10, 1)
@@ -689,184 +819,11 @@ defmodule Mgp.Sync.ImportData do
     Repo.query!(qd, [ids])
   end
 
-  def populate_invoice_details_partial(invoices) do
-    # on_conflict update query
-    query =
-      from(
-        i in InvoiceDetail,
-        where: fragment("i0.lmd <> EXCLUDED.lmd OR i0.lmt <> EXCLUDED.lmt"),
-        update: [
-          set: [
-            product_id: fragment("EXCLUDED.product_id"),
-            description: fragment("EXCLUDED.description"),
-            sub_qty: fragment("EXCLUDED.sub_qty"),
-            qty: fragment("EXCLUDED.qty"),
-            rate: fragment("EXCLUDED.rate"),
-            total: fragment("EXCLUDED.total"),
-            tax_rate: fragment("EXCLUDED.tax_rate"),
-            lmu: fragment("EXCLUDED.lmu"),
-            lmd: fragment("EXCLUDED.lmd"),
-            lmt: fragment("EXCLUDED.lmt")
-          ]
-        ]
-      )
-
-    # upsert the records into actual db
-    Repo.insert_all(
-      InvoiceDetail,
-      invoices,
-      on_conflict: query,
-      conflict_target: {:constraint, :invoice_details_invoice_id_no_key}
-    )
-  end
-
-  def parse_invoice_details_from_dbf(dbf) do
-    {csv, 1} = dbf_to_csv(dbf)
-    {:ok, stream} = csv |> StringIO.open()
-
-    records =
-      stream
-      |> IO.binstream(:line)
-      |> MyParser.parse_stream(skip_headers: false)
-      |> Stream.filter(fn x -> !String.starts_with?(hd(x), "B") end)
-      |> Stream.map(fn x -> pluck(x, [0, 3, 5, 6, 8, 11, 13, 15, 24, 32, 33, 34]) end)
-      |> Stream.map(fn [
-                         invoice_id,
-                         sr_no,
-                         product_id,
-                         description,
-                         qty,
-                         rate,
-                         total,
-                         tax_rate,
-                         sub_qty,
-                         lmu,
-                         lmd,
-                         lmt
-                       ] ->
-        %{
-          invoice_id: invoice_id,
-          sr_no: to_integer(sr_no),
-          product_id: product_id,
-          description: description,
-          sub_qty: to_integer(sub_qty),
-          qty: to_integer(qty),
-          rate: to_decimal(rate),
-          total: to_decimal(total),
-          tax_rate: tax_rate,
-          lmu: nil?(lmu),
-          lmd: to_date(lmd),
-          lmt: to_time(lmt)
-        }
-      end)
-      |> Enum.to_list()
-
-    StringIO.close(stream)
-    records
-  end
-
-  # STOCK_RECEIPTS
-  def populate_stock_receipts(dbf) do
-    rows =
-      dbf
-      |> parse_stock_receipts_from_dbf
-      |> Enum.chunk_every(1000)
-      |> Enum.map(fn x -> populate_stock_receipts_partial(x) end)
-      |> Enum.reduce(0, fn x, acc -> elem(x, 0) + acc end)
-
-    {rows, nil}
-  end
-
-  def populate_stock_receipts_partial(receipts) do
-    # on_conflict update query
-    query =
-      from(
-        s in StockReceipt,
-        where: fragment("s0.lmd <> EXCLUDED.lmd OR s0.lmt <> EXCLUDED.lmt"),
-        update: [
-          set: [
-            doc_id: fragment("EXCLUDED.doc_id"),
-            sr_no: fragment("EXCLUDED.sr_no"),
-            date: fragment("EXCLUDED.date"),
-            product_id: fragment("EXCLUDED.product_id"),
-            qty: fragment("EXCLUDED.qty"),
-            batch: fragment("EXCLUDED.batch"),
-            expiry: fragment("EXCLUDED.expiry"),
-            lmu: fragment("EXCLUDED.lmu"),
-            lmd: fragment("EXCLUDED.lmd"),
-            lmt: fragment("EXCLUDED.lmt")
-          ]
-        ]
-      )
-
-    # upsert the records into actual db
-    Repo.insert_all(
-      StockReceipt,
-      receipts,
-      on_conflict: query,
-      conflict_target: {:constraint, :stock_receipts_doc_id_no_key}
-    )
-  end
-
-  def parse_stock_receipts_from_dbf(dbf) do
-    {csv, 1} = dbf_to_csv(dbf)
-    {:ok, stream} = csv |> StringIO.open()
-
-    records =
-      stream
-      |> IO.binstream(:line)
-      |> MyParser.parse_stream(skip_headers: false)
-      |> Stream.filter(fn x -> String.starts_with?(hd(x), "A") end)
-      |> Stream.map(fn x -> pluck(x, [0, 1, 3, 6, 8, 10, 23, 29, 30, 31]) end)
-      |> Stream.map(fn [
-                         doc_id,
-                         date,
-                         sr_no,
-                         batch,
-                         product_id,
-                         qty,
-                         expiry,
-                         lmu,
-                         lmd,
-                         lmt
-                       ] ->
-        %{
-          doc_id: doc_id,
-          date: to_date(date),
-          sr_no: to_integer(sr_no),
-          product_id: product_id,
-          qty: to_integer(qty),
-          batch: nil?(batch),
-          expiry: to_date(expiry),
-          lmu: nil?(lmu),
-          lmd: to_date(lmd),
-          lmt: to_time(lmt)
-        }
-      end)
-      |> Enum.to_list()
-
-    StringIO.close(stream)
-    records
-  end
-
-  # STOCK_TRANSFER
-  def populate_stock_transfers(dbf) do
-    rows =
-      dbf
-      |> parse_stock_transfers_from_dbf
-      |> Enum.chunk_every(1000)
-      |> Enum.map(fn x -> populate_stock_transfers_partial(x) end)
-      |> Enum.reduce(0, fn x, acc -> elem(x, 0) + acc end)
-
-    {rows, nil}
-  end
-
-  def populate_stock_transfers_partial(transfers) do
-    # on_conflict update query
+  defp import_stock_transfers(transfers) do
     query =
       from(
         s in StockTransfer,
-        where: fragment("s0.lmd <> EXCLUDED.lmd OR s0.lmt <> EXCLUDED.lmt"),
+        where: fragment("s0.lmt < EXCLUDED.lmt"),
         update: [
           set: [
             doc_id: fragment("EXCLUDED.doc_id"),
@@ -876,111 +833,27 @@ defmodule Mgp.Sync.ImportData do
             from_stock: fragment("EXCLUDED.from_stock"),
             to_stock: fragment("EXCLUDED.to_stock"),
             lmu: fragment("EXCLUDED.lmu"),
-            lmd: fragment("EXCLUDED.lmd"),
             lmt: fragment("EXCLUDED.lmt")
           ]
         ]
       )
 
-    # upsert the records into actual db
-    Repo.insert_all(
-      StockTransfer,
-      transfers,
-      on_conflict: query,
-      conflict_target: {:constraint, :stock_transfers_doc_id_no_key}
-    )
-  end
+    {rows, _} =
+      Repo.insert_all(
+        StockTransfer,
+        transfers,
+        on_conflict: query,
+        conflict_target: {:constraint, :stock_transfers_doc_id_no_key}
+      )
 
-  def parse_stock_transfers_from_dbf(dbf) do
-    {csv, 1} = dbf_to_csv(dbf)
-    {:ok, stream} = csv |> StringIO.open()
-
-    records =
-      stream
-      |> IO.binstream(:line)
-      |> MyParser.parse_stream(skip_headers: false)
-      |> Stream.filter(fn x -> String.starts_with?(hd(x), "B") end)
-      |> Stream.map(fn x -> pluck(x, [0, 1, 2, 3, 5, 8, 18, 32, 33, 34]) end)
-      |> Stream.map(fn [
-                         doc_id,
-                         date,
-                         to_stock,
-                         sr_no,
-                         product_id,
-                         qty,
-                         from_stock,
-                         lmu,
-                         lmd,
-                         lmt
-                       ] ->
-        %{
-          doc_id: doc_id,
-          date: to_date(date),
-          sr_no: to_integer(sr_no),
-          product_id: product_id,
-          qty: to_integer(qty),
-          from_stock: from_stock,
-          to_stock: String.slice(to_stock, 5, 1),
-          lmu: nil?(lmu),
-          lmd: to_date(lmd),
-          lmt: to_time(lmt)
-        }
-      end)
-      |> Enum.to_list()
-
-    StringIO.close(stream)
-    records
+    rows
   end
 
   # PDCS
-  def populate_pdcs(dbf) do
-    closest_date = Date.add(Date.utc_today(), -1)
-
-    rows =
-      dbf
-      |> parse_pdcs_from_dbf
-      |> Enum.filter(fn x -> is_record_for_today_onwards(x.date, closest_date) end)
-      |> Enum.chunk_every(1000)
-      |> Enum.map(fn x -> populate_pdcs_partial(x) end)
-      |> Enum.reduce(0, fn x, acc -> elem(x, 0) + acc end)
-
-    # Delete all pdcs with due date less than today's
-    from(p in Pdc, where: p.date < ^closest_date or is_nil(p.adjusted) == false)
-    |> Repo.delete_all()
-
-    {rows, nil}
-  end
-
-  def populate_pdcs_partial(pdcs) do
-    # on_conflict update query
-    query =
-      from(
-        p in Pdc,
-        where: fragment("p0.lmd <> EXCLUDED.lmd OR p0.lmt <> EXCLUDED.lmt"),
-        update: [
-          set: [
-            customer_id: fragment("EXCLUDED.customer_id"),
-            date: fragment("EXCLUDED.date"),
-            cheque: fragment("EXCLUDED.cheque"),
-            amount: fragment("EXCLUDED.amount"),
-            lmu: fragment("EXCLUDED.lmu"),
-            lmd: fragment("EXCLUDED.lmd"),
-            lmt: fragment("EXCLUDED.lmt")
-          ]
-        ]
-      )
-
-    # upsert the records into actual db
-    Repo.insert_all(Pdc, pdcs, on_conflict: query, conflict_target: :id)
-  end
-
-  def parse_pdcs_from_dbf(dbf) do
+  def import_pdcs(ctx, dbf) do
     {csv, 1} = dbf_to_csv(dbf)
     {:ok, stream} = csv |> StringIO.open()
-
-    # query = from(c in Customer, select: c.id)
-    # customer_ids = Repo.all(query)
-    # Need to do this due to possible zombie ids
+    closest_date = Date.add(Date.utc_today(), -1)
 
     records =
       stream
@@ -1009,78 +882,50 @@ defmodule Mgp.Sync.ImportData do
           cheque: clean_string(cheque),
           adjusted: nil?(adjusted),
           lmu: nil?(lmu),
-          lmd: to_date(lmd),
-          lmt: to_time(lmt)
+          lmt: to_timestamp(lmd, lmt)
         }
       end)
+      |> Stream.filter(fn x -> is_record_for_today_onwards(x.date, closest_date) end)
       |> Enum.to_list()
 
     StringIO.close(stream)
-    records
-  end
-
-  # POSTINGS
-  def populate_postings(dbf) do
-    records = parse_postings_from_dbf(dbf)
 
     rows =
       records
-      |> Enum.chunk_every(1000)
-      |> Enum.map(fn x -> populate_postings_partial(x) end)
-      |> Enum.reduce(0, fn x, acc -> elem(x, 0) + acc end)
+      |> Stream.chunk_every(1000)
+      |> Stream.map(fn x -> upsert_pdcs(x) end)
+      |> Enum.reduce(0, fn x, acc -> x + acc end)
 
-    # DELETE any ids that are now missing in import for that month
-    ids = Enum.map(records, fn x -> x.id end)
-    date = posting_dbf_file_to_start_date(dbf)
+    # Delete all pdcs with due date less than today's
+    from(p in Pdc, where: p.date < ^closest_date or is_nil(p.adjusted) == false)
+    |> Repo.delete_all()
 
-    r =
-      Repo.query!(
-        "SELECT id FROM postings WHERE date >= $1::date and date < $1 + interval '1 month'",
-        [date]
-      )
-
-    missing_ids = List.flatten(r.rows) -- ids
-
-    qd = """
-    DELETE FROM postings WHERE id = ANY($1)
-    """
-
-    Repo.query!(qd, [missing_ids])
-
-    {rows, nil}
+    {:ok, %{ctx | upserted: Map.put(ctx.upserted, :pdcs, rows)}}
   end
 
-  defp posting_dbf_file_to_start_date(dbf) do
-    basename = Path.basename(dbf, ".dbf")
-    <<"FIT", y0, y1, m0, m1>> = basename
-    {:ok, d} = Date.new(String.to_integer(<<"20", y0, y1>>), String.to_integer(<<m0, m1>>), 1)
-    d
-  end
-
-  def populate_postings_partial(postings) do
-    # on_conflict update query
+  def upsert_pdcs(pdcs) do
     query =
       from(
-        p in Posting,
-        where: fragment("p0.lmd <> EXCLUDED.lmd OR p0.lmt <> EXCLUDED.lmt"),
+        p in Pdc,
+        where: fragment("p0.lmt < EXCLUDED.lmt"),
         update: [
           set: [
             customer_id: fragment("EXCLUDED.customer_id"),
             date: fragment("EXCLUDED.date"),
-            description: fragment("EXCLUDED.description"),
+            cheque: fragment("EXCLUDED.cheque"),
             amount: fragment("EXCLUDED.amount"),
             lmu: fragment("EXCLUDED.lmu"),
-            lmd: fragment("EXCLUDED.lmd"),
             lmt: fragment("EXCLUDED.lmt")
           ]
         ]
       )
 
-    # upsert the records into actual db
-    Repo.insert_all(Posting, postings, on_conflict: query, conflict_target: :id)
+    {rows, _} = Repo.insert_all(Pdc, pdcs, on_conflict: query, conflict_target: :id)
+    rows
   end
 
-  def parse_postings_from_dbf(dbf) do
+  # POSTINGS
+  def import_postings(ctx, dbf) do
     {csv, 1} = dbf_to_csv(dbf)
     {:ok, stream} = csv |> StringIO.open()
 
@@ -1131,18 +976,83 @@ defmodule Mgp.Sync.ImportData do
           description: description,
           amount: to_decimal(amount),
           lmu: nil?(lmu),
-          lmd: to_date(lmd),
-          lmt: to_time(lmt)
+          lmt: to_timestamp(lmd, lmt)
         }
       end)
       |> Enum.to_list()
 
     StringIO.close(stream)
-    records
+
+    rows =
+      records
+      |> Stream.chunk_every(1000)
+      |> Stream.map(fn x -> upsert_postings(x) end)
+      |> Enum.reduce(0, fn x, acc -> x + acc end)
+
+    # DELETE any ids that are now missing in import for that month
+    ids = Enum.map(records, fn x -> x.id end)
+    date = posting_dbf_file_to_start_date(dbf)
+
+    r =
+      Repo.query!(
+        "SELECT id FROM postings WHERE date >= $1::date and date < $1 + interval '1 month'",
+        [date]
+      )
+
+    missing_ids = List.flatten(r.rows) -- ids
+
+    qd = """
+    DELETE FROM postings WHERE id = ANY($1)
+    """
+
+    Repo.query!(qd, [missing_ids])
+
+    {:ok, %{ctx | upserted: Map.put(ctx.upserted, Path.basename(dbf, ".dbf"), rows)}}
+  end
+
+  def upsert_postings(postings) do
+    # on_conflict update query
+    query =
+      from(
+        p in Posting,
+        where: fragment("p0.lmt < EXCLUDED.lmt"),
+        update: [
+          set: [
+            customer_id: fragment("EXCLUDED.customer_id"),
+            date: fragment("EXCLUDED.date"),
+            description: fragment("EXCLUDED.description"),
+            amount: fragment("EXCLUDED.amount"),
+            lmu: fragment("EXCLUDED.lmu"),
+            lmt: fragment("EXCLUDED.lmt")
+          ]
+        ]
+      )
+
+    {rows, _} = Repo.insert_all(Posting, postings, on_conflict: query, conflict_target: :id)
+    rows
+  end
+
+  defp is_record_for_today_onwards(record_date, date) do
+    case Date.compare(record_date, date) do
+      :lt -> false
+      :gt -> true
+      :eq -> true
+    end
+  end
+
+  defp to_invoice_id(code, num) do
+    code <> String.duplicate(" ", 9 - String.length(num)) <> num
+  end
+
+  defp posting_dbf_file_to_start_date(dbf) do
+    basename = Path.basename(dbf, ".dbf")
+    <<"FIT", y0, y1, m0, m1>> = basename
+    {:ok, d} = Date.new(String.to_integer(<<"20", y0, y1>>), String.to_integer(<<m0, m1>>), 1)
+    d
   end
 
   # credo:disable-for-next-line
-  def posting_id(date, type, code, noc, non, sr_no) do
+  defp posting_id(date, type, code, noc, non, sr_no) do
     date <> " " <> type <> " " <> code <> " " <> noc <> "/" <> non <> "/" <> sr_no
   end
 end

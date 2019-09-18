@@ -15,9 +15,7 @@ defmodule Mgp.Repo.Migrations.CreateCustomers do
       add :resp, :string
       add :email, :string
       add :lmu, :string
-      add :lmd, :date
-      add :lmt, :time
-
+      add :lmt, :naive_datetime
     end
 
   end

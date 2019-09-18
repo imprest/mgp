@@ -14,8 +14,7 @@ defmodule Mgp.Repo.Migrations.CreateInvoices do
       add(:detail2, :string)
       add(:detail3, :string)
       add(:lmu, :string)
-      add(:lmd, :date)
-      add(:lmt, :time)
+      add(:lmt, :naive_datetime)
       add(:customer_id, references(:customers, on_delete: :nothing, type: :string))
     end
 

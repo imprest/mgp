@@ -17,9 +17,8 @@ defmodule Mgp.Sales.Customer do
     field :description, :string
     field :email, :string
     field :is_gov, :string
-    field :lmd, :date
-    field :lmt, :time
     field :lmu, :string
+    field :lmt, :naive_datetime
     field :phone, :string
     field :region, :string
     field :resp, :string
@@ -44,7 +43,6 @@ defmodule Mgp.Sales.Customer do
       :resp,
       :email,
       :lmu,
-      :lmd,
       :lmt
     ])
     |> validate_required([
@@ -59,7 +57,6 @@ defmodule Mgp.Sales.Customer do
       :resp,
       :email,
       :lmu,
-      :lmd,
       :lmt
     ])
   end
