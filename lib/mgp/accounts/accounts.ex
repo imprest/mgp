@@ -134,7 +134,7 @@ defmodule Mgp.Accounts do
     q = """
       select coalesce(json_agg(t), '[]'::json)::text
       from (
-        select p.id, p.date, c.description, p.cheque, p.amount, p.lmd, p.lmu, p.customer_id
+        select p.id, p.date, c.description, p.cheque, p.amount, p.lmt::date as lmd, p.lmu, p.customer_id
         from pdcs as p, customers as c
         where p.customer_id = c.id
         order by date

@@ -67,7 +67,7 @@ defmodule Mgp.Sales do
     q = """
     select coalesce(json_agg(t), '[]'::json)::text
     from (
-      select id, spec, sub_qty, cash_price, credit_price, trek_price, lmd
+    select id, spec, sub_qty, cash_price, credit_price, trek_price, lmt::date as lmd
       from products order by id
     ) t
     """

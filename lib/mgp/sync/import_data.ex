@@ -102,36 +102,84 @@ defmodule Mgp.Sync.ImportData do
   end
 
   def populate(year) do
-    Repo.checkout(fn -> populate_from_year(year) end)
+    files = Map.values(generate_file_paths(@root_folder, year)) |> Enum.map(&Path.basename/1)
+    p = Map.values(generate_postings_file_paths(@root_folder, year)) |> Enum.map(&Path.basename/1)
+
+    Repo.checkout(fn -> populate_from_year(year, IO.iodata_to_binary([files | p])) end)
   end
 
-  defp populate_from_year(year) do
+  def populate(year, rsynced_files) do
+    Repo.checkout(fn -> populate_from_year(year, rsynced_files) end)
+  end
+
+  defp populate_from_year(year, diff) do
     files = generate_file_paths(@root_folder, year)
     p = generate_postings_file_paths(@root_folder, year)
 
-    ctx = %{:year => year, :success => false, :upserted => %{}, :error => nil}
+    ctx = %{
+      :year => year,
+      :success => false,
+      :upserted => %{},
+      :error => nil
+    }
 
     with :ok <- check_files(files),
          :ok <- check_files(p),
-         {:ok, ctx} <- import_products(ctx, files.products_dbf),
-         {:ok, ctx} <- import_stock_openings(ctx, files.op_stocks_dbf),
-         {:ok, ctx} <- import_prices(ctx, files.prices_dbf),
-         {:ok, ctx} <- import_stock_receipts(ctx, files.stock_receipts_dbf),
-         {:ok, ctx} <- import_customers(ctx, files.customers_dbf),
-         {:ok, ctx} <- import_invoices(ctx, files.invoices_dbf),
-         {:ok, ctx} <- import_invoice_stock_transfers(ctx, files.invoice_details_dbf),
-         {:ok, ctx} <- import_pdcs(ctx, files.pdcs_dbf),
-         {:ok, ctx} <- import_postings(ctx, p.oct),
-         {:ok, ctx} <- import_postings(ctx, p.nov),
-         {:ok, ctx} <- import_postings(ctx, p.dec),
-         {:ok, ctx} <- import_postings(ctx, p.jan),
-         {:ok, ctx} <- import_postings(ctx, p.mar),
-         {:ok, ctx} <- import_postings(ctx, p.apr),
-         {:ok, ctx} <- import_postings(ctx, p.may),
-         {:ok, ctx} <- import_postings(ctx, p.jun),
-         {:ok, ctx} <- import_postings(ctx, p.jul),
-         {:ok, ctx} <- import_postings(ctx, p.aug),
-         {:ok, ctx} <- import_postings(ctx, p.sep) do
+         {:ok, ctx} <-
+           import_products(
+             ctx,
+             files.products_dbf,
+             String.contains?(diff, Path.basename(files.products_dbf))
+           ),
+         {:ok, ctx} <-
+           import_stock_openings(
+             ctx,
+             files.op_stocks_dbf,
+             String.contains?(diff, Path.basename(files.op_stocks_dbf))
+           ),
+         {:ok, ctx} <-
+           import_prices(
+             ctx,
+             files.prices_dbf,
+             String.contains?(diff, Path.basename(files.prices_dbf))
+           ),
+         {:ok, ctx} <-
+           import_stock_receipts(
+             ctx,
+             files.stock_receipts_dbf,
+             String.contains?(diff, Path.basename(files.stock_receipts_dbf))
+           ),
+         {:ok, ctx} <-
+           import_customers(
+             ctx,
+             files.customers_dbf,
+             String.contains?(diff, Path.basename(files.customers_dbf))
+           ),
+         {:ok, ctx} <-
+           import_invoices(
+             ctx,
+             files.invoices_dbf,
+             String.contains?(diff, Path.basename(files.invoices_dbf))
+           ),
+         {:ok, ctx} <-
+           import_invoice_stock_transfers(
+             ctx,
+             files.invoice_details_dbf,
+             String.contains?(diff, Path.basename(files.invoice_details_dbf))
+           ),
+         {:ok, ctx} <-
+           import_pdcs(ctx, files.pdcs_dbf, String.contains?(diff, Path.basename(files.pdcs_dbf))),
+         {:ok, ctx} <- import_postings(ctx, p.oct, String.contains?(diff, Path.basename(p.oct))),
+         {:ok, ctx} <- import_postings(ctx, p.nov, String.contains?(diff, Path.basename(p.nov))),
+         {:ok, ctx} <- import_postings(ctx, p.dec, String.contains?(diff, Path.basename(p.dec))),
+         {:ok, ctx} <- import_postings(ctx, p.jan, String.contains?(diff, Path.basename(p.jan))),
+         {:ok, ctx} <- import_postings(ctx, p.mar, String.contains?(diff, Path.basename(p.mar))),
+         {:ok, ctx} <- import_postings(ctx, p.apr, String.contains?(diff, Path.basename(p.apr))),
+         {:ok, ctx} <- import_postings(ctx, p.may, String.contains?(diff, Path.basename(p.may))),
+         {:ok, ctx} <- import_postings(ctx, p.jun, String.contains?(diff, Path.basename(p.jun))),
+         {:ok, ctx} <- import_postings(ctx, p.jul, String.contains?(diff, Path.basename(p.jul))),
+         {:ok, ctx} <- import_postings(ctx, p.aug, String.contains?(diff, Path.basename(p.aug))),
+         {:ok, ctx} <- import_postings(ctx, p.sep, String.contains?(diff, Path.basename(p.sep))) do
       Logger.info("Import from DBF Summary: #{inspect(%{ctx | :success => true}, pretty: true)}")
       ctx
     else
@@ -141,7 +189,10 @@ defmodule Mgp.Sync.ImportData do
     end
   end
 
-  def import_products(ctx, dbf) do
+  # PRODUCTS
+  defp import_products(ctx, _dbf, false), do: {:ok, ctx}
+
+  defp import_products(ctx, dbf, true) do
     {csv, 1} = dbf_to_csv(dbf)
     {:ok, stream} = csv |> StringIO.open()
 
@@ -219,7 +270,9 @@ defmodule Mgp.Sync.ImportData do
   end
 
   # OPENING STOCKS per fin year
-  def import_stock_openings(ctx, dbf) do
+  defp import_stock_openings(ctx, _dbf, false), do: {:ok, ctx}
+
+  defp import_stock_openings(ctx, dbf, true) do
     {csv, 1} = dbf_to_csv(dbf)
     {:ok, stream} = csv |> StringIO.open()
     y = ctx.year
@@ -277,7 +330,9 @@ defmodule Mgp.Sync.ImportData do
   end
 
   # PRICES
-  def import_prices(ctx, dbf) do
+  defp import_prices(ctx, _dbf, false), do: {:ok, ctx}
+
+  defp import_prices(ctx, dbf, true) do
     {csv, 1} = dbf_to_csv(dbf)
     {:ok, stream} = csv |> StringIO.open()
 
@@ -343,7 +398,9 @@ defmodule Mgp.Sync.ImportData do
   end
 
   # STOCK RECEIPTS
-  def import_stock_receipts(ctx, dbf) do
+  defp import_stock_receipts(ctx, _dbf, false), do: {:ok, ctx}
+
+  defp import_stock_receipts(ctx, dbf, true) do
     {csv, 1} = dbf_to_csv(dbf)
     {:ok, stream} = csv |> StringIO.open()
     y = to_string(ctx.year) <> " "
@@ -424,7 +481,9 @@ defmodule Mgp.Sync.ImportData do
   end
 
   # CUSTOMERS
-  def import_customers(ctx, dbf) do
+  defp import_customers(ctx, _dbf, false), do: {:ok, ctx}
+
+  defp import_customers(ctx, dbf, true) do
     {csv, 1} = dbf_to_csv(dbf)
     {:ok, stream} = csv |> StringIO.open()
     y = ctx.year
@@ -569,7 +628,9 @@ defmodule Mgp.Sync.ImportData do
   end
 
   # INVOICES
-  def import_invoices(ctx, dbf) do
+  defp import_invoices(ctx, _dbf, false), do: {:ok, ctx}
+
+  defp import_invoices(ctx, dbf, true) do
     {csv, 1} = dbf_to_csv(dbf)
     {:ok, stream} = csv |> StringIO.open()
 
@@ -665,7 +726,9 @@ defmodule Mgp.Sync.ImportData do
   end
 
   # INVOICE DETAILS AND STOCK TRANSFERS
-  def import_invoice_stock_transfers(ctx, dbf) do
+  defp import_invoice_stock_transfers(ctx, _dbf, false), do: {:ok, ctx}
+
+  defp import_invoice_stock_transfers(ctx, dbf, true) do
     {csv, 1} = dbf_to_csv(dbf)
     {:ok, stream} = csv |> StringIO.open()
     y = to_string(ctx.year) <> " "
@@ -850,7 +913,9 @@ defmodule Mgp.Sync.ImportData do
   end
 
   # PDCS
-  def import_pdcs(ctx, dbf) do
+  defp import_pdcs(ctx, _dbf, false), do: {:ok, ctx}
+
+  defp import_pdcs(ctx, dbf, true) do
     {csv, 1} = dbf_to_csv(dbf)
     {:ok, stream} = csv |> StringIO.open()
     closest_date = Date.add(Date.utc_today(), -1)
@@ -925,7 +990,9 @@ defmodule Mgp.Sync.ImportData do
   end
 
   # POSTINGS
-  def import_postings(ctx, dbf) do
+  defp import_postings(ctx, _dbf, false), do: {:ok, ctx}
+
+  defp import_postings(ctx, dbf, true) do
     {csv, 1} = dbf_to_csv(dbf)
     {:ok, stream} = csv |> StringIO.open()
 
