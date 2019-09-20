@@ -173,6 +173,7 @@ defmodule Mgp.Sync.ImportData do
          {:ok, ctx} <- import_postings(ctx, p.nov, String.contains?(diff, Path.basename(p.nov))),
          {:ok, ctx} <- import_postings(ctx, p.dec, String.contains?(diff, Path.basename(p.dec))),
          {:ok, ctx} <- import_postings(ctx, p.jan, String.contains?(diff, Path.basename(p.jan))),
+         {:ok, ctx} <- import_postings(ctx, p.feb, String.contains?(diff, Path.basename(p.jan))),
          {:ok, ctx} <- import_postings(ctx, p.mar, String.contains?(diff, Path.basename(p.mar))),
          {:ok, ctx} <- import_postings(ctx, p.apr, String.contains?(diff, Path.basename(p.apr))),
          {:ok, ctx} <- import_postings(ctx, p.may, String.contains?(diff, Path.basename(p.may))),
