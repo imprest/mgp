@@ -20,8 +20,6 @@ defmodule Mgp.Sync.ImportData do
   alias Mgp.Accounts.Posting
   alias Mgp.Accounts.Pdc
 
-  NimbleCSV.define(MyParser, separator: "!")
-
   @root_folder "/home/hvaria/backup"
   @folder_prefix "MGP"
   @products_dbf "SIITM.DBF"
