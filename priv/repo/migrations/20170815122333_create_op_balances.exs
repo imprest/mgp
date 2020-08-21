@@ -6,7 +6,7 @@ defmodule Mgp.Repo.Migrations.CreateOpBalances do
       add(:year, :integer, primary_key: true)
       add(:op_bal, :decimal)
       add(:lmu, :string)
-      add(:lmt, :naive_datetime)
+      add(:lmt, :utc_datetime)
 
       add(
         :customer_id,

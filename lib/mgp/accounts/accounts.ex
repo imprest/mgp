@@ -5,145 +5,41 @@ defmodule Mgp.Accounts do
 
   import Ecto.Query, warn: false
   alias Mgp.Repo
-  alias Mgp.Accounts.User
+  alias Mgp.Accounts.Pdc
 
-  @doc """
-  Returns the list of users.
+  def list_pdcs(
+        %{sort_by: sort_by, sort_order: sort_order} \\ %{sort_by: :date, sort_order: :asc}
+      ) do
+    query =
+      from p in Pdc,
+        as: :pdc,
+        left_join: c in assoc(p, :customer),
+        as: :customer,
+        select: %{
+          id: p.id,
+          date: p.date,
+          customer_id: p.customer_id,
+          description: c.description,
+          cheque: p.cheque,
+          amount: p.amount,
+          lmu: p.lmu,
+          lmt: p.lmt
+        }
 
-  ## Examples
+    binding =
+      if sort_by == :description do
+        :customer
+      else
+        :pdc
+      end
 
-      iex> list_users()
-      [%User{}, ...]
+    data =
+      Repo.all(
+        query
+        |> order_by([{^binding, t}], [{^sort_order, field(t, ^sort_by)}])
+      )
 
-  """
-  def list_users do
-    Repo.all(User)
-  end
-
-  @doc """
-  Gets a single user.
-
-  Raises `Ecto.NoResultsError` if the User does not exist.
-
-  ## Examples
-
-      iex> get_user!(123)
-      %User{}
-
-      iex> get_user!(456)
-      ** (Ecto.NoResultsError)
-
-  """
-  def get_user!(id), do: Repo.get!(User, id)
-  def get_user(id), do: Repo.get(User, id)
-
-  @doc """
-  Creates a user.
-
-  ## Examples
-
-      iex> create_user(%{field: value})
-      {:ok, %User{}}
-
-      iex> create_user(%{field: bad_value})
-      {:error, %Ecto.Changeset{}}
-
-  """
-  def create_user(attrs \\ %{}) do
-    %User{}
-    |> User.registration_changeset(attrs)
-    |> Repo.insert()
-  end
-
-  @doc """
-  Updates a user.
-
-  ## Examples
-
-      iex> update_user(user, %{field: new_value})
-      {:ok, %User{}}
-
-      iex> update_user(user, %{field: bad_value})
-      {:error, %Ecto.Changeset{}}
-
-  """
-  def update_user(%User{} = user, attrs) do
-    user
-    |> User.changeset(attrs)
-    |> Repo.update()
-  end
-
-  @doc """
-  Deletes a User.
-
-  ## Examples
-
-      iex> delete_user(user)
-      {:ok, %User{}}
-
-      iex> delete_user(user)
-      {:error, %Ecto.Changeset{}}
-
-  """
-  def delete_user(%User{} = user) do
-    Repo.delete(user)
-  end
-
-  @doc """
-  Returns an `%Ecto.Changeset{}` for tracking user changes.
-
-  ## Examples
-
-      iex> change_user(user)
-      %Ecto.Changeset{source: %User{}}
-
-  """
-  def change_user(%User{} = user) do
-    User.changeset(user, %{})
-  end
-
-  def authenticate_user(nil, _password) do
-    Argon2.no_user_verify()
-    {:error, "Wrong username or password"}
-  end
-
-  def authenticate_user(username, password) do
-    q = from(u in User, where: u.username == ^username)
-    q |> Repo.one() |> verify_password(password)
-  end
-
-  defp verify_password(nil, _) do
-    Argon2.no_user_verify()
-    {:error, "Wrong username or password"}
-  end
-
-  defp verify_password(_, nil) do
-    Argon2.no_user_verify()
-    {:error, "Wrong username or password"}
-  end
-
-  defp verify_password(user, password) do
-    if Argon2.verify_pass(password, user.password) do
-      {:ok, user}
-    else
-      {:error, "Wrong username or password"}
-    end
-  end
-
-  def pdcs() do
-    q = """
-      select coalesce(json_agg(t), '[]'::json)::text
-      from (
-        select p.id, p.date, c.description, p.cheque, p.amount, p.lmt::date as lmd, p.lmu, p.customer_id
-        from pdcs as p, customers as c
-        where p.customer_id = c.id
-        order by date
-      ) t
-    """
-
-    r = Repo.query!(q, [])
-
-    r.rows
+    %{total: Enum.reduce(data, 0, fn x, acc -> Decimal.add(acc, x.amount) end), pdcs: data}
   end
 
   def postings(id, year) do
@@ -223,6 +119,6 @@ defmodule Mgp.Accounts do
     """
 
     r = Repo.query!(q, [id, year, date, pdc_id])
-    r.rows
+    Jason.decode!(r.rows, keys: :atoms)
   end
 end

@@ -6,14 +6,17 @@ defmodule Mgp.Application do
   use Application
 
   def start(_type, _args) do
-    # List all child processes to be supervised
     children = [
       # Start the Ecto repository
       Mgp.Repo,
-      # Start the endpoint when the application starts
+      # Start the Telemetry supervisor
+      MgpWeb.Telemetry,
+      # Start the PubSub system
+      {Phoenix.PubSub, name: Mgp.PubSub},
+      # Start the Endpoint (http/https)
       MgpWeb.Endpoint,
-      # Starts a worker by calling: Mgp.Worker.start_link(arg)
-      # {Mgp.Worker, arg},
+      # Start a worker by calling: Mgp.Worker.start_link(arg)
+      # {Mgp.Worker, arg}
       Mgp.Sync
     ]
 

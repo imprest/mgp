@@ -1,16 +1,20 @@
 /* This file is for your main application css. */
+// @import "./phoenix.css";
+@import "../node_modules/nprogress/nprogress.css";
 
-// Customize Bulma variables here
+/* Customize Bulma variables here */
 $family-sans-serif: BlinkMacSystemFont, -apple-system, "Segoe UI", "Roboto",
   "Oxygen", "Ubuntu", "Droid Sans", "Fira Sans", "Helvetica Neue", "Helvetica",
   "Arial", sans-serif;
 $table-striped-row-even-background-color: lightgoldenrodyellow;
 $modal-content-width: 90vw;
 
-@import "../node_modules/bulma/sass/utilities/_all.sass";
-@import "../node_modules/bulma/sass/base/_all.sass";
-@import "../node_modules/bulma/sass/form/_all.sass";
+// Import Bulma's core
+@import "~bulma/sass/utilities/_all.sass";
+@import "~bulma/sass/base/_all.sass";
+@import "~bulma/sass/form/_all.sass";
 
+// Set your colors
 $navbar-item-active-color: $red;
 $navbar-item-hover-color: $red;
 $navbar-dropdown-item-active-color: $red;
@@ -21,18 +25,98 @@ $tabs-link-active-color: $red;
 $tabs-link-hover-color: $red;
 $tabs-link-hover-border-bottom-color: $red;
 
-@import "../node_modules/bulma/sass/layout/section.sass";
-@import "../node_modules/bulma/sass/grid/columns.sass";
-@import "../node_modules/bulma/sass/elements/table.sass";
-@import "../node_modules/bulma/sass/elements/tag.sass";
-@import "../node_modules/bulma/sass/elements/container.sass";
-@import "../node_modules/bulma/sass/elements/button.sass";
-@import "../node_modules/bulma/sass/elements/notification.sass";
-@import "../node_modules/bulma/sass/elements/title.sass";
-@import "../node_modules/bulma/sass/components/modal.sass";
-@import "../node_modules/bulma/sass/components/navbar.sass";
-@import "../node_modules/bulma/sass/components/tabs.sass";
+// Import Bulma
+@import "~bulma";
 
+/* LiveView specific classes for your customizations */
+.invalid-feedback {
+  color: #a94442;
+  display: block;
+  margin: -1rem 0 2rem;
+}
+
+.phx-no-feedback.invalid-feedback, .phx-no-feedback .invalid-feedback {
+  display: none;
+}
+
+.phx-click-loading {
+  opacity: 0.5;
+  transition: opacity 1s ease-out;
+}
+
+.phx-disconnected{
+  cursor: wait;
+}
+.phx-disconnected *{
+  pointer-events: none;
+}
+
+.phx-modal {
+  opacity: 1!important;
+  position: fixed;
+  z-index: 1;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgb(0,0,0);
+  background-color: rgba(0,0,0,0.4);
+}
+
+.phx-modal-content {
+  background-color: #fefefe;
+  margin: 15% auto;
+  padding: 20px;
+  border: 1px solid #888;
+  width: 80%;
+}
+
+.phx-modal-close {
+  color: #aaa;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+}
+
+.phx-modal-close:hover,
+.phx-modal-close:focus {
+  color: black;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+
+/* Alerts and form errors */
+.alert {
+  padding: 15px;
+  margin-bottom: 20px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+}
+.alert-info {
+  color: #31708f;
+  background-color: #d9edf7;
+  border-color: #bce8f1;
+}
+.alert-warning {
+  color: #8a6d3b;
+  background-color: #fcf8e3;
+  border-color: #faebcc;
+}
+.alert-danger {
+  color: #a94442;
+  background-color: #f2dede;
+  border-color: #ebccd1;
+}
+.alert p {
+  margin-bottom: 0;
+}
+.alert:empty {
+  display: none;
+}
+
+// Tweak and customization - mess
 div.section, section.section { padding-top: 0.5rem; padding-bottom: 1rem; }
 .modal-content { background: white }
 
@@ -56,4 +140,8 @@ a.navbar-brand>a.navbar-item:first-child { padding: 0; }
 
 h1.title.has-small-margin-bottom { margin-bottom: 0.5rem; }
 
-.has-small-padding { padding-top: 0.5rem; padding-bottom: 0.5rem !important; } 
+.has-small-padding { padding-top: 0.5rem; padding-bottom: 0.5rem !important; }
+
+.posting-table {
+  th, td { border: none }
+}

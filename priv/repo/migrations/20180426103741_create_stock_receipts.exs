@@ -11,7 +11,7 @@ defmodule Mgp.Repo.Migrations.CreateStockReceipts do
       add(:batch, :string)
       add(:expiry, :date)
       add(:lmu, :string)
-      add(:lmt, :naive_datetime)
+      add(:lmt, :utc_datetime)
 
       add(
         :product_id,

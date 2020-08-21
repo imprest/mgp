@@ -7,6 +7,38 @@ defmodule Mgp.Sales do
   alias Mgp.Repo
   alias Mgp.Sales.Invoice
   alias Mgp.Sales.Customer
+  alias Mgp.Sales.Product
+  alias Mgp.Sales.Price
+
+  def list_prices({sort_order, sort_by} \\ {:asc, :date}) do
+    q =
+      from(p in Price,
+        as: :price,
+        join: c in Product,
+        as: :product,
+        on: [id: p.product_id],
+        select: %{
+          date: p.date,
+          product_id: p.product_id,
+          description: c.description,
+          cash: p.cash
+        }
+      )
+
+    binding =
+      if sort_by == :description do
+        :product
+      else
+        :price
+      end
+
+    field = sort_order
+    value = sort_by
+
+    query = q |> order_by([{^binding, t}], [{^field, field(t, ^value)}])
+    IO.inspect(query)
+    Repo.all(query)
+  end
 
   def get_customers(query) do
     q =
@@ -61,6 +93,17 @@ defmodule Mgp.Sales do
 
     r = Repo.query!(q, [id])
     r.rows
+  end
+
+  def list_products() do
+    query =
+      from(
+        Product,
+        order_by: :id,
+        select: [:id, :spec, :sub_qty, :cash_price, :credit_price, :trek_price, :lmt]
+      )
+
+    Repo.all(query)
   end
 
   def products() do

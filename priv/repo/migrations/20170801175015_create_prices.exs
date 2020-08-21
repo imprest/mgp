@@ -8,7 +8,7 @@ defmodule Mgp.Repo.Migrations.CreatePrices do
       add(:credit, :decimal)
       add(:trek, :decimal)
       add(:lmu, :string)
-      add(:lmt, :naive_datetime, primary_key: true)
+      add(:lmt, :utc_datetime, primary_key: true)
 
       add(
         :product_id,

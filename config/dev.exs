@@ -7,7 +7,7 @@ config :mgp, Mgp.Repo,
   database: "mgp_dev",
   hostname: "localhost",
   show_sensitive_data_on_connection_error: true,
-  pool_size: 5
+  pool_size: 10
 
 # For development, we disable any cache and enable
 # debugging and code reloading.
@@ -21,9 +21,11 @@ config :mgp, MgpWeb.Endpoint,
   code_reloader: true,
   check_origin: false,
   watchers: [
-    npm: [
-      "run",
-      "watch",
+    node: [
+      "node_modules/webpack/bin/webpack.js",
+      "--mode",
+      "development",
+      "--watch-stdin",
       cd: Path.expand("../assets", __DIR__)
     ]
   ]
@@ -58,7 +60,7 @@ config :mgp, MgpWeb.Endpoint,
     patterns: [
       ~r"priv/static/.*(js|css|png|jpeg|jpg|gif|svg)$",
       ~r"priv/gettext/.*(po)$",
-      ~r"lib/mgp_web/{live,views}/.*(ex)$",
+      ~r"lib/mgp_web/(live|views)/.*(ex)$",
       ~r"lib/mgp_web/templates/.*(eex)$"
     ]
   ]

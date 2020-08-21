@@ -6,6 +6,7 @@ defmodule Mgp.Sync do
 
   @base_year 2016
   @remote_folder "/mnt/scl"
+
   # mkdir /mnt/scl
   # Add the following to /etc/fstab
   # //192.168.0.150/scl /mnt/scl cifs nouser,ro,iocharset=utf8,x-systemd.automount,_net_dev,noperm 0 0
@@ -18,13 +19,13 @@ defmodule Mgp.Sync do
     receive do
     after
       30_000 ->
-        # nil
+        nil
         # TODO: UNCOMMENT LATER
-        rsync()
+        # rsync()
     end
   end
 
-  defp rsync() do
+  def rsync() do
     # rsync payroll files to
     rsync_payroll_dbf_files()
 

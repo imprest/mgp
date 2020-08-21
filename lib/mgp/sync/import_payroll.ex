@@ -1,7 +1,8 @@
 defmodule Mgp.Sync.ImportPayroll do
   @moduledoc "Import and check payroll data"
 
-  import Mgp.Sync.Utils, only: [pluck: 2, dbf_to_csv: 1, to_decimal: 1, to_date: 1, to_time: 1]
+  import Mgp.Utils, only: [to_date: 1, to_time: 1]
+  alias Mgp.Sync.DbaseParser
 
   @root_folder "/home/hvaria/backup/HPMG18/"
   @employee_master "H1EMP.DBF"
@@ -16,172 +17,138 @@ defmodule Mgp.Sync.ImportPayroll do
     end
   end
 
-  def generate_file_paths(folder) do
+  defp generate_file_paths(folder) do
     %{
       payroll: folder <> @calculated_payroll,
       employee_master: folder <> @employee_master
     }
   end
 
-  def parse_and_calculate_monthly_payroll(dbf_file, month, employees) do
-    {csv, 1} = dbf_to_csv(dbf_file)
-    {:ok, stream} = csv |> StringIO.open()
+  def parse_employee_master(dbf_file) do
+    DbaseParser.parse(
+      dbf_file,
+      ["EMP_NO", "EMP_NM", "EMP_JOINDT", "EMP_DISCDT", "EMP_RTBASE", "EMP_SSNO", "EMP_FNO1"],
+      fn x ->
+        %{
+          id: x["EMP_NO"],
+          name: x["EMP_NM"],
+          start_date: parse_date(x["EMP_JOINDT"]),
+          end_date: parse_date(x["EMP_DISCDT"]),
+          is_terminated: parse_terminated(x["EMP_RTBASE"]),
+          ssnit_no: x["EMP_SSNO"],
+          tin_no: x["EMP_FNO1"]
+        }
+      end
+    )
+    |> Enum.reduce(%{}, fn x, acc ->
+      Map.put(acc, x.id, x)
+    end)
+  end
 
+  defp parse_and_calculate_monthly_payroll(dbf_file, month, employees) do
     tax_year =
       cond do
-        month > "1912M" -> 2020
         month > "1812M" -> 2019
         month <= "1812M" -> 2018
       end
 
-    records =
-      stream
-      |> IO.binstream(:line)
-      |> MyParser.parse_stream(skip_headers: false)
-      |> Stream.filter(fn x -> hd(x) == month end)
-      |> Task.async_stream(&parse_payroll_record(&1, employees, tax_year))
-      |> Stream.map(fn {:ok, res} -> res end)
-      # |> Stream.map(&parse_payroll_record(&1))
-      |> Enum.to_list()
-
-    StringIO.close(stream)
-    records
-  end
-
-  def parse_employee_master(dbf_file) do
-    {csv, 1} = dbf_to_csv(dbf_file)
-    {:ok, stream} = csv |> StringIO.open()
-
-    records =
-      stream
-      |> IO.binstream(:line)
-      |> MyParser.parse_stream(skip_headers: false)
-      |> Enum.reduce(%{}, fn x, acc ->
-        id = hd(x)
-        Map.put(acc, id, parse_employee_record(x))
-      end)
-
-    StringIO.close(stream)
-    records
+    DbaseParser.parse(
+      dbf_file,
+      [
+        "PD_MTH",
+        "PD_EMPNO",
+        "PD_RATE",
+        "PD_DEPT",
+        "PD_SDEPT",
+        "PD_DESIG",
+        "PD_CAT",
+        "PD_OTAMT",
+        "PD_DAYS",
+        "PD_OTHALL",
+        "PD_LOAN",
+        "PD_ADV",
+        "PD_PLADV",
+        "PD_SSRT",
+        "PD_TUCRT",
+        "PD_DEDRT1",
+        "PD_DEDRT2",
+        "PD_TOTAL",
+        "PD_CB",
+        "PD_BKDET",
+        "PD_LMU",
+        "PD_LMD",
+        "PD_LMT"
+      ],
+      fn x ->
+        if x["PD_MTH"] === month do
+          %{
+            month: x["PD_MTH"],
+            id: x["PD_EMPNO"],
+            base_salary: x["PD_RATE"],
+            dept: parse_dept(x["PD_DEPT"]),
+            sub_dept: parse_sub_dept(x["PD_SDEPT"]),
+            title: x["PD_DESIG"],
+            gra_category: x["PD_CAT"],
+            overtime_earned: x["PD_OTAMT"],
+            days_worked: x["PD_DAYS"],
+            cash_allowance: x["PD_OTHALL"],
+            loan: x["PD_LOAN"],
+            advance: x["PD_ADV"],
+            pvt_loan: x["PD_PLADV"],
+            ssnit_ded: parse_ssnit_ded(Decimal.to_string(x["PD_SSRT"]), x["PD_EMPNO"]),
+            tuc_ded: parse_tuc_ded(Decimal.to_string(x["PD_TUCRT"])),
+            staff_welfare_ded: x["PD_DEDRT1"],
+            pf_ded: x["PD_DEDRT2"],
+            net_pay: x["PD_TOTAL"],
+            is_cash: parse_cash(x["PD_CB"]),
+            bank: x["PD_BKDET"],
+            lmu: x["PD_LMU"],
+            lmd: to_date(x["PD_LMD"]),
+            lmt: to_time(x["PD_LMT"])
+          }
+        else
+          nil
+        end
+      end
+    )
+    |> Task.async_stream(&parse_payroll_record(&1, employees, tax_year))
+    |> Stream.map(fn {:ok, res} -> res end)
+    # |> Stream.map(&parse_payroll_record(&1))
+    |> Enum.to_list()
   end
 
   ### Private Functions ###
-  defp parse_payroll_record(list, employees, tax_year) do
-    [
-      month,
-      id,
-      base_salary,
-      dept,
-      sub_dept,
-      title,
-      gra_category,
-      overtime_earned,
-      days_worked,
-      cash_allowance,
-      loan,
-      advance,
-      pvt_loan,
-      ssnit_ded,
-      tuc_ded,
-      staff_welfare_ded,
-      pf_ded,
-      net_pay,
-      is_cash,
-      bank,
-      lmu,
-      lmd,
-      lmt
-    ] =
-      pluck(list, [
-        0,
-        1,
-        3,
-        5,
-        6,
-        8,
-        9,
-        13,
-        16,
-        41,
-        77,
-        78,
-        80,
-        81,
-        84,
-        87,
-        89,
-        117,
-        118,
-        122,
-        125,
-        126,
-        127
-      ])
-
-    emp = %{
-      month: month,
-      id: id,
-      base_salary: to_decimal(base_salary),
-      dept: parse_dept(dept),
-      sub_dept: parse_sub_dept(sub_dept),
-      title: title,
-      gra_category: gra_category,
-      overtime_earned: to_decimal(overtime_earned),
-      days_worked: to_decimal(days_worked),
-      cash_allowance: to_decimal(cash_allowance),
-      loan: to_decimal(loan),
-      advance: to_decimal(advance),
-      pvt_loan: to_decimal(pvt_loan),
-      ssnit_ded: parse_ssnit_ded(ssnit_ded, id),
-      tuc_ded: parse_tuc_ded(tuc_ded),
-      staff_welfare_ded: to_decimal(staff_welfare_ded),
-      pf_ded: to_decimal(pf_ded),
-      net_pay: to_decimal(net_pay),
-      is_cash: parse_cash(is_cash),
-      bank: bank,
-      lmu: lmu,
-      lmd: to_date(lmd),
-      lmt: to_time(lmt)
-    }
-
+  defp parse_payroll_record(emp, employees, tax_year) do
     earned_salary =
       Decimal.round(Decimal.mult(emp.base_salary, Decimal.div(emp.days_worked, 27)), 2)
 
-    ssnit_amount = 
-      case emp.id === "E0053" do
-        true -> 
-          case tax_year < 2020 do
-            true -> Decimal.round(Decimal.mult(Decimal.div(emp.ssnit_ded, 100), earned_salary), 2)
-            false -> Decimal.new(0)
-          end
-        false -> Decimal.round(Decimal.mult(Decimal.div(emp.ssnit_ded, 100), earned_salary), 2)
-      end
+    ssnit_amount = Decimal.round(Decimal.mult(Decimal.div(emp.ssnit_ded, 100), earned_salary), 2)
 
     {ssnit_emp_contrib, ssnit_total, ssnit_tier_1, ssnit_tier_2} =
-    case emp.id === "E0053" do
-      true ->
-        case tax_year < 2020 do
-          true ->
-            ssnit_emp_contrib = Decimal.round(Decimal.mult(Decimal.from_float(2.5), ssnit_amount), 2) # 12.5 div 5
-            ssnit_total = Decimal.add(ssnit_amount, ssnit_emp_contrib)
-            ssnit_tier_1 = ssnit_total
-            ssnit_tier_2 = Decimal.new(0)
-            {ssnit_emp_contrib, ssnit_total, ssnit_tier_1, ssnit_tier_2}
-          false ->
-            ssnit_emp_contrib = Decimal.new(0)
-            ssnit_total = Decimal.new(0)
-            ssnit_tier_1 = Decimal.new(0)
-            ssnit_tier_2 = Decimal.new(0)
-            {ssnit_emp_contrib, ssnit_total, ssnit_tier_1, ssnit_tier_2}
-        end
-    false ->
-      ssnit_emp_contrib = Decimal.round(Decimal.mult(Decimal.from_float(2.363636364), ssnit_amount), 2) # 13 div 5.5
-      ssnit_total = Decimal.add(ssnit_amount, ssnit_emp_contrib)
-      ssnit_tier_1 = Decimal.round(Decimal.mult(Decimal.from_float(0.72972973), ssnit_total), 2)
-      ssnit_tier_2 = Decimal.sub(ssnit_total, ssnit_tier_1)
-      {ssnit_emp_contrib, ssnit_total, ssnit_tier_1, ssnit_tier_2}
-    end
+      case emp.id === "E0053" do
+        true ->
+          # 12.5 div 5
+          ssnit_emp_contrib =
+            Decimal.round(Decimal.mult(Decimal.from_float(2.5), ssnit_amount), 2)
 
+          ssnit_total = Decimal.add(ssnit_amount, ssnit_emp_contrib)
+          ssnit_tier_1 = ssnit_total
+          ssnit_tier_2 = Decimal.new(0)
+          {ssnit_emp_contrib, ssnit_total, ssnit_tier_1, ssnit_tier_2}
+
+        false ->
+          # 13 div 5.5
+          ssnit_emp_contrib =
+            Decimal.round(Decimal.mult(Decimal.from_float(2.363636364), ssnit_amount), 2)
+
+          ssnit_total = Decimal.add(ssnit_amount, ssnit_emp_contrib)
+
+          ssnit_tier_1 =
+            Decimal.round(Decimal.mult(Decimal.from_float(0.72972973), ssnit_total), 2)
+
+          ssnit_tier_2 = Decimal.sub(ssnit_total, ssnit_tier_1)
+          {ssnit_emp_contrib, ssnit_total, ssnit_tier_1, ssnit_tier_2}
+      end
 
     pf_amount = Decimal.round(Decimal.mult(Decimal.div(emp.pf_ded, 100), earned_salary), 2)
 
@@ -248,51 +215,6 @@ defmodule Mgp.Sync.ImportPayroll do
 
       true ->
         Decimal.round(Decimal.mult(o, Decimal.new("0.1")), 2)
-    end
-  end
-
-  defp gra_income_tax(i, 2020) do
-    decimal_1 = Decimal.new("1")
-
-    cond do
-      Decimal.compare(i, Decimal.new("319")) !== decimal_1 ->
-        Decimal.new("0")
-
-      Decimal.compare(i, Decimal.new("419")) !== decimal_1 ->
-        Decimal.round(Decimal.mult(Decimal.sub(i, 319), Decimal.new("0.05")), 2)
-
-      Decimal.compare(i, Decimal.new("539")) !== decimal_1 ->
-        Decimal.round(
-          Decimal.add(Decimal.mult(Decimal.sub(i, 419), Decimal.new("0.1")), Decimal.new("5")),
-          2
-        )
-
-      Decimal.compare(i, Decimal.new("3539")) !== decimal_1 ->
-        Decimal.round(
-          Decimal.add(
-            Decimal.mult(Decimal.sub(i, 539), Decimal.new("0.175")),
-            Decimal.new("17")
-          ),
-          2
-        )
-
-      Decimal.compare(i, Decimal.new("20000")) !== decimal_1 ->
-        Decimal.round(
-          Decimal.add(
-            Decimal.mult(Decimal.sub(i, 3539), Decimal.new("0.25")),
-            Decimal.new("542")
-          ),
-          2
-        )
-
-      true ->
-        Decimal.round(
-          Decimal.add(
-            Decimal.mult(Decimal.sub(i, 20000), Decimal.new("0.3")),
-            Decimal.new("4657.25")
-          ),
-          2
-        )
     end
   end
 
@@ -384,21 +306,6 @@ defmodule Mgp.Sync.ImportPayroll do
           2
         )
     end
-  end
-
-  defp parse_employee_record(list) do
-    [id, name, start_date, end_date, is_terminated, ssnit_no, tin_no] =
-      pluck(list, [0, 2, 15, 16, 18, 38, 90])
-
-    %{
-      id: id,
-      name: name,
-      start_date: parse_date(start_date),
-      end_date: parse_date(end_date),
-      is_terminated: parse_terminated(is_terminated),
-      ssnit_no: ssnit_no,
-      tin_no: tin_no
-    }
   end
 
   defp parse_ssnit_ded(_, "E0053"), do: Decimal.new(5)

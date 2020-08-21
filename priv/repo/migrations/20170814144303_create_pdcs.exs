@@ -9,7 +9,7 @@ defmodule Mgp.Repo.Migrations.CreatePdcs do
       add :amount, :decimal
       add :adjusted, :string
       add :lmu, :string
-      add :lmt, :naive_datetime
+      add :lmt, :utc_datetime
 
       add :customer_id,
           references(:customers, on_update: :update_all, on_delete: :nothing, type: :string)

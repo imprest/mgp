@@ -1,0 +1,51 @@
+<section class="section">
+    <div class="container">
+      <h1 class="subtitle has-text-right is-6">
+        Total Pdcs: &nbsp <span class="title is-4"><%= Utils.format_currency(@total) %></span>
+      </h1>
+
+      <table class="table is-fullwidth is-narrow is-striped">
+        <thead>
+          <tr>
+            <th>
+              <%= sort_link(@socket, "ID", :id, @options) %>
+            </th>
+            <th class="has-text-centered">
+              <%= sort_link(@socket, "Chq Date", :date, @options) %>
+            </th>
+            <th class="has-text-centered">
+              <%= sort_link(@socket, "C_ID", :customer_id, @options)%>
+            </th>
+            <th>
+              <%= sort_link(@socket, "Customer", :description, @options) %>
+            <th>
+              <%= sort_link(@socket, "Chq #", :cheque, @options) %>
+            </th>
+            <th class="has-text-right">
+              <%= sort_link(@socket, "Amount", :amount, @options) %>
+            </th>
+            <th class="has-text-centered">LMU</th>
+            <th class="has-text-centered">
+              <%= sort_link(@socket, "Timestamp", :lmt, @options) %>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <%= for p <- @pdcs do %>
+          <tr>
+            <td><%= p.id %></td>
+
+            <td class="has-text-centered"><%= Utils.format_date(p.date) %></td>
+            <td class="has-text-centered"><%= p.customer_id %></td>
+            <td><%= p.description %></td>
+            <td><%= p.cheque %></td>
+            <td class="has-text-right"><%= Utils.format_currency(p.amount) %></td>
+            <td class="has-text-centered"><%= p.lmu %></td>
+            <td class="has-text-centered"><%= p.lmt %></td>
+          </tr>
+          <% end %>
+        </tbody>
+      </table>
+
+    </div>
+  </section>

@@ -11,12 +11,14 @@ defmodule Mgp.Repo.Migrations.CreateInvoiceDetails do
       add(:sub_qty, :integer)
       add(:tax_rate, :string)
       add(:lmu, :string)
-      add(:lmt, :naive_datetime)
+      add(:lmt, :utc_datetime)
+
       add(
         :invoice_id,
         references(:invoices, on_update: :update_all, on_delete: :nothing, type: :string),
         primary_key: true
       )
+
       add(
         :product_id,
         references(:products, on_update: :update_all, on_delete: :nothing, type: :string)
@@ -25,6 +27,5 @@ defmodule Mgp.Repo.Migrations.CreateInvoiceDetails do
 
     create(index(:invoice_details, [:invoice_id]))
     create(index(:invoice_details, [:product_id]))
-
   end
 end
