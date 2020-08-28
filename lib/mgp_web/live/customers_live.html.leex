@@ -1,65 +1,116 @@
 <section class="section has-small-padding">
+  <script>
+    function autocomplete(total) {
+      return {
+        isOpen: false,
+        focus: 0,
+        text: '',
+        setFocus(f) {
+          this.focus = f;
+        },
+        select() {
+          this.$refs[`item-${this.focus}`]?.click();
+          this.focusPrev();
+        },
+        scrollTo(idx) {
+          this.$refs[`item-${idx}`]?.scrollIntoView(false);
+        },
+        focusNext() {
+          const nextIndex = this.focus + 1;
+          const total = this.$refs.suggestions?.childElementCount ?? 0;
+
+          if (this.isOpen && nextIndex < total) {
+            this.setFocus(nextIndex);
+            this.scrollTo(nextIndex);
+          }
+        },
+        focusPrev() {
+          const nextIndex = this.focus - 1;
+
+          if (this.isOpen && nextIndex >= 0) {
+            this.setFocus(nextIndex);
+            this.scrollTo(nextIndex);
+          }
+        },
+        toOpen() {
+          (this.text.length < 2) ? this.isOpen = false : this.isOpen = true;
+        },
+        open() {
+          this.isOpen = true;
+        },
+        close() {
+          this.isOpen = false;
+        }
+      }
+    }
+  </script>
   <div class="container">
+    <form phx-submit="submit" phx-change="suggest">
+      <div class="field is-horizontal has-addons">
+        <p class="control">
+          <button class="button is-static">
+            Search Customer
+          </button>
+        </p>
 
-    <div class="field is-horizontal has-addons">
-      <p class="control">
-        <button class="button is-static">
-        Search Customer
-        </button>
-      </p>
+        <div class="autocomplete control is-expanded"
+             x-data="autocomplete()"
+             x-init="$watch('text', (value) => toOpen() )"
+             @click.away="close"
+             x-on:keydown.escape="close"
+             x-on:keydown.tab="close"
+             x-on:keydown.arrow-up="focusPrev"
+             x-on:keydown.arrow-down="focusNext"
+             x-on:keydown.enter="select()">
+             <div class="control is-expanded">
+               <input id="search-input"
+                      x-model="text" name="search" class="input is-fullwidth" autocomplete="off" type="search"
+                                                                                                 phx-debounce="300" placeholder="Type here to search for customer..."/>
+             </div>
 
-      <div class="autocomplete control is-expanded" x-data="autocomplete()" @click.away="close">
-        <div class="control is-expanded">
-          <input phx-change="suggest" phx-submit="sumbit" type="search" x-on:focus="open" phx-deboune="300" placeholder="Type here to search for customer..."/>
+             <div class="suggestions">
+               <%= if Enum.any?(@suggestions) do %>
+                 <ul
+                   id="autocomplete-suggestions"
+                   x-show="isOpen"
+                   x-ref="suggestions"
+                   >
+                   <%= for {item, index} <- Enum.with_index(@suggestions) do %>
+                     <li id="item-<%= index %>"
+                         x-ref="item-<%= index %>"
+                         phx-click="select"
+                         phx-value-id="<%= item.id %>"
+                         class="item"
+                         @mouseenter="setFocus(<%= index %>)" :class="{ 'focus': focus === <%= index %> }"
+                         >
+                         <span><%= item.description %></span>
+                     </li>
+                   <%end%>
+                 </ul>
+               <% end %>
+             </div>
         </div>
 
-        <div class="dropdown-menu">
-          <div class="dropdown-content">
+        <div class="control">
+          <div class="select">
+            <select phx-keyup="year-change" id="select_year">
+              <%= for y <- @years do %>
+                <option phx-click="year-change" <%= if @year == y do %>selected<%end%> value=<%= y %> >
+                <%= y %>
+                </option>
+              <% end %>
+            </select>
           </div>
         </div>
-
-        <div class="suggestions">
-          <%= if Enum.any?(@suggestions) do %>
-            <ul
-              id="autocomplete-suggestions"
-              x-show="isOpen"
-              x-ref="suggestions"
-            >
-            <%= for {item, index} <- Enum.with_index(@suggestions) do %>
-                <li id="item-<%= index %>"
-                    x-ref="item-<%= index %>"
-                    phx-click="select"
-                    phx-value-id="<%= item.id %>"
-                    class="item"
-                >
-                  <span><%= item.description %></span>
-                </li>
-            <%end%>
-            </ul>
-          <% end %>
-        </div>
       </div>
-
-      <div class="control">
-        <div class="select">
-          <select phx-keyup="year-change" id="select_year">
-            <%= for y <- @years do %>
-              <option phx-click="year-change" <%= if @year == y do %>selected<%end%> value=<%= y %> >
-                <%= y %>
-              </option>
-            <% end %>
-          </select>
-        </div>
-      </div>
-    </div>
-
+    </form>
   </div>
 </section>
 <%= if @posting != :nil do %>
 <div class="section">
-<div class="container">
-    <div class="columns">
-      <div class="column">
+  <div class="container">
+      <div class="columns">
+        <div class="column">
           <h1 class="title has-small-margin-bottom"><%= @posting.description %></h1>
           <div class="tags">
             <span class="tag"><%= @posting.id %></span>
@@ -67,89 +118,93 @@
             <span class="tag"><%= @posting.is_gov %></span>
             <span class="tag"><%= @posting.resp %></span>
           </div>
+        </div>
       </div>
-    </div>
-    <table class="table is-narrow is-fullwidth is-hoverable posting-table">
-      <tbody>
-        <tr>
-          <th></th>
-          <th></th>
-          <th></th>
-          <th></th>
-          <th class="has-text-right">Opening Bal:</th>
-          <th class="has-text-right">
-            <%= Mgp.Utils.format_currency(@posting.op_bal) %>
-          </th>
-        </tr>
-        <tr>
-          <td></td>
-          <td></td>
-          <td></td>
-          <td></td>
-          <td></td>
-          <td></td>
-        </tr>
-        <tr class="has-underline">
-          <th>ID</th>
-          <th>Date</th>
-          <th>Description</th>
-          <th class="has-text-right">Debit</th>
-          <th class="has-text-right">Credit</th>
-          <th class="has-text-right">Balance</th>
-        </tr>
-        <%= for t <- @posting.postings do %>
-        <tr>
-          <td>
-            <%= trim_id(t.id) %>
-          </td>
-          <td><%= t.date %></td>
-          <td><%= t.description %></td>
-          <td class="has-text-right"><%= Utils.format_currency(t.debit) %></td>
-          <td class="has-text-right"><%= Utils.format_currency(t.credit) %></td>
-          <td class="has-text-right"><%= Utils.format_currency(t.bal) %></td>
-        </tr>
-        <% end %>
-        <tr class="has-underline has-overline">
-          <th></th>
-          <th></th>
-          <th class="has-text-right">Total:</th>
-          <th class="has-text-right"><%= Utils.format_currency(@posting.total_debit) %></th>
-          <th class="has-text-right"><%= Utils.format_currency(@posting.total_credit) %></th>
-          <th class="has-text-right"><%= Utils.format_currency(@posting.total_bal) %></th>
-        </tr>
-        <tr></tr>
-        <%= if @posting.total_pdcs !== [] do %>
-        <tr class="has-underline">
-          <th>PDCS</th>
-          <td></td>
-          <td></td>
-          <td></td>
-          <td></td>
-          <td></td>
-        </tr>
-        <%= for p <- @posting.pdcs do %>
-        <tr>
-          <td><%= p.id %></td>
-          <td><%= p.date %></td>
-          <td><%= p.cheque %></td>
-          <td></td>
-          <td class="has-text-right"><%= Utils.format_currency(p.amount) %></td>
-          <td></td>
-        </tr>
-        <% end %>
-        <tr class="has-underline has-overline">
-          <td></td>
-          <td></td>
-          <th class="has-text-right">Total:</th>
-          <th class="has-text-right"></th>
-          <th class="has-text-right"><%= Utils.format_currency(@posting.total_pdcs) %></th>
-          <th class="has-text-right">
-            <%= Utils.format_currency((@posting.total_bal - @posting.total_pdcs)) %>
-          </th>
-        </tr>
-        <% end %>
-      </tbody>
-    </table>
+      <table class="table is-narrow is-fullwidth is-hoverable posting-table">
+        <tbody>
+          <tr>
+            <th></th>
+            <th></th>
+            <th></th>
+            <th></th>
+            <th class="has-text-right">Opening Bal:</th>
+            <th class="has-text-right">
+              <%= Mgp.Utils.format_currency(@posting.op_bal) %>
+            </th>
+          </tr>
+          <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+          </tr>
+          <tr class="has-underline">
+            <th>ID</th>
+            <th>Date</th>
+            <th>Description</th>
+            <th class="has-text-right">Debit</th>
+            <th class="has-text-right">Credit</th>
+            <th class="has-text-right">Balance</th>
+          </tr>
+          <%= for t <- @posting.postings do %>
+            <tr>
+              <td>
+                <%= trim_id(t.id) %>
+              </td>
+              <td><%= t.date %></td>
+              <td><%= t.description %></td>
+              <td class="has-text-right"><%= Utils.format_currency(t.debit) %></td>
+              <td class="has-text-right"><%= Utils.format_currency(t.credit) %></td>
+              <td class="has-text-right"><%= Utils.format_currency(t.bal) %></td>
+            </tr>
+          <% end %>
+          <tr class="has-underline has-overline">
+            <th></th>
+            <th></th>
+            <th class="has-text-right">Total:</th>
+            <th class="has-text-right"><%= Utils.format_currency(@posting.total_debit) %></th>
+            <th class="has-text-right"><%= Utils.format_currency(@posting.total_credit) %></th>
+            <th class="has-text-right"><%= Utils.format_currency(@posting.total_bal) %></th>
+          </tr>
+          <tr></tr>
+          <%= if @posting.total_pdcs > 0 do %>
+            <tr class="has-underline">
+              <th>PDCS</th>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+            </tr>
+            <%= for p <- @posting.pdcs do %>
+              <tr>
+                <td><%= p.id %></td>
+                <td><%= p.date %></td>
+                <td><%= p.cheque %></td>
+                <td></td>
+                <td class="has-text-right"><%= Utils.format_currency(p.amount) %></td>
+                <td></td>
+              </tr>
+            <% end %>
+            <tr class="has-underline has-overline">
+              <td></td>
+              <td></td>
+              <th class="has-text-right">Total:</th>
+              <th class="has-text-right"></th>
+              <th class="has-text-right"><%= Utils.format_currency(@posting.total_pdcs) %></th>
+              <th class="has-text-right">
+                <%= if @posting.total_bal != :null do %>
+                  0.00
+                <% else %>
+                  <%= Utils.format_currency(@posting.total_bal - @posting.total_pdcs) %>
+                <% end %>
+              </th>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+  </div>
 </div>
 <% end %>
-</div>

@@ -3,24 +3,20 @@ defmodule MgpWeb.CustomersLive do
 
   alias Mgp.Accounts
   alias Mgp.Utils
+  alias Mgp.Sales
 
   @permitted_years ~w(2019 2018 2017 2016)
-  @customers [
-    %{id: "DANNI", description: "DANNI PHARMA"},
-    %{id: "POKU", description: "POKU PHARMA"},
-    %{id: "DAN/AX", description: "DANNI PHARMA - ANNEX"}
-  ]
 
   @impl true
   def mount(_params, _session, socket) do
-    {:ok, socket,
-     temporary_assigns: [
-       suggestions: @customers,
+    {:ok,
+     assign(socket,
+       suggestions: [],
        id: nil,
        posting: nil,
        year: @permitted_years |> hd,
        years: @permitted_years
-     ]}
+     )}
   end
 
   @impl true
@@ -51,33 +47,55 @@ defmodule MgpWeb.CustomersLive do
 
   @impl true
   def handle_event("suggest", %{"search" => search}, socket) do
-    {:noreply, assign(socket, suggestions: suggest(search))}
+    length = String.length(search)
+
+    if length >= 2 || length <= 12 do
+      {:noreply, assign(socket, suggestions: Sales.get_customers(search))}
+    else
+      {:noreply, socket}
+    end
   end
 
   @impl true
-  def handle_event("year-change", %{"value" => year}, socket) do
-    year_change(socket, year)
+  def handle_event("submit", %{"search" => _}, socket), do: {:noreply, socket}
+
+  @impl true
+  def handle_event("select", %{"id" => customer_id, "value" => value}, socket) do
+    {:noreply,
+     push_patch(
+       socket,
+       to: Routes.live_path(socket, __MODULE__, id: customer_id)
+     )}
   end
 
   @impl true
-  def handle_event("year-change", %{"key" => "ArrowUp", "value" => year}, socket) do
-    year_change(socket, year)
-  end
+  def handle_event("year-change", %{"value" => year}, socket), do: year_change(socket, year)
 
   @impl true
-  def handle_event("year-change", %{"key" => "ArrowDown", "value" => year}, socket) do
-    year_change(socket, year)
-  end
+  def handle_event("year-change", %{"key" => "ArrowUp", "value" => year}, socket),
+    do: year_change(socket, year)
+
+  @impl true
+  def handle_event("year-change", %{"key" => "ArrowDown", "value" => year}, socket),
+    do: year_change(socket, year)
 
   @impl true
   def handle_event("year-change", _key, socket), do: {:noreply, socket}
 
   defp year_change(socket, year) do
-    {:noreply,
-     push_patch(
-       socket,
-       to: Routes.live_path(socket, __MODULE__, id: "DAN/AX", year: year)
-     )}
+    if socket.assigns.year != year do
+      if socket.assigns.id == nil do
+        {:noreply, assign(socket, year: year)}
+      else
+        {:noreply,
+         push_patch(
+           socket,
+           to: Routes.live_path(socket, __MODULE__, id: socket.assigns.id, year: year)
+         )}
+      end
+    else
+      {:noreply, socket}
+    end
   end
 
   defp param_or_first_permitted(params, key, permitted) do

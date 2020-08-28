@@ -10,7 +10,7 @@
 # We recommend using the bang functions (`insert!`, `update!`
 # and so on) as they will fail if something goes wrong.
 
-Mgp.Accounts.create_user(%{username: "hvaria", password: "admin", is_admin: true, role: "manager"})
+# Mgp.Accounts.create_user(%{username: "hvaria", password: "admin", is_admin: true, role: "manager"})
 
 # Mgp.Repo.insert!(%TaxRate{id: "NTX", description: "NO TAX", rate: Decimal.new(0)});
 # Mgp.Repo.insert!(%TaxRate{id: "VEX", description: "VAT EXEMPTED", rate: Decimal.new(0)});

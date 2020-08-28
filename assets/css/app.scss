@@ -27,6 +27,7 @@ $tabs-link-hover-border-bottom-color: $red;
 
 // Import Bulma
 @import "~bulma";
+@import "./autocomplete.scss";
 
 /* LiveView specific classes for your customizations */
 .invalid-feedback {

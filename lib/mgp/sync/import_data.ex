@@ -432,6 +432,7 @@ defmodule Mgp.Sync.ImportData do
           "SL_PHONE",
           "SL_FAX",
           "SL_MOBILE",
+          "SL_EMAIL",
           "SL_LMU",
           "SL_LMD",
           "SL_LMT"
@@ -465,6 +466,7 @@ defmodule Mgp.Sync.ImportData do
         {[
            %{
              id: x.id,
+             description: x.description,
              region: x.region,
              attn: x.attn,
              add1: x.add1,
