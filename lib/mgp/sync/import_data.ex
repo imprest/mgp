@@ -280,7 +280,14 @@ defmodule Mgp.Sync.ImportData do
         ]
       )
 
-    rows = upsert_records(OpStock, records, upsert_query, {:constraint, :op_stocks_pkey})
+    rows =
+      upsert_records(
+        OpStock,
+        records,
+        upsert_query,
+        {:unsafe_fragment, "ON CONSTRAINT op_stocks_pkey"}
+      )
+
     {:ok, %{ctx | upserted: Map.put(ctx.upserted, :stock_openings, rows)}}
   end
 
@@ -334,7 +341,12 @@ defmodule Mgp.Sync.ImportData do
       )
 
     rows =
-      upsert_records(Price, records, upsert_query, {:constraint, :prices_product_id_date_lmt_key})
+      upsert_records(
+        Price,
+        records,
+        upsert_query,
+        {:unsafe_fragment, "ON CONSTRAINT prices_product_id_date_lmt_key"}
+      )
 
     {:ok, %{ctx | upserted: Map.put(ctx.upserted, :prices, rows)}}
   end
@@ -404,7 +416,7 @@ defmodule Mgp.Sync.ImportData do
         StockReceipt,
         records,
         upsert_query,
-        {:constraint, :stock_receipts_doc_id_no_key}
+        {:unsafe_fragment, "ON CONSTRAINT stock_receipts_doc_id_no_key"}
       )
 
     {:ok, %{ctx | upserted: Map.put(ctx.upserted, :stock_receipts, rows)}}
@@ -528,7 +540,12 @@ defmodule Mgp.Sync.ImportData do
       )
 
     rows =
-      upsert_records(OpBalance, op_bals, upsert_query, {:constraint, :opbal_customer_id_year_key})
+      upsert_records(
+        OpBalance,
+        op_bals,
+        upsert_query,
+        {:unsafe_fragment, "ON CONSTRAINT opbal_customer_id_year_key"}
+      )
 
     {:ok, %{ctx | upserted: Map.put(ctx.upserted, :op_bals, rows)}}
   end
@@ -722,7 +739,7 @@ defmodule Mgp.Sync.ImportData do
         InvoiceDetail,
         invoice_details,
         upsert_query,
-        {:constraint, :invoice_details_pkey}
+        {:unsafe_fragment, "ON CONSTRAINT invoice_details_pkey"}
       )
 
     Repo.query!("""
@@ -759,7 +776,7 @@ defmodule Mgp.Sync.ImportData do
         StockTransfer,
         stock_transfers,
         upsert_query,
-        {:constraint, :stock_transfers_doc_id_no_key}
+        {:unsafe_fragment, "ON CONSTRAINT stock_transfers_doc_id_no_key"}
       )
 
     {:ok, %{ctx | upserted: Map.put(ctx.upserted, :stock_transfers, rows)}}
