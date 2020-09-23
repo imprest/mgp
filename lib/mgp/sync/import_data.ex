@@ -465,7 +465,7 @@ defmodule Mgp.Sync.ImportData do
               resp: x["SL_MOBILE"],
               email: x["SL_EMAIL"],
               lmu: nil?(x["SL_LMU"]),
-              lmt: to_timestamp(x["DR_LMD"], x["DR_LMT"])
+              lmt: to_timestamp(x["SL_LMD"], x["SL_LMT"])
             }
           else
             nil
@@ -522,6 +522,7 @@ defmodule Mgp.Sync.ImportData do
       )
 
     rows = upsert_records(Customer, customers, upsert_query, :id)
+    IO.inspect(rows)
     ctx = %{ctx | upserted: Map.put(ctx.upserted, :customers, rows)}
 
     upsert_query =
