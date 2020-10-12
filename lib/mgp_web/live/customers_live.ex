@@ -37,14 +37,6 @@ defmodule MgpWeb.CustomersLive do
     {:noreply, assign(socket, id: id, posting: posting, year: year)}
   end
 
-  defp suggest(search) do
-    Enum.filter(@customers, fn i ->
-      i.description
-      |> String.downcase()
-      |> String.contains?(String.downcase(search))
-    end)
-  end
-
   @impl true
   def handle_event("suggest", %{"search" => search}, socket) do
     length = String.length(search)

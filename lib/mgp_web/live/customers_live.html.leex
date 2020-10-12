@@ -1,6 +1,6 @@
 <section class="section has-small-padding">
   <script>
-    function autocomplete(total) {
+    function autocomplete() {
       return {
         isOpen: false,
         focus: 0,
@@ -19,17 +19,28 @@
           const nextIndex = this.focus + 1;
           const total = this.$refs.suggestions?.childElementCount ?? 0;
 
-          if (this.isOpen && nextIndex < total) {
-            this.setFocus(nextIndex);
-            this.scrollTo(nextIndex);
+          if (this.isOpen) {
+            if (nextIndex < total) {
+              this.setFocus(nextIndex);
+              this.scrollTo(nextIndex);
+            } else {
+              this.setFocus(0);
+              this.scrollTo(0);
+            }
           }
         },
         focusPrev() {
           const nextIndex = this.focus - 1;
+          const total = this.$refs.suggestions?.childElementCount ?? 0;
 
-          if (this.isOpen && nextIndex >= 0) {
-            this.setFocus(nextIndex);
-            this.scrollTo(nextIndex);
+          if (this.isOpen) {
+            if (nextIndex >= 0) {
+              this.setFocus(nextIndex);
+              this.scrollTo(nextIndex);
+            } else {
+              this.setFocus(total - 1);
+              this.scrollTo(total - 1);
+            }
           }
         },
         toOpen() {
@@ -40,6 +51,8 @@
         },
         close() {
           this.isOpen = false;
+          this.setFocus(0);
+          this.scrollTo(0);
         }
       }
     }
@@ -54,7 +67,7 @@
         </p>
 
         <div class="autocomplete control is-expanded"
-             x-data="autocomplete()"
+             x-data="autocomplete"
              x-init="$watch('text', (value) => toOpen() )"
              @click.away="close"
              x-on:keydown.escape="close"
@@ -65,13 +78,12 @@
              <div class="control is-expanded">
                <input id="search-input"
                       x-model="text" name="search" class="input is-fullwidth" autocomplete="off" type="search"
-                                                                                                 phx-debounce="300" placeholder="Type here to search for customer..."/>
+                      phx-debounce="300" placeholder="Type here to search for customer..."/>
              </div>
 
-             <div class="suggestions">
+             <div class="dropdown-menu">
                <%= if Enum.any?(@suggestions) do %>
-                 <ul
-                   id="autocomplete-suggestions"
+                 <div class="dropdown-content"
                    x-show="isOpen"
                    x-ref="suggestions"
                    >
@@ -80,13 +92,21 @@
                          x-ref="item-<%= index %>"
                          phx-click="select"
                          phx-value-id="<%= item.id %>"
-                         class="item"
-                         @mouseenter="setFocus(<%= index %>)" :class="{ 'focus': focus === <%= index %> }"
+                         class="dropdown-item"
+                         @mouseenter="setFocus(<%= index %>)" :class="{ 'is-hovered': focus === <%= index %> }"
                          >
-                         <span><%= item.description %></span>
+                         <div class="media-content">
+                           <%= item.description %>
+                           <br>
+                           <small>
+                             <b><%= item.id %></b>
+                             <b><%= item.region %></b>
+                             <b><%= item.is_gov %></b>
+                           </small>
+                         </div>
                      </li>
                    <%end%>
-                 </ul>
+                 </div>
                <% end %>
              </div>
         </div>

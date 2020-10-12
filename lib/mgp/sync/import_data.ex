@@ -163,6 +163,7 @@ defmodule Mgp.Sync.ImportData do
          {:ok, ctx} <- import_postings(ctx, p.jul, dbf_was_rsynced?(diff, p.jul)),
          {:ok, ctx} <- import_postings(ctx, p.aug, dbf_was_rsynced?(diff, p.aug)),
          {:ok, ctx} <- import_postings(ctx, p.sep, dbf_was_rsynced?(diff, p.sep)) do
+      ctx = Map.drop(ctx, [:product_ids])
       Logger.info("Import from DBF Summary: #{inspect(%{ctx | :success => true}, pretty: true)}")
     else
       unexpected ->
