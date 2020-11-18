@@ -5,7 +5,7 @@ defmodule MgpWeb.CustomersLive do
   alias Mgp.Utils
   alias Mgp.Sales
 
-  @permitted_years ~w(2019 2018 2017 2016)
+  @permitted_years ~w(2020 2019 2018 2017 2016)
 
   @impl true
   def mount(_params, _session, socket) do
