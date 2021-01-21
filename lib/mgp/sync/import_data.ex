@@ -186,6 +186,7 @@ defmodule Mgp.Sync.ImportData do
           "IT_RTR",
           "IT_RTE",
           "IT_SUBQTY",
+          "IT_SPEC",
           "IT_LMU",
           "IT_LMD",
           "IT_LMT"
