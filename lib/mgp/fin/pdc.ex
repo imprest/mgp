@@ -1,9 +1,9 @@
-defmodule Mgp.Accounts.Pdc do
+defmodule Mgp.Fin.Pdc do
   @moduledoc "Post Dated Cheques schema"
   use Ecto.Schema
   import Ecto.Changeset
   alias Mgp.Sales.Customer
-  alias Mgp.Accounts.Pdc
+  alias Mgp.Fin.Pdc
 
   @primary_key {:id, :string, []}
   schema "pdcs" do

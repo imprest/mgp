@@ -16,9 +16,9 @@ defmodule Mgp.Sync.ImportData do
   alias Mgp.Sales.OpStock
   alias Mgp.Sales.StockReceipt
   alias Mgp.Sales.StockTransfer
-  alias Mgp.Accounts.OpBalance
-  alias Mgp.Accounts.Posting
-  alias Mgp.Accounts.Pdc
+  alias Mgp.Fin.OpBalance
+  alias Mgp.Fin.Posting
+  alias Mgp.Fin.Pdc
 
   @root_folder "/home/hvaria/backup"
   @folder_prefix "MGP"

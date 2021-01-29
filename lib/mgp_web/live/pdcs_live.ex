@@ -1,7 +1,7 @@
 defmodule MgpWeb.PdcsLive do
   use MgpWeb, :live_view
 
-  alias Mgp.Accounts
+  alias Mgp.Fin
   alias Mgp.Utils
 
   @permitted_sort_orders ~w(asc desc)
@@ -25,7 +25,7 @@ defmodule MgpWeb.PdcsLive do
       |> String.to_atom()
 
     sort_options = %{sort_by: sort_by, sort_order: sort_order}
-    result = Accounts.list_pdcs(sort_options)
+    result = Fin.list_pdcs(sort_options)
     {:noreply, assign(socket, options: sort_options, total: result.total, pdcs: result.pdcs)}
   end
 

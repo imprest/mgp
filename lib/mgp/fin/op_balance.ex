@@ -1,9 +1,9 @@
-defmodule Mgp.Accounts.OpBalance do
+defmodule Mgp.Fin.OpBalance do
   @moduledoc "Customer opening balance for a financial year"
 
   use Ecto.Schema
   import Ecto.Changeset
-  alias Mgp.Accounts.OpBalance
+  alias Mgp.Fin.OpBalance
   alias Mgp.Sales.Customer
 
   @primary_key false

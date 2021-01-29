@@ -1,11 +1,11 @@
-defmodule Mgp.Accounts do
+defmodule Mgp.Fin do
   @moduledoc """
   The Accounts context.
   """
 
   import Ecto.Query, warn: false
   alias Mgp.Repo
-  alias Mgp.Accounts.Pdc
+  alias Mgp.Fin.Pdc
 
   def list_pdcs(
         %{sort_by: sort_by, sort_order: sort_order} \\ %{sort_by: :date, sort_order: :asc}

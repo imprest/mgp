@@ -13,10 +13,10 @@ config :mgp,
 # Configures the endpoint
 config :mgp, MgpWeb.Endpoint,
   url: [host: "localhost"],
-  secret_key_base: "SXOgc3g9jWdaH2OQc9dasOfHeEOrX8Z69ZgHGqqVb9lrlUMrQq8XQS1KXZznS9YW",
+  secret_key_base: "g5pTn2bDbp7H2+yEfqAk+WQeYXudYgKS5Ypv5ECR+L4HBENXWXtQpmYjGJe1DiiB",
   render_errors: [view: MgpWeb.ErrorView, accepts: ~w(html json), layout: false],
   pubsub_server: Mgp.PubSub,
-  live_view: [signing_salt: "ZPm2mCgJ"]
+  live_view: [signing_salt: "a9w5CKKg"]
 
 # Configures Elixir's Logger
 config :logger, :console,

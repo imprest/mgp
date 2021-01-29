@@ -7,7 +7,7 @@ defmodule MgpWeb.Endpoint do
   @session_options [
     store: :cookie,
     key: "_mgp_key",
-    signing_salt: "1kjaYdt5"
+    signing_salt: "RpGhrWog"
   ]
 
   socket "/socket", MgpWeb.UserSocket,

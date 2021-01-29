@@ -1,7 +1,7 @@
 defmodule MgpWeb.CustomersLive do
   use MgpWeb, :live_view
 
-  alias Mgp.Accounts
+  alias Mgp.Fin
   alias Mgp.Utils
   alias Mgp.Sales
 
@@ -31,7 +31,7 @@ defmodule MgpWeb.CustomersLive do
       if id == nil or id == "" do
         nil
       else
-        Accounts.postings(id, String.to_integer(year))
+        Fin.postings(id, String.to_integer(year))
       end
 
     {:noreply, assign(socket, id: id, posting: posting, year: year)}

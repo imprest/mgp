@@ -1,9 +1,9 @@
-defmodule Mgp.Accounts.Posting do
+defmodule Mgp.Fin.Posting do
   @moduledoc "Transactions (Dr/Cr) for customers"
 
   use Ecto.Schema
   import Ecto.Changeset
-  alias Mgp.Accounts.Posting
+  alias Mgp.Fin.Posting
   alias Mgp.Sales.Customer
 
   @primary_key {:id, :string, []}
