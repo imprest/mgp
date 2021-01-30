@@ -11,8 +11,8 @@
   </head>
   <body>
     <header>
-      <section class="container">
-        <nav role="navigation">
+      <section>
+        <nav>
           <ul>
             <li><a href="https://hexdocs.pm/phoenix/overview.html">Get Started</a></li>
             <li><%= live_redirect "Pdcs", to: Routes.live_path(@conn, MgpWeb.PdcsLive), class: active_class(@conn, Routes.live_path(@conn, MgpWeb.PdcsLive)) %></li>
