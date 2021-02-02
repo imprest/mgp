@@ -1,10 +1,32 @@
-<ul>
-<%= if @current_user do %>
-  <li><%= @current_user.email %></li>
-  <li><%= link "Settings", to: Routes.user_settings_path(@conn, :edit) %></li>
-  <li><%= link "Log out", to: Routes.user_session_path(@conn, :delete), method: :delete %></li>
-<% else %>
-  <li><%= link "Register", to: Routes.user_registration_path(@conn, :new) %></li>
-  <li><%= link "Log in", to: Routes.user_session_path(@conn, :new) %></li>
-<% end %>
-</ul>
+<div class="flex-none">
+  <div class="ml-4 flex items-center md:ml-6">
+  <%= if @current_user do %>
+    <!-- Profile dropdown -->
+    <div class="ml-3 relative">
+      <div>
+        <button class="max-w-xs bg-gray-800 rounded-full flex items-center text-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-white" id="user-menu" aria-haspopup="true">
+          <span class="sr-only">Open user menu</span>
+          <img class="h-8 w-8 rounded-full" src="./images/mgp.png" alt="">
+        </button>
+      </div>
+      <!--
+        Profile dropdown panel, show/hide based on dropdown state.
+
+        Entering: "transition ease-out duration-100"
+          From: "transform opacity-0 scale-95"
+          To: "transform opacity-100 scale-100"
+        Leaving: "transition ease-in duration-75"
+          From: "transform opacity-100 scale-100"
+          To: "transform opacity-0 scale-95"
+      -->
+      <div class="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5" role="menu" aria-orientation="vertical" aria-labelledby="user-menu">
+        <div class="block px-4 py-2 text-sm text-gray-700">Hi <%= @current_user.email %></div>
+        <%= link "Settings", to: Routes.user_settings_path(@conn, :edit), class: "block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100", role: "menuitem" %>
+        <%= link "Log out", to: Routes.user_session_path(@conn, :delete), method: :delete, class: "block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100", role: "menuitem" %>
+      </div>
+    </div>
+  <% else %>
+    <!--<%= link "Log in", to: Routes.user_session_path(@conn, :new) %> -->
+  <% end %>
+  </div>
+</div>

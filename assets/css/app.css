@@ -10,7 +10,7 @@
 /* https://www.joshwcomeau.com/css/full-bleed/ */
 .wrapper {
   display: grid;
-  grid-template-columns: 1fr min(65ch, 100%) 1fr;
+  grid-template-columns: 1fr min(90ch, 100%) 1fr;
 }
 
 .wrapper > * {
@@ -20,4 +20,21 @@
 .full-bleed {
   width: 100%;
   grid-column: 1 / 4;
+}
+
+.scroller {
+  scrollbar-width: thin;
+}
+
+table {
+  border: 1px solid gray;
+  overflow: auto;
+  th {
+    border: 1px solid gray;
+    padding: 2px;
+  }
+  td {
+    border: 1px solid gray;
+    padding: 2px;
+  }
 }
