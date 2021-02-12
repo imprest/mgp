@@ -21,7 +21,7 @@
             <th>
               <%= sort_link(@socket, "Chq #", :cheque, @options) %>
             </th>
-            <th class="text-right">
+            <th class="text-right px-1">
               <%= sort_link(@socket, "Amount", :amount, @options) %>
             </th>
             <th class="text-center">LMU</th>
@@ -33,14 +33,14 @@
         <tbody>
           <%= for p <- @pdcs do %>
           <tr>
-            <td class="text-center"><%= p.id %></td>
-            <td class="text-center"><%= Utils.format_date(p.date) %></td>
-            <td class="text-center"><%= p.customer_id %></td>
-            <td><%= p.description %></td>
-            <td><%= p.cheque %></td>
-            <td class="text-right"><%= Utils.format_currency(p.amount) %></td>
+            <td class="text-center tabular-nums"><%= p.id %></td>
+            <td class="text-center tabular-nums"><%= Utils.format_date(p.date) %></td>
+            <td class="text-center p-l-5"><%= p.customer_id %></td>
+            <td class="px-1"><%= p.description %></td>
+            <td class="px-1"><%= p.cheque %></td>
+            <td class="text-right px-1 tabular-nums"><%= Utils.format_currency(p.amount) %></td>
             <td class="text-center"><%= p.lmu %></td>
-            <td class="text-center"><%= p.lmt %></td>
+            <td class="text-center tabular-nums"><%= p.lmt %></td>
           </tr>
           <% end %>
         </tbody>
