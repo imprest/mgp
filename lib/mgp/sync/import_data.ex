@@ -171,6 +171,21 @@ defmodule Mgp.Sync.ImportData do
     end
   end
 
+  defmacro schema_fields(source) do
+    quote(do: unquote("#{source}.__schema__(:fields)"))
+  end
+
+  defmacro custom_on_conflict_update_replace_all(queryable) do
+    {_, [{_, schema}]} = Code.eval_quoted(Macro.expand(queryable, __ENV__))
+
+    values =
+      :fields
+      |> schema.__schema__()
+      |> Enum.map(fn f -> {f, quote(do: fragment(unquote("EXCLUDED.#{f}")))} end)
+
+    quote(do: Ecto.Query.update(unquote(queryable), [u], set: [unquote_splicing(values)]))
+  end
+
   # PRODUCTS
   defp import_products(ctx, _dbf, false), do: {:ok, ctx}
 
@@ -208,24 +223,9 @@ defmodule Mgp.Sync.ImportData do
       )
 
     upsert_query =
-      from(
-        p in Product,
-        where: fragment("p0.lmt < EXCLUDED.lmt"),
-        update: [
-          set: [
-            group: fragment("EXCLUDED.group"),
-            description: fragment("EXCLUDED.description"),
-            tax_type: fragment("EXCLUDED.tax_type"),
-            tax_tat: fragment("EXCLUDED.tax_tat"),
-            cash_price: fragment("EXCLUDED.cash_price"),
-            credit_price: fragment("EXCLUDED.credit_price"),
-            trek_price: fragment("EXCLUDED.trek_price"),
-            sub_qty: fragment("EXCLUDED.sub_qty"),
-            spec: fragment("EXCLUDED.spec"),
-            lmt: fragment("EXCLUDED.lmt")
-          ]
-        ]
-      )
+      Product
+      |> where([u], u.lmt < fragment("EXCLUDED.lmt"))
+      |> custom_on_conflict_update_replace_all()
 
     rows = upsert_records(Product, records, upsert_query, :id)
 
@@ -328,19 +328,9 @@ defmodule Mgp.Sync.ImportData do
       )
 
     upsert_query =
-      from(
-        p in Price,
-        where: fragment("p0.lmt < EXCLUDED.lmt"),
-        update: [
-          set: [
-            cash: fragment("EXCLUDED.cash"),
-            credit: fragment("EXCLUDED.credit"),
-            trek: fragment("EXCLUDED.trek"),
-            lmu: fragment("EXCLUDED.lmu"),
-            lmt: fragment("EXCLUDED.lmt")
-          ]
-        ]
-      )
+      Price
+      |> where([u], u.lmt < fragment("EXCLUDED.lmt"))
+      |> custom_on_conflict_update_replace_all()
 
     rows =
       upsert_records(
@@ -395,23 +385,9 @@ defmodule Mgp.Sync.ImportData do
       )
 
     upsert_query =
-      from(
-        s in StockReceipt,
-        where: fragment("s0.lmt < EXCLUDED.lmt"),
-        update: [
-          set: [
-            doc_id: fragment("EXCLUDED.doc_id"),
-            sr_no: fragment("EXCLUDED.sr_no"),
-            date: fragment("EXCLUDED.date"),
-            product_id: fragment("EXCLUDED.product_id"),
-            qty: fragment("EXCLUDED.qty"),
-            batch: fragment("EXCLUDED.batch"),
-            expiry: fragment("EXCLUDED.expiry"),
-            lmu: fragment("EXCLUDED.lmu"),
-            lmt: fragment("EXCLUDED.lmt")
-          ]
-        ]
-      )
+      StockReceipt
+      |> where([u], u.lmt < fragment("EXCLUDED.lmt"))
+      |> custom_on_conflict_update_replace_all()
 
     rows =
       upsert_records(
@@ -502,45 +478,18 @@ defmodule Mgp.Sync.ImportData do
       end)
 
     upsert_query =
-      from(
-        c in Customer,
-        where: fragment("c0.lmt < EXCLUDED.lmt"),
-        update: [
-          set: [
-            region: fragment("EXCLUDED.region"),
-            description: fragment("EXCLUDED.description"),
-            attn: fragment("EXCLUDED.attn"),
-            add1: fragment("EXCLUDED.add1"),
-            add2: fragment("EXCLUDED.add2"),
-            add3: fragment("EXCLUDED.add3"),
-            phone: fragment("EXCLUDED.phone"),
-            is_gov: fragment("EXCLUDED.is_gov"),
-            resp: fragment("EXCLUDED.resp"),
-            email: fragment("EXCLUDED.email"),
-            lmu: fragment("EXCLUDED.lmu"),
-            lmt: fragment("EXCLUDED.lmt")
-          ]
-        ]
-      )
+      Customer
+      |> where([u], u.lmt < fragment("EXCLUDED.lmt"))
+      |> custom_on_conflict_update_replace_all()
 
     rows = upsert_records(Customer, customers, upsert_query, :id)
     IO.inspect(rows)
     ctx = %{ctx | upserted: Map.put(ctx.upserted, :customers, rows)}
 
     upsert_query =
-      from(
-        o in OpBalance,
-        where: fragment("o0.lmt < EXCLUDED.lmt OR o0.op_bal <> EXCLUDED.op_bal"),
-        update: [
-          set: [
-            customer_id: fragment("EXCLUDED.customer_id"),
-            op_bal: fragment("EXCLUDED.op_bal"),
-            year: fragment("EXCLUDED.year"),
-            lmu: fragment("EXCLUDED.lmu"),
-            lmt: fragment("EXCLUDED.lmt")
-          ]
-        ]
-      )
+      OpBalance
+      |> where(fragment("o0.lmt < EXCLUDED.lmt OR o0.op_bal <> EXCLUDED.op_bal"))
+      |> custom_on_conflict_update_replace_all()
 
     rows =
       upsert_records(
@@ -603,29 +552,13 @@ defmodule Mgp.Sync.ImportData do
     # on_conflict update query
     # i.e. alittle special check due to timestamp not updated on cash, credit or chq changes
     upsert_query =
-      from(
-        i in Invoice,
-        where:
-          fragment(
-            "i0.lmt < EXCLUDED.lmt OR i0.cash <> EXCLUDED.cash OR i0.cheque <> EXCLUDED.cheque OR i0.credit <> EXCLUDED.credit"
-          ),
-        update: [
-          set: [
-            customer_id: fragment("EXCLUDED.customer_id"),
-            date: fragment("EXCLUDED.date"),
-            detail1: fragment("EXCLUDED.detail1"),
-            detail2: fragment("EXCLUDED.detail2"),
-            detail3: fragment("EXCLUDED.detail3"),
-            from_stock: fragment("EXCLUDED.from_stock"),
-            cash: fragment("EXCLUDED.cash"),
-            credit: fragment("EXCLUDED.credit"),
-            cheque: fragment("EXCLUDED.cheque"),
-            price_level: fragment("EXCLUDED.price_level"),
-            lmu: fragment("EXCLUDED.lmu"),
-            lmt: fragment("EXCLUDED.lmt")
-          ]
-        ]
+      Invoice
+      |> where(
+        fragment(
+          "i0.lmt < EXCLUDED.lmt OR i0.cash <> EXCLUDED.cash OR i0.cheque <> EXCLUDED.cheque OR i0.credit <> EXCLUDED.credit"
+        )
       )
+      |> custom_on_conflict_update_replace_all()
 
     rows = upsert_records(Invoice, records, upsert_query, :id)
     {:ok, %{ctx | upserted: Map.put(ctx.upserted, :invoices, rows)}}
@@ -719,23 +652,9 @@ defmodule Mgp.Sync.ImportData do
       end)
 
     upsert_query =
-      from(
-        i in InvoiceDetail,
-        where: fragment("i0.lmt < EXCLUDED.lmt"),
-        update: [
-          set: [
-            product_id: fragment("EXCLUDED.product_id"),
-            description: fragment("EXCLUDED.description"),
-            sub_qty: fragment("EXCLUDED.sub_qty"),
-            qty: fragment("EXCLUDED.qty"),
-            rate: fragment("EXCLUDED.rate"),
-            total: fragment("EXCLUDED.total"),
-            tax_rate: fragment("EXCLUDED.tax_rate"),
-            lmu: fragment("EXCLUDED.lmu"),
-            lmt: fragment("EXCLUDED.lmt")
-          ]
-        ]
-      )
+      InvoiceDetail
+      |> where([u], u.lmt < fragment("EXCLUDED.lmt"))
+      |> custom_on_conflict_update_replace_all()
 
     rows =
       upsert_records(
@@ -757,22 +676,9 @@ defmodule Mgp.Sync.ImportData do
     ctx = %{ctx | upserted: Map.put(ctx.upserted, :invoice_details, rows)}
 
     upsert_query =
-      from(
-        s in StockTransfer,
-        where: fragment("s0.lmt < EXCLUDED.lmt"),
-        update: [
-          set: [
-            doc_id: fragment("EXCLUDED.doc_id"),
-            sr_no: fragment("EXCLUDED.sr_no"),
-            product_id: fragment("EXCLUDED.product_id"),
-            qty: fragment("EXCLUDED.qty"),
-            from_stock: fragment("EXCLUDED.from_stock"),
-            to_stock: fragment("EXCLUDED.to_stock"),
-            lmu: fragment("EXCLUDED.lmu"),
-            lmt: fragment("EXCLUDED.lmt")
-          ]
-        ]
-      )
+      StockTransfer
+      |> where([u], u.lmt < fragment("EXCLUDED.lmt"))
+      |> custom_on_conflict_update_replace_all()
 
     rows =
       upsert_records(
@@ -849,20 +755,9 @@ defmodule Mgp.Sync.ImportData do
       )
 
     upsert_query =
-      from(
-        p in Pdc,
-        where: fragment("p0.lmt < EXCLUDED.lmt"),
-        update: [
-          set: [
-            customer_id: fragment("EXCLUDED.customer_id"),
-            date: fragment("EXCLUDED.date"),
-            cheque: fragment("EXCLUDED.cheque"),
-            amount: fragment("EXCLUDED.amount"),
-            lmu: fragment("EXCLUDED.lmu"),
-            lmt: fragment("EXCLUDED.lmt")
-          ]
-        ]
-      )
+      Pdc
+      |> where([u], u.lmt < fragment("EXCLUDED.lmt"))
+      |> custom_on_conflict_update_replace_all()
 
     rows = upsert_records(Pdc, records, upsert_query, :id)
 
@@ -956,20 +851,9 @@ defmodule Mgp.Sync.ImportData do
       )
 
     upsert_query =
-      from(
-        p in Posting,
-        where: fragment("p0.lmt < EXCLUDED.lmt"),
-        update: [
-          set: [
-            customer_id: fragment("EXCLUDED.customer_id"),
-            date: fragment("EXCLUDED.date"),
-            description: fragment("EXCLUDED.description"),
-            amount: fragment("EXCLUDED.amount"),
-            lmu: fragment("EXCLUDED.lmu"),
-            lmt: fragment("EXCLUDED.lmt")
-          ]
-        ]
-      )
+      Posting
+      |> where([u], u.lmt < fragment("EXCLUDED.lmt"))
+      |> custom_on_conflict_update_replace_all()
 
     rows = upsert_records(Posting, records, upsert_query, :id)
 
