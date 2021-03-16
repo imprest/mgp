@@ -37,7 +37,41 @@ window.addEventListener("phx:page-loading-stop", info => NProgress.done())
 liveSocket.connect()
 
 // expose liveSocket on window for web console debug logs and latency simulation:
-// >> liveSocket.enableDebug()
+liveSocket.enableDebug()
 // >> liveSocket.enableLatencySim(1000)  // enabled for duration of browser session
 // >> liveSocket.disableLatencySim()
 window.liveSocket = liveSocket
+
+window.compareValues = function(key, order = "asc") {
+  return function(a, b) {
+    const varA = typeof a[key] === "string" ? a[key].toUpperCase() : a[key];
+    const varB = typeof b[key] === "string" ? b[key].toUpperCase() : b[key];
+
+    let comparison = 0;
+    if (varA > varB) {
+      comparison = 1;
+    } else if (varA < varB) {
+      comparison = -1;
+    }
+
+    return order == "desc" ? comparison * -1 : comparison;
+  };
+}
+
+const nf = new Intl.NumberFormat('en-GB', { minimumFractionDigits: 2 })
+const rf = new Intl.NumberFormat('en-GB', { minimumFractionDigits: 0 })
+const df = new Intl.DateTimeFormat('en-GB')
+
+window.realNumberFormat = function(number) {
+  if (number == null) { return ''; }
+  return rf.format(number);
+}
+
+window.currencyFormat = function(number) {
+  if (number == null) { return ''; }
+  return nf.format(number);
+}
+
+window.dateFormat = function(date) {
+  return df.format(new Date(date)).replace(/\//g, '-');
+}

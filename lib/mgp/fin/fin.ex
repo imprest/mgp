@@ -7,6 +7,22 @@ defmodule Mgp.Fin do
   alias Mgp.Repo
   alias Mgp.Fin.Pdc
 
+  def list_pdcs_to_json() do
+    q = """
+      select coalesce(json_agg(t), '[]'::json)::text
+      from (
+        select p.id, p.date, c.description, p.cheque, p.amount, p.lmt, p.lmu, p.customer_id
+        from pdcs as p, customers as c
+        where p.customer_id = c.id
+        order by date
+      ) t
+    """
+
+    r = Repo.query!(q, [])
+
+    r.rows
+  end
+
   def list_pdcs(
         %{sort_by: sort_by, sort_order: sort_order} \\ %{sort_by: :date, sort_order: :asc}
       ) do

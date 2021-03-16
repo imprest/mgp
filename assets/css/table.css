@@ -1,5 +1,0 @@
-@layer components {
-  .table {
-    @apply border-solid border-1 border-gray-50;
-  }
-}

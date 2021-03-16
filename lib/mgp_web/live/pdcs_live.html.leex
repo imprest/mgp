@@ -1,48 +1,42 @@
-<article class="pb-2">
-  <h1 class="text-right text-lg">
-    Total Post-dated Cheques: &nbsp <span><%= Utils.format_currency(@total) %></span>
-  </h1>
-</article>
-<section class="section full-bleed mx-auto">
-      <table class="table mx-auto w-full">
-        <thead>
-          <tr>
-            <th>
-              <%= sort_link(@socket, "ID", :id, @options) %>
-            </th>
-            <th class="text-center">
-              <%= sort_link(@socket, "Chq Date", :date, @options) %>
-            </th>
-            <th class="text-center">
-              <%= sort_link(@socket, "C_ID", :customer_id, @options)%>
-            </th>
-            <th>
-              <%= sort_link(@socket, "Customer", :description, @options) %>
-            <th>
-              <%= sort_link(@socket, "Chq #", :cheque, @options) %>
-            </th>
-            <th class="text-right px-1">
-              <%= sort_link(@socket, "Amount", :amount, @options) %>
-            </th>
-            <th class="text-center">LMU</th>
-            <th class="text-center">
-              <%= sort_link(@socket, "Timestamp", :lmt, @options) %>
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          <%= for p <- @pdcs do %>
-          <tr>
-            <td class="text-center tabular-nums"><%= p.id %></td>
-            <td class="text-center tabular-nums"><%= Utils.format_date(p.date) %></td>
-            <td class="text-center p-l-5"><%= p.customer_id %></td>
-            <td class="px-1"><%= p.description %></td>
-            <td class="px-1"><%= p.cheque %></td>
-            <td class="text-right px-1 tabular-nums"><%= Utils.format_currency(p.amount) %></td>
-            <td class="text-center"><%= p.lmu %></td>
-            <td class="text-center tabular-nums"><%= p.lmt %></td>
-          </tr>
-          <% end %>
-        </tbody>
-      </table>
-  </section>
+<section class="wrapper"
+  x-data = "{
+    pdcs: <%= @pdcs %>,
+    get total() { return this.pdcs.reduce((i, p) => i + p.amount, 0)},
+    sort: 'asc',
+    sortBy(key) {
+      this.sort = (this.sort == 'asc') ? 'desc' : 'asc'
+      this.pdcs.sort(compareValues(key, this.sort));
+    }
+  }"
+>
+  <h1 class="text-right text-xl pb-2">Total: <span class="font-semibold" x-text="currencyFormat(total)"></h1>
+  <table class="table mx-auto w-full">
+    <thead>
+      <tr>
+        <th class="text-left" @click="sortBy('id')">ID</th>
+        <th @click="sortBy('date')" class="text-center">Chq Date</th>
+        <th class="text-left" @click="sortBy('description')">Customer
+        <th class="text-left">Chq #</th>
+        <th @click="sortBy('amount')" class="text-right">Amount</th>
+        <th>LMU</th>
+        <th @click="sortBy('lmt')" class="text-center">LMT</th>
+      </tr>
+    </thead>
+    <tbody>
+      <template x-for='p in pdcs' :key="p.id">
+      <tr>
+        <td class="tabular-nums"><span x-text="p.id"></span></td>
+        <td class="text-center tabular-nums"><span x-text="dateFormat(p.date)"></span></td>
+        <td class="tabular-nums">
+          <span x-text="p.description"></span><br>
+          <span x-text="p.customer_id" class="text-xs"></span>
+        </td>
+        <td class="tabular-nums"><span x-text="p.cheque"></span></td>
+        <td class="text-right tabular-nums"><span x-text="currencyFormat(p.amount)"></span></td>
+        <td class="tabular-nums"><span x-text="p.lmu"></span></td>
+        <td class="text-center tabular-nums"><span x-text="p.lmt"></span></td>
+      </tr>
+      </template>
+    </tbody>
+  </table>
+</section>

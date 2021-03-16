@@ -4,37 +4,36 @@
 @import "tailwindcss/utilities";
 @import "../node_modules/nprogress/nprogress.css";
 @import "./autocomplete.css";
-@import "./buttons.css";
 @import "./liveview.css";
-
-/* https://www.joshwcomeau.com/css/full-bleed/ */
-.wrapper {
-  display: grid;
-  grid-template-columns: 1fr min(90ch, 100%) 1fr;
-}
-
-.wrapper > * {
-  grid-column: 2;
-}
-
-.full-bleed {
-  width: 100%;
-  grid-column: 1 / 4;
-}
 
 .scroller {
   scrollbar-width: thin;
 }
 
-table {
-  border: 1px solid gray;
-  overflow: auto;
-  th {
-    border: 1px solid gray;
-    padding: 2px;
+@layer components {
+  .wrapper {
+    @apply px-2 max-w-7xl mx-auto
   }
-  td {
-    border: 1px solid gray;
-    padding: 2px;
+
+  .btn {
+    @apply inline-block font-semibold py-2 px-4;
+  }
+
+  .btn-primary {
+    @apply bg-indigo-700 text-white;
+  }
+
+  .table {
+    @apply shadow divide-y divide-gray-200;
+    th {
+      @apply px-2 py-1 font-semibold uppercase align-top text-gray-600 cursor-pointer;
+    }
+    tr:nth-child(odd) {
+      @apply bg-gray-100;
+    }
+    tr { @apply align-top hover:bg-gray-200; }
+    td {
+      @apply px-2 md:py-1;
+    }
   }
 }
