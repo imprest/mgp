@@ -6,11 +6,25 @@
 @import "./autocomplete.css";
 @import "./liveview.css";
 
-.scroller {
-  scrollbar-width: thin;
+@layer base {
+  html {
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    color: rgb(74, 74, 74);
+  }
+
+  main {
+    padding-top: 3rem;
+  }
 }
 
 @layer components {
+  .scroller {
+    scrollbar-width: thin;
+  }
+
   .wrapper {
     @apply px-2 max-w-7xl mx-auto
   }
@@ -24,16 +38,23 @@
   }
 
   .table {
-    @apply shadow divide-y divide-gray-200;
+    @apply text-title divide-y divide-solid divide-gray-300;
     th {
-      @apply px-2 py-1 font-semibold uppercase align-top text-gray-600 cursor-pointer;
+      @apply px-2 py-1 font-semibold align-top cursor-pointer;
     }
-    tr:nth-child(odd) {
-      @apply bg-gray-100;
-    }
-    tr { @apply align-top hover:bg-gray-200; }
-    td {
-      @apply px-2 md:py-1;
+    tbody {
+      tr:nth-child(odd) {
+        @apply bg-highlight;
+      }
+      tr { @apply align-top hover:bg-gray-200}
+      td {
+        @apply px-2 md:py-1 border-b border-gray-300;
+      }
+      tr:last-child {
+        td {
+        @apply border-0
+        }
+      }
     }
   }
 }

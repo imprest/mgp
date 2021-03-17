@@ -9,13 +9,17 @@
     }
   }"
 >
-  <h1 class="text-right text-xl pb-2">Total: <span class="font-semibold" x-text="currencyFormat(total)"></h1>
+  <h1 class="text-right pt-3 pb-4 pr-2">
+    <span class="text-base pr-2 text-subtitle">Pending Pdcs:</span>
+    <span class="font-thin text-2xl text-title" x-text="currencyFormat(total)">
+  </h1>
   <table class="table mx-auto w-full">
     <thead>
       <tr>
         <th class="text-left" @click="sortBy('id')">ID</th>
         <th @click="sortBy('date')" class="text-center">Chq Date</th>
-        <th class="text-left" @click="sortBy('description')">Customer
+        <th class="text-left" @click="sortBy('customer_id')">C_ID</th>
+        <th class="text-left" @click="sortBy('description')">Customer</th>
         <th class="text-left">Chq #</th>
         <th @click="sortBy('amount')" class="text-right">Amount</th>
         <th>LMU</th>
@@ -25,16 +29,16 @@
     <tbody>
       <template x-for='p in pdcs' :key="p.id">
       <tr>
-        <td class="tabular-nums"><span x-text="p.id"></span></td>
-        <td class="text-center tabular-nums"><span x-text="dateFormat(p.date)"></span></td>
-        <td class="tabular-nums">
+        <td><span x-text="p.id"></span></td>
+        <td class="text-center"><span x-text="dateFormat(p.date)"></span></td>
+        <td><span x-text="p.customer_id"></span></td>
+        <td>
           <span x-text="p.description"></span><br>
-          <span x-text="p.customer_id" class="text-xs"></span>
         </td>
-        <td class="tabular-nums"><span x-text="p.cheque"></span></td>
-        <td class="text-right tabular-nums"><span x-text="currencyFormat(p.amount)"></span></td>
-        <td class="tabular-nums"><span x-text="p.lmu"></span></td>
-        <td class="text-center tabular-nums"><span x-text="p.lmt"></span></td>
+        <td><span x-text="p.cheque"></span></td>
+        <td class="text-right"><span x-text="currencyFormat(p.amount)"></span></td>
+        <td class="text-center"><span x-text="p.lmu"></span></td>
+        <td class="text-center"><span x-text="p.lmt.substring(0, 10)"></span></td>
       </tr>
       </template>
     </tbody>

@@ -6,9 +6,9 @@ defmodule MgpWeb.LayoutView do
     IO.inspect(Phoenix.Controller.current_path(conn))
 
     if path == Phoenix.Controller.current_path(conn) do
-      "text-red-700 border-solid border-b-2 border-red-700 px-3 py-2 text-sm font-medium"
+      "text-red-700 px-3 py-3"
     else
-      "px-3 py-2 text-sm font-medium"
+      "px-3 py-3"
     end
   end
 end

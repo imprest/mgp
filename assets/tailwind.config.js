@@ -8,12 +8,19 @@ module.exports = {
   ],
   darkMode: false, // or 'media' or 'class'
   theme: {
-//    fontFamily: {
-//      sans: ['BlinkMacSystemFont', '-apple-system', "Segoe UI", "Roboto",
-//  "Oxygen", "Ubuntu", "Droid Sans", "Fira Sans", "Helvetica Neue", "Helvetica",
-//  "Arial", 'sans-serif'],
-//    },
-    extend: {},
+    fontFamily: {
+      sans: ['Roboto', "Droid Sans", 'ui-sans-serif', 'system-ui', '-apple-system',
+      'BlinkMacSystemFont', "Segoe UI", "Helvetica Neue", 'Arial',
+      "Noto Sans", 'sans-serif', "Apple Color Emoji", "Segoe UI Emoji",
+      "Segoe UI Symbol", "Noto Color Emoji"]
+    },
+    extend: {
+      colors: {
+        highlight: "#fafad2",
+        title: "rgb(54, 54, 54)",
+        subtitle: "rgb(74, 74, 74)"
+      }
+    },
   },
   variants: {
     extend: {},

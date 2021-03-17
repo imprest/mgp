@@ -6,7 +6,7 @@
       return currencyFormat(rate * 1.11);
     }
   }">
-  <table class="table mx-auto">
+  <table class="table w-full mx-auto mt-3">
     <thead>
       <tr>
         <th class="text-left">ID</th>
@@ -16,7 +16,7 @@
         <th class="text-right">C + f10%</th>
         <th class="text-right">Trek</th>
         <th class="text-right">T + f10%</th>
-        <th>LMD</th>
+        <th class="text-center">LMD</th>
       </tr>
     </thead>
     <tbody>
@@ -24,12 +24,12 @@
       <tr>
         <td><span x-text="p.id"></span></td>
         <td class="text-right"><span x-text="p.sub_qty"></span></td>
-        <td class="text-right tabular-nums"><span x-text="currencyFormat(p.cash_price)"></span></td>
-        <td class="text-right tabular-nums"><span x-text="currencyFormat(p.credit_price)"></span></td>
-        <td class="text-right tabular-nums"><span x-text="addTenPercent(p.credit_price)"></span></td>
-        <td class="text-right tabular-nums"><span x-text="currencyFormat(p.trek_price)"></span></td>
-        <td class="text-right tabular-nums"><span x-text="addTenPercent(p.trek_price)"></span></td>
-        <td class="tabular-nums"><span x-text="p.lmt"></span></td>
+        <td class="text-right"><span x-text="currencyFormat(p.cash_price)"></span></td>
+        <td class="text-right"><span x-text="currencyFormat(p.credit_price)"></span></td>
+        <td class="text-right"><span x-text="addTenPercent(p.credit_price)"></span></td>
+        <td class="text-right"><span x-text="currencyFormat(p.trek_price)"></span></td>
+        <td class="text-right"><span x-text="addTenPercent(p.trek_price)"></span></td>
+        <td class="text-center"><span x-text="p.lmd"></span></td>
       </tr>
       </template>
     </tbody>
