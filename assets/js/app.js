@@ -58,7 +58,7 @@ window.compareValues = function(key, order = "asc") {
   };
 }
 
-const nf = new Intl.NumberFormat('en-GB', { minimumFractionDigits: 2 })
+const nf = new Intl.NumberFormat('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 const rf = new Intl.NumberFormat('en-GB', { minimumFractionDigits: 0 })
 const df = new Intl.DateTimeFormat('en-GB')
 
