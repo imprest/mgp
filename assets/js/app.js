@@ -17,6 +17,7 @@ import {Socket} from "phoenix"
 import NProgress from "nprogress"
 import {LiveSocket} from "phoenix_live_view"
 import Alpine from 'alpinejs'
+import hooks from "./hooks"
 
 let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 let liveSocket = new LiveSocket("/live", Socket, {
@@ -26,6 +27,7 @@ let liveSocket = new LiveSocket("/live", Socket, {
       if (from.__x) { Alpine.clone(from.__x, to) }
     }
   },
+  hooks,
   params: {_csrf_token: csrfToken}
 })
 

@@ -19,6 +19,14 @@ module.exports = (env, options) => {
     entry: {
       'app': glob.sync('./vendor/**/*.js').concat(['./js/app.js'])
     },
+    // https://github.com/sveltejs/svelte-loader
+    resolve: {
+      alias: {
+        svelte: path.resolve('node_modules', 'svelte')
+      },
+      extensions: ['.mjs', '.js', '.svelte'],
+      mainFields: ['svelte', 'browser', 'module', 'main']
+    },
     output: {
       filename: '[name].js',
       path: path.resolve(__dirname, '../priv/static/js'),
@@ -33,6 +41,11 @@ module.exports = (env, options) => {
           use: {
             loader: 'babel-loader'
           }
+        },
+        {
+          test: /\.(html|svelte)$/,
+          exclude: /node_modules/,
+          use: 'svelte-loader'
         },
         {
           test: /\.[s]?css$/,
