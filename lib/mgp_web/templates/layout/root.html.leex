@@ -5,26 +5,25 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <%= csrf_meta_tag() %>
-    <%= live_title_tag assigns[:page_title] || "MGP", suffix: "" %>
-    <link rel="icon" href="<%= Routes.static_path(@conn, "/images/mgp.png") %>" />
+    <%= live_title_tag assigns[:page_title] || "Mgp", suffix: " · Phoenix Framework" %>
     <link phx-track-static rel="stylesheet" href="<%= Routes.static_path(@conn, "/css/app.css") %>"/>
     <script defer phx-track-static type="text/javascript" src="<%= Routes.static_path(@conn, "/js/app.js") %>"></script>
   </head>
   <body>
-    <header class="fixed w-full border-gray-300 border-b bg-white">
+    <header class="border-gray-3010 border-b">
       <nav>
-        <div class="max-w-7xl mx-auto pl-4 pr-2">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div class="flex h-full items-center justify-between">
             <div class="flex items-center">
               <div class="flex-shrink-0">
                 <img class="h-8 w-8" src="<%= Routes.static_path(@conn, "/images/mgp.png") %>" alt="MGP Logo"/>
               </div>
               <div class="ml-4 flex items-baseline space-x-4 overflow-x-auto scroller">
-                <a href="#" class="px-3 py-2 font-medium">Dashboard</a>
-                <a href="#" class="px-3 py-2 font-medium">Products</a>
-                <a href="#" class="px-3 py-2 font-medium">Invoices</a>
-                <a href="#" class="px-3 py-2 font-medium">Customers</a>
-                <a href="#" class="px-3 py-2 font-medium">Sales</a>
+                <%= live_redirect "Dashboard", to: Routes.live_path(@conn, MgpWeb.PageLive), class: active_class(@conn, Routes.live_path(@conn, MgpWeb.PageLive)) %>
+                <%= live_redirect "Products", to: Routes.live_path(@conn, MgpWeb.ProductsLive), class: active_class(@conn, Routes.live_path(@conn, MgpWeb.ProductsLive)) %>
+                <a href="#" class="px-3 py-2 text-sm font-medium">Invoices</a>
+                <a href="#" class="px-3 py-2 text-sm font-medium">Customers</a>
+                <a href="#" class="px-3 py-2 text-sm font-medium">Sales</a>
                 <%= live_redirect "Pdcs", to: Routes.live_path(@conn, MgpWeb.PdcsLive), class: active_class(@conn, Routes.live_path(@conn, MgpWeb.PdcsLive)) %>
                 <%= if function_exported?(Routes, :live_dashboard_path, 2) do %>
                 <%= link "LiveDashboard", to: Routes.live_dashboard_path(@conn, :home) %>

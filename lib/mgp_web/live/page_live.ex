@@ -7,6 +7,11 @@ defmodule MgpWeb.PageLive do
   end
 
   @impl true
+  def handle_event("svelte-test", data, socket) do
+    {:noreply, push_event(socket, "svelte", %{svelteID: data["svelteID"], points: 100})}
+  end
+
+  @impl true
   def handle_event("suggest", %{"q" => query}, socket) do
     {:noreply, assign(socket, results: search(query), query: query)}
   end

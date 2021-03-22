@@ -21,6 +21,7 @@ defmodule MgpWeb.Router do
     pipe_through :browser
 
     live "/", PageLive, :index
+    live "/page", PageLive
     live "/customers", CustomersLive
     live "/products", ProductsLive
     live "/pdcs", PdcsLive

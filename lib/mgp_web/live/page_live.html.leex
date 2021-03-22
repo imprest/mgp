@@ -1,7 +1,8 @@
 
-<%= live_component @socket, MgpWeb.SvelteComponent,
+<%# <%= live_component @socket, MgpWeb.SvelteComponent,
   name: "Products", props: %{products: Jason.Fragment.new(Mgp.Sales.products())} %>
-<%= live_component @socket, MgpWeb.SvelteComponent, name: "Template", props: %{name: "Phovelte!"} %>
+<%= live_component @socket, MgpWeb.SvelteComponent, id: "1", name: "Template", props: %{name: "Phovelte!"} %>
+<%= live_component @socket, MgpWeb.SvelteComponent, id: "2", name: "Template", props: %{name: "Phovelte!"} %>
 
 <section class="phx-hero">
   <h1><%= gettext "Welcome to %{name}!", name: "Phoenix" %></h1>

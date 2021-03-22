@@ -1,5 +1,3 @@
-import { SvelteComponent } from 'svelte';
-
 const hooks = {
   'svelte-component': {
     mounted() {
@@ -20,10 +18,13 @@ const hooks = {
         target: this.el,
         props: parsedProps,
       });
+
+      window.svelte_objs.set(this.el.id, this._instance)
     },
 
     destroyed() {
       this._instance?.$destroy();
+      window.svelte_objs.delete(this.el.id)
     }
   },
 }

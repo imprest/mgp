@@ -19,6 +19,12 @@ import {LiveSocket} from "phoenix_live_view"
 import Alpine from 'alpinejs'
 import hooks from "./hooks"
 
+window.svelte_objs = new Map()
+
+window.addEventListener('phx:hook:svelte', (e) => {
+  svelte_objs.get(e.detail.svelteID).serverEvent(e.detail)
+})
+
 let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 let liveSocket = new LiveSocket("/live", Socket, {
   dom: {
@@ -28,7 +34,14 @@ let liveSocket = new LiveSocket("/live", Socket, {
     }
   },
   hooks,
-  params: {_csrf_token: csrfToken}
+  params: {_csrf_token: csrfToken},
+  metadata: {
+    click: (e, el) => {
+      return {
+        svelteID: el.closest('[phx-hook="svelte-component"]').id
+      }
+    }
+  }
 })
 
 // Show progress bar on live navigation and form submits
