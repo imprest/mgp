@@ -14,11 +14,14 @@ const hooks = {
       const props = this.el.getAttribute('data-props');
       const parsedProps = props ? JSON.parse(props) : {};
 
+      console.log("Before init")
+
       this._instance = new requiredApp.default({
         target: this.el,
         props: parsedProps,
       });
 
+      console.log(this._instance)
       window.svelte_objs.set(this.el.id, this._instance)
     },
 

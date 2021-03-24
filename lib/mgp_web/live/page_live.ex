@@ -12,6 +12,15 @@ defmodule MgpWeb.PageLive do
   end
 
   @impl true
+  def handle_event("load_products", data, socket) do
+    {:noreply,
+     push_event(socket, "svelte", %{
+       svelteID: data["svelteID"],
+       products: Jason.Fragment.new(Mgp.Sales.products())
+     })}
+  end
+
+  @impl true
   def handle_event("suggest", %{"q" => query}, socket) do
     {:noreply, assign(socket, results: search(query), query: query)}
   end

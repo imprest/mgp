@@ -7,19 +7,19 @@ defmodule Mgp.Sales.Product do
 
   @primary_key {:id, :string, []}
   schema "products" do
-    field :description, :string
-    field :group, :string
-    field :tax_tat, :string
-    field :tax_type, :string
-    field :cash_price, :decimal
-    field :credit_price, :decimal
-    field :trek_price, :decimal
-    field :sub_qty, :integer
-    field :spec, :string
-    field :lmu, :string
-    field :lmt, :naive_datetime
-    has_many :op_stocks, OpStock
-    has_many :prices, Price
+    field(:description, :string)
+    field(:group, :string)
+    field(:tax_tat, :string)
+    field(:tax_type, :string)
+    field(:cash_price, :decimal)
+    field(:credit_price, :decimal)
+    field(:trek_price, :decimal)
+    field(:sub_qty, :integer)
+    field(:spec, :string)
+    field(:lmu, :string)
+    field(:lmt, :naive_datetime)
+    has_many(:op_stocks, OpStock)
+    has_many(:prices, Price)
   end
 
   @doc false

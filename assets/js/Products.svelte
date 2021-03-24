@@ -2,9 +2,12 @@
   let subQtyView = false;
   export let products = [];
 
-
   function toggleSubQtyView() {
     subQtyView = !subQtyView;
+  }
+
+  export function serverEvent(data) {
+    products = data.products;
   }
 </script>
 
@@ -15,7 +18,7 @@
     <table class="table w-full mx-auto mt-3">
       <thead>
         <tr>
-          <th>ID</th>
+          <th phx-click="load_products">ID</th>
           <th class="text-right" on:click={toggleSubQtyView}>SubQty</th>
           <th class="text-right">Cash</th>
           <th class="text-right">Credit</th>
