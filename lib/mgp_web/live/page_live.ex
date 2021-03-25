@@ -3,27 +3,7 @@ defmodule MgpWeb.PageLive do
 
   @impl true
   def mount(_params, _session, socket) do
-    {:ok, assign(socket, name: "Fed", query: "", results: %{})}
-  end
-
-  @impl true
-  def handle_event("svelte-test", _, socket) do
-    {:noreply, push_event(socket, "svelte", %{svelteID: "svelte-1", points: 100})}
-  end
-
-  @impl true
-  def handle_event("text_clicked", _, socket) do
-    {:noreply, assign(socket, name: "Changed")}
-    # {:noreply, push_event(socket, "text_clicked", %{points: 200})}
-  end
-
-  @impl true
-  def handle_event("load_products", data, socket) do
-    {:noreply,
-     push_event(socket, "svelte", %{
-       svelteID: data["svelteID"],
-       products: Jason.Fragment.new(Mgp.Sales.products())
-     })}
+    {:ok, assign(socket, query: "", results: %{})}
   end
 
   @impl true

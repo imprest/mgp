@@ -22,12 +22,14 @@ const hooks = {
         target: el,
         props: {pushEvent, pushEventTo, handleEvent, ...parsedProps},
       });
-      window.svelte_objs.set(this.el.id, this._instance)
+    },
+
+    updated() {
+      this._instance.$set(JSON.parse(this.el.dataset.svelteProps))
     },
 
     destroyed() {
       this._instance?.$destroy();
-      window.svelte_objs.delete(this.el.id)
     }
   },
 }
