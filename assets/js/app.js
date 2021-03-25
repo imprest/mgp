@@ -22,7 +22,10 @@ import hooks from "./hooks"
 window.svelte_objs = new Map()
 
 window.addEventListener('phx:hook:svelte', (e) => {
-  svelte_objs.get(e.detail.svelteID).serverEvent(e.detail)
+  console.log('my-event-listener')
+  // svelte_objs.get(e.detail.svelteID).serverEvent(e.detail)
+  Object.values(liveSocket.main.viewHooks)
+    .filter(x => x.el.id == e.detail.svelteID)[0]._instance.serverEvent('test')
 })
 
 let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
@@ -35,13 +38,13 @@ let liveSocket = new LiveSocket("/live", Socket, {
   },
   hooks,
   params: {_csrf_token: csrfToken},
-  metadata: {
+  /* metadata: {
     click: (e, el) => {
       return {
         svelteID: el.closest('[phx-hook="svelte-component"]').id
       }
     }
-  }
+  } */
 })
 
 // Show progress bar on live navigation and form submits

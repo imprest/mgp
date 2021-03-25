@@ -5,10 +5,10 @@ defmodule MgpWeb.SvelteComponent do
     ~L"""
     <div
       id="<%= random_id(@name) %>"
-      data-name="<%= @name %>"
-      data-props="<%= json(@props) %>"
+      data-svelte-name="<%= @name %>"
+      data-svelte-props="<%= json(@props) %>"
       phx-update="ignore"
-      phx-hook="svelte-component">
+      phx-hook="LiveSvelte">
     </div>
     """
   end

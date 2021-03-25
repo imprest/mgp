@@ -1,7 +1,7 @@
 const hooks = {
-  'svelte-component': {
+  'LiveSvelte': {
     mounted() {
-      const componentName = this.el.getAttribute('data-name');
+      const componentName = this.el.getAttribute('data-svelte-name');
       if (!componentName) {
         throw new Error('Component name must be provided');
       }
@@ -11,17 +11,17 @@ const hooks = {
         throw new Error(`Unable to find ${componentName} component`);
       }
 
-      const props = this.el.getAttribute('data-props');
+      const { el } = this;
+      const pushEvent = this.pushEvent.bind(this);
+      const pushEventTo = this.pushEventTo && this.pushEventTo.bind(this);
+      const handleEvent = this.handleEvent && this.handleEvent.bind(this);
+      const props = this.el.getAttribute('data-svelte-props');
       const parsedProps = props ? JSON.parse(props) : {};
 
-      console.log("Before init")
-
       this._instance = new requiredApp.default({
-        target: this.el,
-        props: parsedProps,
+        target: el,
+        props: {pushEvent, pushEventTo, handleEvent, ...parsedProps},
       });
-
-      console.log(this._instance)
       window.svelte_objs.set(this.el.id, this._instance)
     },
 

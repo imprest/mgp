@@ -7,8 +7,13 @@ defmodule MgpWeb.PageLive do
   end
 
   @impl true
-  def handle_event("svelte-test", data, socket) do
-    {:noreply, push_event(socket, "svelte", %{svelteID: data["svelteID"], points: 100})}
+  def handle_event("svelte-test", _, socket) do
+    {:noreply, push_event(socket, "svelte", %{svelteID: "svelte-1", points: 100})}
+  end
+
+  @impl true
+  def handle_event("text_clicked", _, socket) do
+    {:noreply, push_event(socket, "text_clicked", %{points: 200})}
   end
 
   @impl true
