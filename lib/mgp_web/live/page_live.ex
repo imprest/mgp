@@ -3,7 +3,7 @@ defmodule MgpWeb.PageLive do
 
   @impl true
   def mount(_params, _session, socket) do
-    {:ok, assign(socket, query: "", results: %{})}
+    {:ok, assign(socket, name: "Fed", query: "", results: %{})}
   end
 
   @impl true
@@ -13,7 +13,8 @@ defmodule MgpWeb.PageLive do
 
   @impl true
   def handle_event("text_clicked", _, socket) do
-    {:noreply, push_event(socket, "text_clicked", %{points: 200})}
+    {:noreply, assign(socket, name: "Changed")}
+    # {:noreply, push_event(socket, "text_clicked", %{points: 200})}
   end
 
   @impl true
