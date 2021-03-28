@@ -135,6 +135,6 @@ defmodule Mgp.Fin do
     """
 
     r = Repo.query!(q, [id, year, date, pdc_id])
-    Jason.decode!(r.rows, keys: :atoms)
+    r.rows
   end
 end

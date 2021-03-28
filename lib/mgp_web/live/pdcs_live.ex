@@ -4,11 +4,6 @@ defmodule MgpWeb.PdcsLive do
   alias Mgp.Fin
 
   @impl true
-  def mount(_params, _session, socket) do
-    {:ok, socket}
-  end
-
-  @impl true
   def render(assigns) do
     ~L'''
     <%= live_svelte_component "Pdcs", %{}, id: "pdcs" %>

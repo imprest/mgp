@@ -64,7 +64,7 @@ defmodule Mgp.Sales do
     Repo.all(q)
   end
 
-  def invoice(id) do
+  def get_invoice(id) do
     q = """
       SELECT row_to_json(invoice)::text
       FROM (

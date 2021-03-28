@@ -18,6 +18,8 @@
   main {
     padding-top: 0rem;
   }
+
+  modal-height { max-height: calc(100vh - 160px) }
 }
 
 @layer components {

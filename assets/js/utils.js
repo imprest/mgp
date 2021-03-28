@@ -32,3 +32,16 @@ export function compareValues(key, order = "asc") {
     return order == "desc" ? comparison * -1 : comparison;
   };
 }
+
+export const fin_years = generate_fin_years()
+
+function generate_fin_years() {
+  const d = new Date()
+  const m = d.getUTCMonth() + 1
+  let y = d.getUTCFullYear()
+  y = m < 10 ? y - 1 : y;
+
+  const years = []
+  for (let i = y; i >= 2016; i--) { years.push(i) }
+  return years
+}

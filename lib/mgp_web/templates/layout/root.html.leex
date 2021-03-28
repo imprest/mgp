@@ -22,7 +22,7 @@
                 <%= live_redirect "Dashboard", to: Routes.live_path(@conn, MgpWeb.PageLive), class: active_class(@conn, Routes.live_path(@conn, MgpWeb.PageLive)) %>
                 <%= live_redirect "Products", to: Routes.live_path(@conn, MgpWeb.ProductsLive), class: active_class(@conn, Routes.live_path(@conn, MgpWeb.ProductsLive)) %>
                 <a href="#" class="px-3 py-2 text-sm font-medium">Invoices</a>
-                <a href="#" class="px-3 py-2 text-sm font-medium">Customers</a>
+                <%= live_redirect "Customers", to: Routes.live_path(@conn, MgpWeb.CustomersLive), class: active_class(@conn, Routes.live_path(@conn, MgpWeb.CustomersLive)) %>
                 <a href="#" class="px-3 py-2 text-sm font-medium">Sales</a>
                 <%= live_redirect "Pdcs", to: Routes.live_path(@conn, MgpWeb.PdcsLive), class: active_class(@conn, Routes.live_path(@conn, MgpWeb.PdcsLive)) %>
                 <%= if function_exported?(Routes, :live_dashboard_path, 2) do %>
