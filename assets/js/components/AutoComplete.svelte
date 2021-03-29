@@ -5,6 +5,7 @@
   export let data  = [];
   export let className   = '';
   export let placeholder = '';
+  export let labelName = '';
 
   const dispatch = createEventDispatcher();
   const select   = () => dispatch('select', data[counter]);
@@ -62,29 +63,30 @@
   }
 </script>
 
-<div class="autocomplete control is-expanded">
-  <div class="control is-expanded">
+<div class="{className}">
+  <div class="flex gap-1 items-center">
+    <label for={id}>{labelName}
+    </label>
     <input
     id={id}
     on:keydown={keyCode}
     bind:value={value}
-    class={className}
+    class="flex-grow"
     type="search"
     placeholder={placeholder}>
   </div>
-  <div class="dropdown-menu"
-  class:is-invisible={isOpen != true}>
-  <div class="dropdown-content" bind:this={div}>
-    {#each data as item, i}
-    <a href="{`#${i}`}"
-      on:click|preventDefault={ () => { counter = i; isOpen=false; select(); } }
-      on:mouseover={ () => counter = i }
-      class="dropdown-item"
-      class:is-hovered="{i == counter}">
-      <slot {item}></slot>
-    </a>
-    {/each}
-  </div>
+  <div class="dropdown-menu" class:is-invisible={isOpen != true}>
+    <div class="dropdown-content" bind:this={div}>
+      {#each data as item, i}
+      <a href="{`#${i}`}"
+        on:click|preventDefault={ () => { counter = i; isOpen=false; select(); } }
+        on:mouseover={ () => counter = i }
+        class="dropdown-item"
+        class:is-hovered="{i == counter}">
+        <slot {item}></slot>
+      </a>
+      {/each}
+    </div>
   </div>
 </div>
 

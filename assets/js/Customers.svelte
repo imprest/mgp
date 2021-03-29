@@ -13,7 +13,10 @@
   let postings = []
   let invoice_id = null
 
+  $: if (text.length >= 2 && text.length <= 12) { pushEvent('get_customers', {query: text}) }
+
   handleEvent('get_postings', (payload) => { postings = payload.postings })
+  handleEvent('get_customers', (payload) => { data = payload.customers })
 
   function handleSelect(o) {
     selected = o.detail
@@ -32,48 +35,32 @@
   }
 </script>
 
-<style>
-th, td { border: none; }
-</style>
-
-<section class="wrapper">
-  <div class="container">
-    <div class="field is-horizontal has-addons">
-      <p class="control">
-        <button class="button is-static">
-        Search Customer
-        </button>
-      </p>
-      <Autocomplete
-        id='customer'
-        placeholder='e.g. 37 Chemists'
-        className='input is-fullwidth'
-        bind:value={text}
-        on:select={handleSelect}
-        data={customers} let:item={item}>
-        <div class="media">
-          <div class="media-content">
-            { item.description }
-            <br>
-            <small>
-              <b>{ item.id }</b>,
-              <b>{ item.region }</b>,
-              <b>{ item.is_gov }</b>
-            </small>
-          </div>
-        </div>
-      </Autocomplete>
-      <div class="control">
-        <div class="select">
-          <select bind:value={year} on:blur="{yearChanged}">
-            {#each fin_years as y}
-              <option>{y}</option>
-            {/each}
-          </select>
+<section class="wrapper flex gap-1 items-center pt-4">
+    <Autocomplete
+      id='customer'
+      labelName='Find Customers: '
+      placeholder='e.g. 37 Chemists'
+      className='flex-grow'
+      bind:value={text}
+      on:select={handleSelect}
+      data={customers} let:item={item}>
+      <div class="flex flex-start p-4">
+        <div class="flex-auto sm:overflow-x-auto">
+          { item.description }
+          <br>
+          <small>
+            <b>{ item.id }</b>,
+            <b>{ item.region }</b>,
+            <b>{ item.is_gov }</b>
+          </small>
         </div>
       </div>
-    </div>
-  </div>
+    </Autocomplete>
+    <select bind:value={year} on:change="{yearChanged}">
+      {#each fin_years as y}
+        <option>{y}</option>
+      {/each}
+    </select>
 </section>
 {#if (postings.id !== undefined)}
 <section class="wrapper">
@@ -105,9 +92,9 @@ th, td { border: none; }
         <td></td>
       </tr>
       <tr class="border-b border-gray-700" style="background-color: white;">
-        <th>ID</th>
+        <th class="text-left">ID</th>
         <th>Date</th>
-        <th>Description</th>
+        <th class="text-left">Description</th>
         <th class="text-right">Debit</th>
         <th class="text-right">Credit</th>
         <th class="text-right">Balance</th>
@@ -121,7 +108,7 @@ th, td { border: none; }
             { t.id.substring(9, t.id.length) }
             {/if}
         </td>
-        <td>{ dateFmt(t.date) }</td>
+        <td class="text-center">{ dateFmt(t.date) }</td>
         <td>
           {#if t.description.startsWith('M ') || t.description.startsWith('C ')}
           <a on:click="{() => fetchInvoice(t.description)}" href="#{t.description}">

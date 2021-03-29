@@ -19,7 +19,7 @@ defmodule MgpWeb.CustomersLive do
       |> Sales.get_customers()
       |> Enum.map(fn x -> Map.take(x, [:id, :description, :region, :is_gov, :resp]) end)
 
-    {:noreply, push_event(socket, "get_pdcs", %{pdcs: %{customers: customers}})}
+    {:noreply, push_event(socket, "get_customers", %{customers: customers})}
   end
 
   @impl true
