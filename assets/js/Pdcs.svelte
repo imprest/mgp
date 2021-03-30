@@ -23,8 +23,8 @@
 
 <section class="wrapper">
   <h1 class="text-right pt-3 pb-4 pr-2">
-    <span class="text-base pr-2 text-subtitle">Pending Pdcs:</span>
-    <span class="font-thin text-2xl text-title"> { moneyFmt(total) }</span>
+    <span class="subtitle pr-2">Pending Pdcs:</span>
+    <span class="title font-thin"> { moneyFmt(total) }</span>
   </h1>
   <table class="table mx-auto w-full">
     <thead>

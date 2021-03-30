@@ -3,7 +3,7 @@
 @import "tailwindcss/components";
 @import "tailwindcss/utilities";
 @import "../node_modules/nprogress/nprogress.css";
-@import "./autocomplete.css";
+/* @import "./autocomplete.css"; */
 @import "./liveview.css";
 
 @layer base {
@@ -37,6 +37,18 @@
 
   .btn-primary {
     @apply bg-indigo-700 text-white;
+  }
+
+  .title { @apply text-2xl text-title }
+
+  .subtitle { @apply text-base text-subtitle }
+
+  .tags {
+    @apply items-center flex flex-wrap justify-start gap-1 text-xs
+  }
+
+  .tag {
+    @apply mb-2 text-white bg-blue-400 py-1 px-2 rounded shadow-sm font-semibold
   }
 
   .table {

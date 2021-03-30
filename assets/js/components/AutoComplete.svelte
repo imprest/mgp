@@ -63,10 +63,9 @@
   }
 </script>
 
-<div class="{className}">
-  <div class="flex gap-1 items-center">
-    <label for={id}>{labelName}
-    </label>
+<div class="flex flex-grow items-center gap-1">
+  <label for={id}>{labelName}</label>
+  <div class="relative flex flex-grow">
     <input
     id={id}
     on:keydown={keyCode}
@@ -74,54 +73,24 @@
     class="flex-grow"
     type="search"
     placeholder={placeholder}>
-  </div>
-  <div class="dropdown-menu" class:is-invisible={isOpen != true}>
-    <div class="dropdown-content" bind:this={div}>
-      {#each data as item, i}
-      <a href="{`#${i}`}"
-        on:click|preventDefault={ () => { counter = i; isOpen=false; select(); } }
-        on:mouseover={ () => counter = i }
-        class="dropdown-item"
-        class:is-hovered="{i == counter}">
-        <slot {item}></slot>
-      </a>
-      {/each}
+    <div class="block min-w-full max-w-full left-0 top-full pt-px absolute z-20"
+      class:hidden={isOpen != true}>
+      <div class="overflow-auto max-h-52 bg-white border-r-2 shadow-md" bind:this={div}>
+        {#each data as item, i}
+        <a href="{`#${i}`}"
+          on:click|preventDefault={ () => { counter = i; isOpen=false; select(); } }
+          on:mouseover={ () => counter = i }
+          class="dropdown-item whitespace-nowrap overflow-hidden overflow-ellipsis text-gray-700 block relative"
+          class:is-hovered="{i == counter}">
+          <slot {item}></slot>
+        </a>
+        {/each}
+      </div>
     </div>
   </div>
 </div>
 
 
 <style>
-.dropdown-menu {
-  display: block;
-  min-width: 100%;
-  max-width: 100%;
-  left: 0;
-  top: 100%;
-  padding-top: 4px;
-  position: absolute;
-  z-index: 20;
-}
-.dropdown-content {
-  overflow: auto;
-  max-height: 200px;
-  background-color: #fff;
-  border-radius: 4px;
-  box-shadow: 0 2px 3px hsla(0,0%,4%,.1),0 0 0 1px hsla(0,0%,4%,.1);
-}
-.dropdown-item {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  color: #4a4a4a;
-  display: block;
-  font-size: .875rem;
-  line-height: 1.5;
-  padding: .375rem 1rem;
-  position: relative;
-}
-.dropdown-item.is-hovered {
-  background: #f5f5f5;
-  color: #0a0a0a;
-}
+.is-hovered { background: #f5f5f5; color: #0a0a0a; }
 </style>

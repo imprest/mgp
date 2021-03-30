@@ -10,13 +10,13 @@
   let selected = null
   let total = 0
   let isModalOpen = false
-  let postings = []
+  let customers, postings = []
   let invoice_id = null
 
   $: if (text.length >= 2 && text.length <= 12) { pushEvent('get_customers', {query: text}) }
 
   handleEvent('get_postings', (payload) => { postings = payload.postings })
-  handleEvent('get_customers', (payload) => { data = payload.customers })
+  handleEvent('get_customers', (payload) => { customers = payload.customers })
 
   function handleSelect(o) {
     selected = o.detail
@@ -25,7 +25,7 @@
   }
 
   function yearChanged() {
-    pushEvent('get_postings', {id: 'POKU', year: year})
+    if (selected) pushEvent('get_postings', {id: selected.id, year: year})
   }
 
   function fetchInvoice(id) {
@@ -40,7 +40,6 @@
       id='customer'
       labelName='Find Customers: '
       placeholder='e.g. 37 Chemists'
-      className='flex-grow'
       bind:value={text}
       on:select={handleSelect}
       data={customers} let:item={item}>
@@ -64,7 +63,7 @@
 </section>
 {#if (postings.id !== undefined)}
 <section class="wrapper">
-  <h1 class="title has-small-margin-bottom">{postings.description}</h1>
+  <h1 class="title">{postings.description}</h1>
   <div class="tags">
     <span class="tag">{postings.id}</span>
     <span class="tag">{postings.region}</span>
@@ -83,7 +82,7 @@
           { moneyFmt(postings.op_bal) }
         </th>
       </tr>
-      <tr>
+      <tr class="border-b border-gray-700">
         <td></td>
         <td></td>
         <td></td>
