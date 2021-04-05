@@ -25,6 +25,7 @@ defmodule MgpWeb.Router do
     live "/customers", CustomersLive
     live "/products", ProductsLive
     live "/pdcs", PdcsLive
+    live "/payroll", PayrollLive
   end
 
   # Other scopes may use custom stacks.

@@ -3,7 +3,7 @@
   export let id    = '';
   export let value = '';
   export let data  = [];
-  export let className   = '';
+  export const className   = '';
   export let placeholder = '';
   export let labelName = '';
 

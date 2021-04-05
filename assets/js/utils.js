@@ -2,6 +2,13 @@ const nf = new Intl.NumberFormat('en-GB', { minimumFractionDigits: 2, maximumFra
 const rf = new Intl.NumberFormat('en-GB', { minimumFractionDigits: 0 })
 const df = new Intl.DateTimeFormat('en-GB')
 
+export const MONTHS = [1,2,3,4,5,6,7,8,9,10,11,12]
+export const BASE_YEAR = 2016
+export const CUR_YEARS = genCurYears()
+export const FIN_YEARS = genFinYears()
+export const CUR_YEAR  = CUR_YEARS[0]
+export const CUR_MONTH = new Date().getMonth() + 1
+
 export function realNumFmt(number) {
   if (number == null) { return ''; }
   return rf.format(number);
@@ -15,7 +22,6 @@ export function moneyFmt(number) {
 export function dateFmt(date) {
   return df.format(new Date(date)).replaceAll('/', '-');
 }
-
 
 export function compareValues(key, order = "asc") {
   return function(a, b) {
@@ -33,15 +39,22 @@ export function compareValues(key, order = "asc") {
   };
 }
 
-export const fin_years = generate_fin_years()
-
-function generate_fin_years() {
+function genFinYears() {
   const d = new Date()
   const m = d.getUTCMonth() + 1
   let y = d.getUTCFullYear()
   y = m < 10 ? y - 1 : y;
 
   const years = []
-  for (let i = y; i >= 2016; i--) { years.push(i) }
+  for (let i = y; i >= BASE_YEAR; i--) { years.push(i) }
+  return years
+}
+
+function genCurYears() {
+  const d = new Date();
+  let y = d.getUTCFullYear();
+
+  const years = [];
+  for (let i = y; i >= BASE_YEAR; i--) { years.push(i) }
   return years
 }

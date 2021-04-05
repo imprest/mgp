@@ -1,12 +1,12 @@
 <script>
-  import { moneyFmt, dateFmt, fin_years } from './utils.js'
+  import { moneyFmt, dateFmt, FIN_YEARS } from './utils.js'
   import Autocomplete from './components/AutoComplete.svelte'
   import Invoice from './components/Invoice.svelte'
   import Modal from './components/Modal.svelte'
 
   export let handleEvent, pushEvent;
   let text = ''
-  let year = 2020
+  let year = FIN_YEARS[0]
   let selected = null
   let total = 0
   let isModalOpen = false
@@ -55,8 +55,8 @@
         </div>
       </div>
     </Autocomplete>
-    <select bind:value={year} on:change="{yearChanged}">
-      {#each fin_years as y}
+    <select bind:value={year} on:blur="{yearChanged}">
+      {#each FIN_YEARS as y}
         <option>{y}</option>
       {/each}
     </select>
