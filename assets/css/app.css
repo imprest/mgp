@@ -15,11 +15,23 @@
     color: rgb(74, 74, 74);
   }
 
-  main {
-    padding-top: 0rem;
+  .shell {
+    display: grid;
+    grid-template-rows: auto 1fr;
+    height: 100vh;
   }
 
-  modal-height { max-height: calc(100vh - 160px) }
+  .nav { display: grid; grid-template-columns: auto 1fr auto; }
+
+  iframe { display: none; }
+
+  main { @apply py-2 }
+
+  .max-w-98vw { max-width: 98vw; }
+  .max-h-75vh { max-height: 75vh; }
+  .max-h-resp { max-height: calc(100vh - 18vh) }
+
+  .modal-height { max-height: calc(100vh - 160px) }
 }
 
 @layer components {
@@ -57,17 +69,11 @@
       @apply px-2 py-1 font-semibold align-top cursor-pointer;
     }
     tbody {
-      tr:nth-child(odd) {
-        @apply bg-highlight;
-      }
+      tr:nth-child(odd) { @apply bg-highlight; }
       tr { @apply align-top hover:bg-gray-200}
-      td {
-        @apply px-2 md:py-1 border-b border-gray-300;
-      }
+      td { @apply px-2 md:py-1 border-b border-gray-300; }
       tr:last-child {
-        td {
-        @apply border-0
-        }
+        td { @apply border-0 }
       }
     }
   }

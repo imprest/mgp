@@ -1,5 +1,6 @@
-<section class="wrapper">
-    <table class="table w-full">
+<section class="wrapper max-w-full">
+  <div class="max-w-98vw max-h-resp overflow-x-auto">
+    <table class="table">
       <thead>
         <tr>
           <th class="text-center"><span class="cell">ID</span></th>
@@ -30,8 +31,8 @@
       <tbody>
         {#each payroll as p, i }
           <tr class="{ p.net_pay != p.total_pay ? 'has-background-warning' : ''}">
-            <td class="text-center"><span class="{ i % 2 == 0 ? 'cell' : 'cell-odd'}">{ p.id }</span></td>
-            <td><span class="{ i % 2 == 0 ? 'cell' : 'cell-odd'}">{ p.name }</span></td>
+            <td class="text-center"><span class="{ i % 2 == 0 ? 'cell-odd' : 'cell'}">{ p.id }</span></td>
+            <td><span class="{ i % 2 == 0 ? 'cell-odd' : 'cell'}">{ p.name }</span></td>
             <td class="text-center">{ moneyFmt(p.days_worked       ) }</td>
             <td class="text-right"> { moneyFmt(p.base_salary       ) }</td>
             <td class="text-right"> { moneyFmt(p.earned_salary     ) }</td>
@@ -84,6 +85,7 @@
         </tr>
       </tfoot>
     </table>
+  </div>
 </section>
 
 <script>
@@ -139,32 +141,28 @@
 </script>
 
 <style>
-div.container {
-  height: 85vh;
-  overflow: auto;
-}
-table.table.is-fullwidth {
-  overflow: auto;
-}
 thead tr th {
   position: sticky;
   top: 0;
   padding: 0;
+  z-index: 1;
 }
+thead th:first-child { position: sticky; left:0; z-index:3;}
+thead th:nth-child(2) { position: sticky; left:8px; z-index:2;}
+
 tfoot tr th {
   position: sticky;
   bottom: 0;
   background-color: white;
+  z-index: 1;
 }
 tbody tr td:first-child {
   position: sticky;
   left: 0;
-  top: 3em;
 }
 tbody tr td:nth-child(2) {
   position: sticky;
   left: 60px;
-  top: 3em;
   padding: 0;
 }
 .cell {

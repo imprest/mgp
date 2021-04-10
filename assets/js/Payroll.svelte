@@ -1,53 +1,27 @@
 <section class="wrapper">
-  <div class="container">
-    <div class="columns">
-      <div class="column">
-        <div class="field is-horizontal has-addons is-pulled-left">
-          <p class="control">
-            <button class="button is-static">
-              View
-            </button>
-          </p>
-          <div class="control">
-            <div class="select">
-              <select bind:value={view}>
-                {#each views as v}
-                  <option>{v}</option>
-                {/each}
-              </select>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="column">
-        <div class="field is-horizontal has-addons is-pulled-right">
-          <p class="control">
-            <button class="button is-static">
-              Month | Year
-            </button>
-          </p>
-          <div class="control">
-            <div class="select">
-              <select bind:value={month} on:change="{monthChanged}">
-                {#each MONTHS as m}
-                  <option>{m}</option>
-                {/each}
-              </select>
-            </div>
-          </div>
-          <div class="control">
-            <div class="select">
-              <select bind:value={year} on:change="{yearChanged}">
-                {#each CUR_YEARS as y}
-                  <option>{y}</option>
-                {/each}
-              </select>
-            </div>
-          </div>
-        </div>
-      </div>
+  <div class="flex flex-col sm:flex-row pb-2 space-y-2 items-baseline">
+    <div class="flex-grow">
+      <label for="view">View</label>
+      <select id="view" bind:value={view}>
+        {#each views as v}
+          <option>{v}</option>
+        {/each}
+      </select>
     </div>
-  </div>
+    <div>
+      <label for="month">Month</label>
+      <select id="month" bind:value={month} on:blur="{monthChanged}">
+        {#each MONTHS as m}
+          <option>{m}</option>
+        {/each}
+      </select>
+      <label class="pl-2" for="year">Year</label>
+      <select id="year" bind:value={year} on:blur="{yearChanged}">
+        {#each CUR_YEARS as y}
+          <option>{y}</option>
+        {/each}
+      </select>
+    </div>
 </section>
 
 {#if payroll.length > 0 }

@@ -9,33 +9,33 @@
     <link phx-track-static rel="stylesheet" href="<%= Routes.static_path(@conn, "/css/app.css") %>"/>
     <script defer phx-track-static type="text/javascript" src="<%= Routes.static_path(@conn, "/js/app.js") %>"></script>
   </head>
-  <body>
+  <body class="shell">
     <header class="border-gray-3010 border-b">
       <nav>
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div class="flex h-full items-center justify-between">
-            <div class="flex items-center">
-              <div class="flex-shrink-0">
-                <img class="h-8 w-8" src="<%= Routes.static_path(@conn, "/images/mgp.png") %>" alt="MGP Logo"/>
-              </div>
-              <div class="ml-4 flex items-baseline space-x-4 overflow-x-auto scroller">
-                <%= live_redirect "Dashboard", to: Routes.live_path(@conn, MgpWeb.PageLive), class: active_class(@conn, Routes.live_path(@conn, MgpWeb.PageLive)) %>
-                <%= live_redirect "Products", to: Routes.live_path(@conn, MgpWeb.ProductsLive), class: active_class(@conn, Routes.live_path(@conn, MgpWeb.ProductsLive)) %>
-                <a href="#" class="px-3 py-2 text-sm font-medium">Invoices</a>
-                <%= live_redirect "Customers", to: Routes.live_path(@conn, MgpWeb.CustomersLive), class: active_class(@conn, Routes.live_path(@conn, MgpWeb.CustomersLive)) %>
-                <a href="#" class="px-3 py-2 text-sm font-medium">Sales</a>
-                <%= live_redirect "Pdcs", to: Routes.live_path(@conn, MgpWeb.PdcsLive), class: active_class(@conn, Routes.live_path(@conn, MgpWeb.PdcsLive)) %>
-                <%= live_redirect "Payroll", to: Routes.live_path(@conn, MgpWeb.PayrollLive), class: active_class(@conn, Routes.live_path(@conn, MgpWeb.PayrollLive)) %>
-                <%= if function_exported?(Routes, :live_dashboard_path, 2) do %>
-                <%= link "LiveDashboard", to: Routes.live_dashboard_path(@conn, :home) %>
-                <% end %>
-              </div>
+        <div class="max-w-7xl mx-auto px-4 sm:px-2 lg:px-4">
+          <div class="nav items-center">
+            <div>
+              <img class="h-8 w-8" src="<%= Routes.static_path(@conn, "/images/mgp.png") %>" alt="MGP Logo"/>
+            </div>
+            <div class="ml-4 min-w-0 flex items-baseline space-x-1 overflow-y-hidden overflow-x-auto scroller">
+              <%= live_redirect "Dashboard", to: Routes.live_path(@conn, MgpWeb.PageLive), class: active_class(@conn, Routes.live_path(@conn, MgpWeb.PageLive)) %>
+              <%= live_redirect "Products", to: Routes.live_path(@conn, MgpWeb.ProductsLive), class: active_class(@conn, Routes.live_path(@conn, MgpWeb.ProductsLive)) %>
+              <%= live_redirect "Invoices", to: Routes.live_path(@conn, MgpWeb.InvoicesLive), class: active_class(@conn, Routes.live_path(@conn, MgpWeb.InvoicesLive)) %>
+              <%= live_redirect "Customers", to: Routes.live_path(@conn, MgpWeb.CustomersLive), class: active_class(@conn, Routes.live_path(@conn, MgpWeb.CustomersLive)) %>
+              <a href="#" class="px-3 py-2 text-sm font-medium">Sales</a>
+              <%= live_redirect "Pdcs", to: Routes.live_path(@conn, MgpWeb.PdcsLive), class: active_class(@conn, Routes.live_path(@conn, MgpWeb.PdcsLive)) %>
+              <%= live_redirect "Payroll", to: Routes.live_path(@conn, MgpWeb.PayrollLive), class: active_class(@conn, Routes.live_path(@conn, MgpWeb.PayrollLive)) %>
+              <%= if function_exported?(Routes, :live_dashboard_path, 2) do %>
+              <%= link "LiveDashboard", to: Routes.live_dashboard_path(@conn, :home) %>
+              <% end %>
             </div>
             <%= render "_user_menu.html", assigns %>
           </div>
         </div>
       </nav>
     </header>
+    <div class="overflow-y-auto">
     <%= @inner_content %>
+    </div>
   </body>
 </html>

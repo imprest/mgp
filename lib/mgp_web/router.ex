@@ -24,6 +24,7 @@ defmodule MgpWeb.Router do
     live "/page", PageLive
     live "/customers", CustomersLive
     live "/products", ProductsLive
+    live "/invoices", InvoicesLive
     live "/pdcs", PdcsLive
     live "/payroll", PayrollLive
   end
