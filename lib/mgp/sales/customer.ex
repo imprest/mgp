@@ -4,9 +4,9 @@ defmodule Mgp.Sales.Customer do
   import Ecto.Changeset
   alias Mgp.Sales.Customer
   alias Mgp.Sales.Invoice
-  alias Mgp.Accounts.OpBalance
-  alias Mgp.Accounts.Posting
-  alias Mgp.Accounts.Pdc
+  alias Mgp.Fin.OpBalance
+  alias Mgp.Fin.Posting
+  alias Mgp.Fin.Pdc
 
   @primary_key {:id, :string, []}
   schema "customers" do

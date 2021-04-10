@@ -1,7 +1,6 @@
 defmodule MgpWeb.InvoicesLive do
   use MgpWeb, :live_view
 
-  alias Mgp.Fin
   alias Mgp.Sales
   alias Jason.Fragment
 
