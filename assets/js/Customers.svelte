@@ -35,7 +35,7 @@
   }
 </script>
 
-<section class="wrapper flex gap-1 items-center pt-4">
+<section class="wrapper flex gap-1 items-center">
     <Autocomplete
       id='customer'
       labelName='Find Customers: '

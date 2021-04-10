@@ -1,11 +1,12 @@
 <script>
   import { onMount } from 'svelte';
   import { dateFmt, moneyFmt, compareValues } from './utils.js';
+  import SortArrow from './components/SortArrow.svelte';
 
   export let handleEvent, pushEvent
   export let pdcs = []
   let sort = 'asc'
-  let key = 'id'
+  let key = 'date'
   let total = 0
 
   onMount(() => { pushEvent('get_pdcs') })
@@ -14,29 +15,29 @@
     total = pdcs.reduce((i, p) => i + p.amount, 0)
   })
 
-  function sortBy(key) {
+  function sortBy(k) {
+    key = k
     sort = (sort == 'asc') ? 'desc' : 'asc'
     pdcs = pdcs.sort(compareValues(key, sort));
   }
-
 </script>
 
 <section class="wrapper">
-  <h1 class="text-right pt-3 pb-4 pr-2">
+  <h1 class="text-right pb-4 pr-2">
     <span class="subtitle pr-2">Pending Pdcs:</span>
     <span class="title font-thin"> { moneyFmt(total) }</span>
   </h1>
   <table class="table mx-auto w-full">
     <thead>
       <tr>
-        <th class="text-left" on:click={() => sortBy('id')}>ID</th>
-        <th class="text-center" on:click={() => sortBy('date')}>Chq Date</th>
-        <th class="text-left" on:click={() => sortBy('customer_id')}>C_ID</th>
-        <th class="text-left" on:click={() => sortBy('description')}>Customer</th>
+        <th class="text-left" on:click={() => sortBy('id')}>ID{#if (key === 'id')}<SortArrow { sort } />{/if}</th>
+        <th class="text-center" on:click={() => sortBy('date')}>Chq Date{#if (key === 'date')}<SortArrow {sort} />{/if}</th>
+        <th class="text-left" on:click={() => sortBy('customer_id')}>C_ID{#if (key === 'customer_id')}<SortArrow { sort } />{/if}</th>
+        <th class="text-left" on:click={() => sortBy('description')}>Customer{#if (key === 'description')}<SortArrow { sort } />{/if}</th>
         <th class="text-left">Chq #</th>
-        <th class="text-right" on:click={() => sortBy('amount')}>Amount</th>
+        <th class="text-right" on:click={() => sortBy('amount')}>Amount{#if (key === 'amount')}<SortArrow { sort } />{/if}</th>
         <th>LMU</th>
-        <th class="text-center" on:click={() => sortBy('lmt')}>LMT</th>
+        <th class="text-center" on:click={() => sortBy('lmt')}>LMT{#if (key === 'lmt')}<SortArrow { sort } />{/if}</th>
       </tr>
     </thead>
     <tbody>

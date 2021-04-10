@@ -44,7 +44,7 @@
   let payroll = []
   export let pushEvent, handleEvent
 
-  onMount(() => { getMonthlyPayroll(2020, 12) })
+  onMount(() => { getMonthlyPayroll(CUR_YEAR, CUR_MONTH) })
   handleEvent('get_monthly_payroll', (p) => payroll = p.payroll)
 
   function yearChanged() {
