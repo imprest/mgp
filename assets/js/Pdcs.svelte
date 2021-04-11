@@ -27,7 +27,7 @@
     <span class="subtitle pr-2">Pending Pdcs:</span>
     <span class="title font-thin"> { moneyFmt(total) }</span>
   </h1>
-  <table class="table mx-auto w-full">
+  <table class="table w-full">
     <thead>
       <tr>
         <th class="text-left" on:click={() => sortBy('id')}>ID{#if (key === 'id')}<SortArrow { sort } />{/if}</th>

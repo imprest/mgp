@@ -69,7 +69,7 @@
       @apply px-2 py-1 font-semibold align-top cursor-pointer;
     }
     tbody {
-      tr:nth-child(odd) { @apply bg-highlight; }
+      tr:nth-child(even) { @apply bg-highlight; }
       tr { @apply align-top hover:bg-gray-200}
       td { @apply px-2 md:py-1 border-b border-gray-300; }
       tr:last-child {

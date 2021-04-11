@@ -15,7 +15,7 @@
 </script>
 
 <section class="wrapper">
-    <table class="table w-full mx-auto">
+    <table class="table w-full">
       <thead>
         <tr>
           <th>ID</th>

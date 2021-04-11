@@ -31,8 +31,8 @@
       <tbody>
         {#each payroll as p, i }
           <tr class="{ p.net_pay != p.total_pay ? 'has-background-warning' : ''}">
-            <td class="text-center"><span class="{ i % 2 == 0 ? 'cell-odd' : 'cell'}">{ p.id }</span></td>
-            <td><span class="{ i % 2 == 0 ? 'cell-odd' : 'cell'}">{ p.name }</span></td>
+            <td class="text-center"><span class="{ i % 2 == 0 ? 'cell' : 'cell-odd'}">{ p.id }</span></td>
+            <td><span class="{ i % 2 == 0 ? 'cell' : 'cell-odd'}">{ p.name }</span></td>
             <td class="text-center">{ moneyFmt(p.days_worked       ) }</td>
             <td class="text-right"> { moneyFmt(p.base_salary       ) }</td>
             <td class="text-right"> { moneyFmt(p.earned_salary     ) }</td>

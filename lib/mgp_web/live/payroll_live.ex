@@ -10,8 +10,6 @@ defmodule MgpWeb.PayrollLive do
 
   @impl true
   def handle_event("get_monthly_payroll", %{"month" => month}, socket) do
-    IO.inspect(month)
-
     {:noreply,
      push_event(socket, "get_monthly_payroll", %{
        payroll: Mgp.Sync.ImportPayroll.import_month(month)
