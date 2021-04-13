@@ -32,6 +32,9 @@
   .max-h-resp { max-height: calc(100vh - 18vh) }
 
   .modal-height { max-height: calc(100vh - 160px) }
+
+  select { @apply py-1 pr-10 pl-2 }
+  input[type="search"] { @apply py-1 }
 }
 
 @layer components {
@@ -56,11 +59,11 @@
   .subtitle { @apply text-base text-subtitle }
 
   .tags {
-    @apply items-center flex flex-wrap justify-start gap-1 text-xs
+    @apply items-center flex flex-wrap justify-start gap-2 text-xs
   }
 
   .tag {
-    @apply mb-2 text-white bg-blue-400 py-1 px-2 rounded shadow-sm font-semibold
+    @apply mb-2 text-gray-600 bg-gray-100 py-1 px-2 rounded shadow-sm
   }
 
   .table {

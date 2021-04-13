@@ -141,6 +141,8 @@
 </script>
 
 <style>
+.has-background-warning { background-color: red;}
+
 thead tr th {
   position: sticky;
   top: 0;

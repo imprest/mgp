@@ -62,34 +62,20 @@
     </select>
 </section>
 {#if (postings.id !== undefined)}
-<section class="wrapper">
-  <h1 class="title">{postings.description}</h1>
+<section class="wrapper pt-2">
+  <h1 class="title text-3xl">{postings.description}</h1>
   <div class="tags">
     <span class="tag">{postings.id}</span>
     <span class="tag">{postings.region}</span>
     <span class="tag">{postings.is_gov}</span>
     <span class="tag">{postings.resp}</span>
   </div>
+  <h1 class="text-right pb-3 pr-2">
+    <span class="subtitle pr-2">Opening Bal:</span>
+    <span class="title text-lg font-semibold"> { moneyFmt(postings.op_bal) }</span>
+  </h1>
   <table class="table w-full">
-    <tbody>
-      <tr style="background-color: white;">
-        <th></th>
-        <th></th>
-        <th></th>
-        <th></th>
-        <th class="text-right">Opening Bal:</th>
-        <th class="text-right">
-          { moneyFmt(postings.op_bal) }
-        </th>
-      </tr>
-      <tr class="border-b border-gray-700">
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-      </tr>
+    <thead>
       <tr class="border-b border-gray-700" style="background-color: white;">
         <th class="text-left">ID</th>
         <th>Date</th>
@@ -98,6 +84,8 @@
         <th class="text-right">Credit</th>
         <th class="text-right">Balance</th>
       </tr>
+    </thead>
+    <tbody>
       {#each postings.postings as t (t.id)}
       <tr>
         <td>
