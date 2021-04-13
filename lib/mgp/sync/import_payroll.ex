@@ -50,6 +50,7 @@ defmodule Mgp.Sync.ImportPayroll do
   defp parse_and_calculate_monthly_payroll(dbf_file, month, employees) do
     tax_year =
       cond do
+        month > "1912M" -> 2020
         month > "1812M" -> 2019
         month <= "1812M" -> 2018
       end
@@ -124,19 +125,36 @@ defmodule Mgp.Sync.ImportPayroll do
     earned_salary =
       Decimal.round(Decimal.mult(emp.base_salary, Decimal.div(emp.days_worked, 27)), 2)
 
-    ssnit_amount = Decimal.round(Decimal.mult(Decimal.div(emp.ssnit_ded, 100), earned_salary), 2)
+    ssnit_amount =
+      if emp.id === "E0053" do
+        if tax_year < 2020 do
+          Decimal.round(Decimal.mult(Decimal.div(emp.ssnit_ded, 100), earned_salary), 2)
+        else
+          Decimal.new(0)
+        end
+      else
+        Decimal.round(Decimal.mult(Decimal.div(emp.ssnit_ded, 100), earned_salary), 2)
+      end
 
     {ssnit_emp_contrib, ssnit_total, ssnit_tier_1, ssnit_tier_2} =
       case emp.id === "E0053" do
         true ->
-          # 12.5 div 5
-          ssnit_emp_contrib =
-            Decimal.round(Decimal.mult(Decimal.from_float(2.5), ssnit_amount), 2)
+          if tax_year < 2020 do
+            # 12.5 div 5
+            ssnit_emp_contrib =
+              Decimal.round(Decimal.mult(Decimal.from_float(2.5), ssnit_amount), 2)
 
-          ssnit_total = Decimal.add(ssnit_amount, ssnit_emp_contrib)
-          ssnit_tier_1 = ssnit_total
-          ssnit_tier_2 = Decimal.new(0)
-          {ssnit_emp_contrib, ssnit_total, ssnit_tier_1, ssnit_tier_2}
+            ssnit_total = Decimal.add(ssnit_amount, ssnit_emp_contrib)
+            ssnit_tier_1 = ssnit_total
+            ssnit_tier_2 = Decimal.new(0)
+            {ssnit_emp_contrib, ssnit_total, ssnit_tier_1, ssnit_tier_2}
+          else
+            ssnit_emp_contrib = Decimal.new(0)
+            ssnit_total = Decimal.new(0)
+            ssnit_tier_1 = Decimal.new(0)
+            ssnit_tier_2 = Decimal.new(0)
+            {ssnit_emp_contrib, ssnit_total, ssnit_tier_1, ssnit_tier_2}
+          end
 
         false ->
           # 13 div 5.5
@@ -217,6 +235,49 @@ defmodule Mgp.Sync.ImportPayroll do
 
       _ ->
         Decimal.round(Decimal.mult(o, Decimal.new("0.05")), 2)
+    end
+  end
+
+  defp gra_income_tax(i, 2020) do
+    cond do
+      Decimal.compare(i, Decimal.new("319")) != :gt ->
+        Decimal.new("0")
+
+      Decimal.compare(i, Decimal.new("419")) != :gt ->
+        Decimal.round(Decimal.mult(Decimal.sub(i, 319), Decimal.new("0.05")), 2)
+
+      Decimal.compare(i, Decimal.new("539")) != :gt ->
+        Decimal.round(
+          Decimal.add(Decimal.mult(Decimal.sub(i, 419), Decimal.new("0.1")), Decimal.new("5")),
+          2
+        )
+
+      Decimal.compare(i, Decimal.new("3539")) != :gt ->
+        Decimal.round(
+          Decimal.add(
+            Decimal.mult(Decimal.sub(i, 539), Decimal.new("0.175")),
+            Decimal.new("17")
+          ),
+          2
+        )
+
+      Decimal.compare(i, Decimal.new("20000")) != :gt ->
+        Decimal.round(
+          Decimal.add(
+            Decimal.mult(Decimal.sub(i, 3539), Decimal.new("0.25")),
+            Decimal.new("542")
+          ),
+          2
+        )
+
+      true ->
+        Decimal.round(
+          Decimal.add(
+            Decimal.mult(Decimal.sub(i, 20000), Decimal.new("0.3")),
+            Decimal.new("4657.25")
+          ),
+          2
+        )
     end
   end
 
