@@ -238,12 +238,12 @@ defmodule Mgp.Sync.ImportPayroll do
     end
   end
 
-  defp compute_tax(income, [[tax_bracket, rate, cum_tax] | t], prev_cum_tax) do
+  defp compute_tax(income, [[tax_bracket, rate, cum_tax] | t], prev_tax_bracket) do
     if Decimal.compare(income, tax_bracket) != :gt do
       Decimal.round(
         Decimal.add(
           Decimal.mult(
-            Decimal.sub(income, prev_cum_tax),
+            Decimal.sub(income, prev_tax_bracket),
             rate
           ),
           cum_tax
