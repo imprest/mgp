@@ -238,133 +238,61 @@ defmodule Mgp.Sync.ImportPayroll do
     end
   end
 
-  defp gra_income_tax(i, 2020) do
-    cond do
-      Decimal.compare(i, Decimal.new("319")) != :gt ->
-        Decimal.new("0")
-
-      Decimal.compare(i, Decimal.new("419")) != :gt ->
-        Decimal.round(Decimal.mult(Decimal.sub(i, 319), Decimal.new("0.05")), 2)
-
-      Decimal.compare(i, Decimal.new("539")) != :gt ->
-        Decimal.round(
-          Decimal.add(Decimal.mult(Decimal.sub(i, 419), Decimal.new("0.1")), Decimal.new("5")),
-          2
-        )
-
-      Decimal.compare(i, Decimal.new("3539")) != :gt ->
-        Decimal.round(
-          Decimal.add(
-            Decimal.mult(Decimal.sub(i, 539), Decimal.new("0.175")),
-            Decimal.new("17")
+  defp compute_tax(income, [[tax_bracket, rate, cum_tax] | t], prev_cum_tax) do
+    if Decimal.compare(income, tax_bracket) != :gt do
+      Decimal.round(
+        Decimal.add(
+          Decimal.mult(
+            Decimal.sub(income, prev_cum_tax),
+            rate
           ),
-          2
-        )
-
-      Decimal.compare(i, Decimal.new("20000")) != :gt ->
-        Decimal.round(
-          Decimal.add(
-            Decimal.mult(Decimal.sub(i, 3539), Decimal.new("0.25")),
-            Decimal.new("542")
-          ),
-          2
-        )
-
-      true ->
-        Decimal.round(
-          Decimal.add(
-            Decimal.mult(Decimal.sub(i, 20000), Decimal.new("0.3")),
-            Decimal.new("4657.25")
-          ),
-          2
-        )
+          cum_tax
+        ),
+        2
+      )
+    else
+      compute_tax(income, t, tax_bracket)
     end
   end
 
-  defp gra_income_tax(i, 2019) do
-    cond do
-      Decimal.compare(i, Decimal.new("288")) != :gt ->
-        Decimal.new("0")
+  defp gra_income_tax(taxable_income, 2020) do
+    tax_table = [
+      # [Chargeable income, % rate, cumulative tax]
+      [Decimal.new(319), Decimal.new(0), Decimal.new(0)],
+      [Decimal.new(419), Decimal.new("0.050"), Decimal.new(0)],
+      [Decimal.new(539), Decimal.new("0.100"), Decimal.new(5)],
+      [Decimal.new(3539), Decimal.new("0.175"), Decimal.new(17)],
+      [Decimal.new(20000), Decimal.new("0.250"), Decimal.new(542)],
+      [%Decimal{coef: :inf}, Decimal.new("0.300"), Decimal.new("4657.25")]
+    ]
 
-      Decimal.compare(i, Decimal.new("388")) != :gt ->
-        Decimal.round(Decimal.mult(Decimal.sub(i, 288), Decimal.new("0.05")), 2)
-
-      Decimal.compare(i, Decimal.new("528")) != :gt ->
-        Decimal.round(
-          Decimal.add(Decimal.mult(Decimal.sub(i, 388), Decimal.new("0.1")), Decimal.new("5")),
-          2
-        )
-
-      Decimal.compare(i, Decimal.new("3528")) != :gt ->
-        Decimal.round(
-          Decimal.add(
-            Decimal.mult(Decimal.sub(i, 528), Decimal.new("0.175")),
-            Decimal.new("19")
-          ),
-          2
-        )
-
-      Decimal.compare(i, Decimal.new("20000")) != :gt ->
-        Decimal.round(
-          Decimal.add(
-            Decimal.mult(Decimal.sub(i, 3528), Decimal.new("0.25")),
-            Decimal.new("544")
-          ),
-          2
-        )
-
-      true ->
-        Decimal.round(
-          Decimal.add(
-            Decimal.mult(Decimal.sub(i, 20000), Decimal.new("0.3")),
-            Decimal.new("4662")
-          ),
-          2
-        )
-    end
+    compute_tax(taxable_income, tax_table, Decimal.new(0))
   end
 
-  defp gra_income_tax(i, _) do
-    cond do
-      Decimal.compare(i, Decimal.new("216")) != :gt ->
-        Decimal.new("0")
+  defp gra_income_tax(taxable_income, 2019) do
+    tax_table = [
+      [Decimal.new(288), Decimal.new(0), Decimal.new(0)],
+      [Decimal.new(388), Decimal.new("0.050"), Decimal.new(0)],
+      [Decimal.new(528), Decimal.new("0.100"), Decimal.new(5)],
+      [Decimal.new(3528), Decimal.new("0.175"), Decimal.new(19)],
+      [Decimal.new(20000), Decimal.new("0.250"), Decimal.new(544)],
+      [%Decimal{coef: :inf}, Decimal.new("0.300"), Decimal.new(4662)]
+    ]
 
-      Decimal.compare(i, Decimal.new("331")) != :gt ->
-        Decimal.round(Decimal.mult(Decimal.sub(i, 216), Decimal.new("0.05")), 2)
+    compute_tax(taxable_income, tax_table, Decimal.new(0))
+  end
 
-      Decimal.compare(i, Decimal.new("431")) != :gt ->
-        Decimal.round(
-          Decimal.add(Decimal.mult(Decimal.sub(i, 331), Decimal.new("0.1")), Decimal.new("3.5")),
-          2
-        )
+  defp gra_income_tax(taxable_income, _) do
+    tax_table = [
+      [Decimal.new(216), Decimal.new(0), Decimal.new(0)],
+      [Decimal.new(331), Decimal.new("0.050"), Decimal.new(0)],
+      [Decimal.new(431), Decimal.new("0.100"), Decimal.new("3.5")],
+      [Decimal.new(3241), Decimal.new("0.175"), Decimal.new("13.5")],
+      [Decimal.new(10000), Decimal.new("0.250"), Decimal.new("505.25")],
+      [%Decimal{coef: :inf}, Decimal.new("0.350"), Decimal.new(2195)]
+    ]
 
-      Decimal.compare(i, Decimal.new("3241")) != :gt ->
-        Decimal.round(
-          Decimal.add(
-            Decimal.mult(Decimal.sub(i, 431), Decimal.new("0.175")),
-            Decimal.new("13.5")
-          ),
-          2
-        )
-
-      Decimal.compare(i, Decimal.new("10000")) != :gt ->
-        Decimal.round(
-          Decimal.add(
-            Decimal.mult(Decimal.sub(i, 3241), Decimal.new("0.25")),
-            Decimal.new("505.25")
-          ),
-          2
-        )
-
-      true ->
-        Decimal.round(
-          Decimal.add(
-            Decimal.mult(Decimal.sub(i, 10000), Decimal.new("0.35")),
-            Decimal.new("2195")
-          ),
-          2
-        )
-    end
+    compute_tax(taxable_income, tax_table, Decimal.new(0))
   end
 
   defp parse_ssnit_ded(_, "E0053"), do: Decimal.new(5)
