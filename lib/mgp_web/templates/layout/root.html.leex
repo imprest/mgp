@@ -20,9 +20,9 @@
             <div class="ml-4 min-w-0 flex items-baseline space-x-1 overflow-y-hidden overflow-x-auto scroller">
               <%= live_redirect "Dashboard", to: Routes.live_path(@conn, MgpWeb.PageLive), class: active_class(@conn, Routes.live_path(@conn, MgpWeb.PageLive)) %>
               <%= live_redirect "Products", to: Routes.live_path(@conn, MgpWeb.ProductsLive), class: active_class(@conn, Routes.live_path(@conn, MgpWeb.ProductsLive)) %>
+              <%= live_redirect "Sales", to: Routes.live_path(@conn, MgpWeb.SalesLive), class: active_class(@conn, Routes.live_path(@conn, MgpWeb.SalesLive)) %>
               <%= live_redirect "Invoices", to: Routes.live_path(@conn, MgpWeb.InvoicesLive), class: active_class(@conn, Routes.live_path(@conn, MgpWeb.InvoicesLive)) %>
               <%= live_redirect "Customers", to: Routes.live_path(@conn, MgpWeb.CustomersLive), class: active_class(@conn, Routes.live_path(@conn, MgpWeb.CustomersLive)) %>
-              <a href="#" class="px-3 py-2 text-sm font-medium">Sales</a>
               <%= live_redirect "Pdcs", to: Routes.live_path(@conn, MgpWeb.PdcsLive), class: active_class(@conn, Routes.live_path(@conn, MgpWeb.PdcsLive)) %>
               <%= live_redirect "Payroll", to: Routes.live_path(@conn, MgpWeb.PayrollLive), class: active_class(@conn, Routes.live_path(@conn, MgpWeb.PayrollLive)) %>
               <%= if function_exported?(Routes, :live_dashboard_path, 2) do %>

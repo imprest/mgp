@@ -34,7 +34,7 @@
   .modal-height { max-height: calc(100vh - 160px) }
 
   select { @apply py-1 pr-10 pl-2 }
-  input[type="search"] { @apply py-1 }
+  input[type="search"], input[type="date"] { @apply py-1 }
 }
 
 @layer components {
