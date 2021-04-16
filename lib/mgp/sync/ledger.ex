@@ -6,67 +6,58 @@ defmodule Mgp.Sync.Ledger do
 
   def run(code) do
     [
-      "/home/hvaria/backup/MGP18/FIT1810.dbf",
-      "/home/hvaria/backup/MGP18/FIT1811.dbf",
-      "/home/hvaria/backup/MGP18/FIT1812.dbf",
-      "/home/hvaria/backup/MGP18/FIT1901.dbf",
-      "/home/hvaria/backup/MGP18/FIT1902.dbf",
-      "/home/hvaria/backup/MGP18/FIT1903.dbf",
-      "/home/hvaria/backup/MGP18/FIT1904.dbf",
-      "/home/hvaria/backup/MGP18/FIT1905.dbf",
-      "/home/hvaria/backup/MGP18/FIT1906.dbf",
-      "/home/hvaria/backup/MGP18/FIT1907.dbf",
-      "/home/hvaria/backup/MGP18/FIT1908.dbf",
-      "/home/hvaria/backup/MGP18/FIT1909.dbf"
+      "/home/hvaria/backup/MGP20/FIT2103.dbf"
     ]
-    |> IO.inspect()
-    |> Enum.map(fn x -> bank_csv(x, code) end)
+    |> Enum.flat_map(fn x -> parse_dbf(x, code) end)
+
+    # |> compress({"desc", @zero}, [])
+    # |> csv
   end
 
-  def bank_csv(dbf, code) do
-    data =
-      DbaseParser.parse(
-        dbf,
-        [
-          "TR_CODE",
-          "TR_NON",
-          "TR_NOC",
-          "TR_DATE",
-          "TR_DRCR",
-          "TR_AMT",
-          "TR_DESC",
-          "TR_QTY"
-        ],
-        fn x ->
-          if x["TR_CODE"] == code do
-            if x["TR_DRCR"] == "D" do
-              %{
-                code: x["TR_CODE"] <> x["TR_NOC"] <> Integer.to_string(x["TR_NON"]),
-                tx_no: x["TR_NOC"] <> Integer.to_string(x["TR_NON"]),
-                date: Utils.to_date(x["TR_DATE"]),
-                ref: x["TR_QTY"],
-                desc: Utils.clean_string(x["TR_DESC"]),
-                drcr: x["TR_DRCR"],
-                debit: @zero,
-                credit: x["TR_AMT"]
-              }
-            else
-              %{
-                code: x["TR_CODE"] <> x["TR_NOC"] <> Integer.to_string(x["TR_NON"]),
-                tx_no: x["TR_NOC"] <> Integer.to_string(x["TR_NON"]),
-                date: Utils.to_date(x["TR_DATE"]),
-                ref: x["TR_QTY"],
-                desc: Utils.clean_string(x["TR_DESC"]),
-                drcr: x["TR_DRCR"],
-                debit: x["TR_AMT"],
-                credit: @zero
-              }
-            end
-          end
+  def parse_dbf(dbf, code) do
+    DbaseParser.parse(
+      dbf,
+      [
+        "TR_TYPE",
+        "TR_CODE",
+        "TR_NON",
+        "TR_NOC",
+        "TR_SRNO",
+        "TR_DATE",
+        "TR_GLCD",
+        "TR_SLCD",
+        "TR_DRCR",
+        "TR_AMT",
+        "TR_DESC",
+        "TR_QTY"
+      ],
+      fn x ->
+        if x["TR_CODE"] == code do
+          %{
+            id:
+              x["TR_DATE"] <>
+                " " <>
+                x["TR_TYPE"] <>
+                " " <>
+                x["TR_NOC"] <>
+                " " <> Integer.to_string(x["TR_NON"]) <> " " <> Integer.to_string(x["TR_SRNO"]),
+            tx_code:
+              x["TR_TYPE"] <>
+                " " <>
+                x["TR_NOC"] <>
+                " " <> Integer.to_string(x["TR_NON"]),
+            srno: x["TR_SRNO"],
+            date: Utils.to_date(x["TR_DATE"]),
+            desc: x["TR_QTY"],
+            gl_code: x["TR_GLCD"],
+            sl_code: x["TR_SLCD"],
+            post_desc: Utils.clean_string(x["TR_DESC"]),
+            drcr: x["TR_DRCR"],
+            amount: x["TR_AMT"]
+          }
         end
-      )
-
-    compress(data, {"desc", @zero}, []) |> csv
+      end
+    )
   end
 
   defp compress([], {_desc, _value}, output) do
