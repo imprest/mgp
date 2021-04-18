@@ -8,6 +8,7 @@ export const CUR_YEARS = genCurYears()
 export const FIN_YEARS = genFinYears()
 export const CUR_YEAR  = CUR_YEARS[0]
 export const CUR_MONTH = new Date().getMonth() + 1
+export const CUR_DATE = new Date().toISOString().substr(0, 10)
 
 export function realNumFmt(number) {
   if (number == null) { return ''; }

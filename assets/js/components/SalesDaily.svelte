@@ -1,11 +1,11 @@
 <script>
-  import { moneyFmt } from '../utils.js'
+  import { moneyFmt, CUR_DATE } from '../utils.js'
   import { onMount } from 'svelte'
 
   export let sales
   export let pushEvent, handleEvent
 
-  let date    = new Date().toISOString().substr(0, 10)
+  let date    = CUR_DATE
   let summary = {
     m_cash  : 0,
     m_credit: 0,
@@ -53,7 +53,7 @@
   }
 
   onMount(() => {
-    pushEvent('get_daily_sales', {date: '2020-01-06'})
+    pushEvent('get_daily_sales', {date: date})
   })
   handleEvent('get_daily_sales', (payload) => { sales = payload.sales })
 
@@ -70,8 +70,8 @@
     <label for="date" class="label">Date:</label>
     <input class="input" type="date" id="date" bind:value={date} on:change="{dateChanged}">
   </div>
-  <table class="table">
-  <tbody>
+  <table class="table w-full">
+  <thead>
     <tr>
       <th class="text-center" style="width: 85px;">ID</th>
       <th></th>
@@ -81,6 +81,8 @@
       <th class="text-right">Credit</th>
       <th class="text-right">Total </th>
     </tr>
+  </thead>
+  <tbody>
     {#each summary.local as s }
     <tr>
       <td class="text-center">
@@ -110,16 +112,18 @@
       <th class="text-right">{ moneyFmt(summary.m_total ) }</th>
     </tr>
     <tr>
-        <td>&nbsp;</td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-      </tr>
+      <td>&nbsp;</td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+    </tr>
+  </tbody>
+  <thead>
     <tr>
-      <th class="has-text-centered" style="width: 85px;">ID</th>
+      <th class="text-center" style="width: 85px;">ID</th>
       <th></th>
       <th>Customer</th>
       <th class="text-right">Cash  </th>
@@ -127,6 +131,8 @@
       <th class="text-right">Credit</th>
       <th class="text-right">Total </th>
     </tr>
+  </thead>
+  <tbody>
     {#each summary.imported as s }
     <tr>
       <td class="text-centered">
@@ -164,6 +170,8 @@
       <td></td>
       <td></td>
     </tr>
+  </tbody>
+  <tfoot>
     <tr>
       <th></th>
       <th></th>
@@ -181,6 +189,6 @@
         { moneyFmt(summary.total) }
       </th>
     </tr>
-    </tbody>
+  </tfoot>
   </table>
 </section>
