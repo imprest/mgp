@@ -16,7 +16,7 @@ defmodule Mgp.Sync.Ledger do
         "/home/hvaria/backup/MGP20/FIT#{year_month}.dbf"
       ]
       |> Enum.flat_map(fn x -> parse_dbf(x, code) end)
-      |> combine_cash_splits
+      |> combine_cash_splits(code)
       # |> Enum.sort_by(& &1.date, Date)
       |> Enum.into(%{}, fn x -> {x.id, x} end)
       |> compare_entries(
@@ -86,12 +86,30 @@ defmodule Mgp.Sync.Ledger do
     end
   end
 
-  defp combine_cash_splits(p) do
+  defp combine_cash_splits(p, "MB") do
     Enum.group_by(p, & &1.tx_code)
     |> Enum.map(fn {id, [h | t] = x} ->
       # only combine BR 'Bank Receipts like cash that was split into multiple entries'
       # so that it matches bank csv statement amounts
       if String.starts_with?(id, "BR R") do
+        if length(x) !== 1 do
+          Enum.reduce(t, h, fn y, acc -> %{acc | amount: Decimal.add(acc.amount, y.amount)} end)
+        else
+          h
+        end
+      else
+        x
+      end
+    end)
+    |> :lists.flatten()
+  end
+
+  defp combine_cash_splits(p, "EB") do
+    Enum.group_by(p, & &1.tx_code)
+    |> Enum.map(fn {id, [h | t] = x} ->
+      # only combine BR 'Bank Receipts like cash that was split into multiple entries'
+      # so that it matches bank csv statement amounts
+      if String.starts_with?(id, "BR R") or String.starts_with?(id, "BP P") do
         if length(x) !== 1 do
           Enum.reduce(t, h, fn y, acc -> %{acc | amount: Decimal.add(acc.amount, y.amount)} end)
         else
