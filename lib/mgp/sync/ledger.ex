@@ -2,18 +2,27 @@ defmodule Mgp.Sync.Ledger do
   alias Mgp.Sync.DbaseParser
   alias Mgp.Utils
 
-  def run() do
-    code = "MB"
+  def run(code, year_month) do
+    folder =
+      case code do
+        "MB" -> "UMB"
+        "EB" -> "Ecobank"
+        "BB" -> "ABSA"
+        "GB" -> "GT"
+      end
 
     {bank, program} =
       [
-        "/home/hvaria/backup/MGP20/FIT2103.dbf"
+        "/home/hvaria/backup/MGP20/FIT#{year_month}.dbf"
       ]
       |> Enum.flat_map(fn x -> parse_dbf(x, code) end)
       |> combine_cash_splits
       # |> Enum.sort_by(& &1.date, Date)
       |> Enum.into(%{}, fn x -> {x.id, x} end)
-      |> compare_entries(bank_csv("/home/hvaria/backup/202103.csv"), [])
+      |> compare_entries(
+        bank_csv("/home/hvaria/Downloads/Bank/#{folder}/20#{year_month}.csv", code),
+        []
+      )
 
     {rm_contras(bank), csv(Map.to_list(program))}
   end
@@ -130,19 +139,49 @@ defmodule Mgp.Sync.Ledger do
     end
   end
 
-  def bank_csv(file) do
+  defp bank_csv(file, code) do
     File.read!(file)
     |> String.trim()
     |> String.split("\n")
     |> Enum.map(fn x ->
-      [date, desc, _value, debit, credit, _bal] = String.split(x, ",")
-      [bank_date(date), String.slice(desc, 69, 40), debit, credit]
+      case code do
+        "MB" ->
+          [date, desc, _value, debit, credit, _bal] = String.split(x, ",")
+          [bank_date(date), String.slice(desc, 69, 40), debit, credit]
+
+        "EB" ->
+          [date, _value, _ref, desc, debit, credit, _bal] =
+            Regex.split(~r/,(?=(?:[^\"]*\"[^\"]*\")*(?![^\"]*\"))/, x)
+
+          [
+            bank_date(date),
+            String.slice(desc, 0, 40),
+            zero_to_empty(debit),
+            zero_to_empty(credit)
+          ]
+
+        "BB" ->
+          [date, desc, _value, debit, credit, _bal] = String.split(x, ",")
+          [bank_date(date), String.slice(desc, 69, 40), debit, credit]
+
+        "GB" ->
+          [date, desc, _value, debit, credit, _bal] = String.split(x, ",")
+          [bank_date(date), String.slice(desc, 69, 40), debit, credit]
+      end
     end)
   end
 
+  defp zero_to_empty("0"), do: ""
+  defp zero_to_empty(string), do: string
+
   defp bank_date(date) do
     [d, m, y] = String.split(date, " ")
-    Date.new!(String.to_integer("20" <> y), month_to_num(m), String.to_integer(d))
+
+    if String.length(y) > 2 do
+      Date.new!(String.to_integer(y), month_to_num(m), String.to_integer(d))
+    else
+      Date.new!(String.to_integer("20" <> y), month_to_num(m), String.to_integer(d))
+    end
   end
 
   defp month_to_num(m) do
