@@ -145,7 +145,7 @@ defmodule Mgp.Sync.Ledger do
       r =
         Enum.find(program, :not_found, fn {_id, m} ->
           m.drcr === "D" and Decimal.compare(m.amount, debit) === :eq and
-            Date.compare(date, m.date) !== :lt
+            Date.compare(m.date, date) !== :gt
         end)
 
       if r !== :not_found do
