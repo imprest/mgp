@@ -86,12 +86,12 @@ defmodule Mgp.Sync.Ledger do
     end
   end
 
-  defp combine_cash_splits(p, "MB") do
+  defp combine_cash_splits(p, "EB") do
     Enum.group_by(p, & &1.tx_code)
     |> Enum.map(fn {id, [h | t] = x} ->
       # only combine BR 'Bank Receipts like cash that was split into multiple entries'
       # so that it matches bank csv statement amounts
-      if String.starts_with?(id, "BR R") do
+      if String.starts_with?(id, "BR R") or String.starts_with?(id, "BP P") do
         if length(x) !== 1 do
           Enum.reduce(t, h, fn y, acc -> %{acc | amount: Decimal.add(acc.amount, y.amount)} end)
         else
@@ -104,12 +104,12 @@ defmodule Mgp.Sync.Ledger do
     |> :lists.flatten()
   end
 
-  defp combine_cash_splits(p, "EB") do
+  defp combine_cash_splits(p, _) do
     Enum.group_by(p, & &1.tx_code)
     |> Enum.map(fn {id, [h | t] = x} ->
       # only combine BR 'Bank Receipts like cash that was split into multiple entries'
       # so that it matches bank csv statement amounts
-      if String.starts_with?(id, "BR R") or String.starts_with?(id, "BP P") do
+      if String.starts_with?(id, "BR R") do
         if length(x) !== 1 do
           Enum.reduce(t, h, fn y, acc -> %{acc | amount: Decimal.add(acc.amount, y.amount)} end)
         else
@@ -179,8 +179,12 @@ defmodule Mgp.Sync.Ledger do
           ]
 
         "BB" ->
-          [date, desc, _value, debit, credit, _bal] = String.split(x, ",")
-          [bank_date(date), String.slice(desc, 69, 40), debit, credit]
+          [date, _value, _ref, desc, _chq, debit, credit, _bal] = String.split(x, ",")
+
+          [d, m, y] =
+            date |> String.slice(0, 10) |> String.split("/") |> Enum.map(&String.to_integer(&1))
+
+          [Date.new!(y, m, d), String.slice(desc, 69, 40), debit, credit]
 
         "GB" ->
           [date, desc, _value, debit, credit, _bal] = String.split(x, ",")
