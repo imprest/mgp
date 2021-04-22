@@ -2,7 +2,9 @@ defmodule Mgp.Sync.Ledger do
   alias Mgp.Sync.DbaseParser
   alias Mgp.Utils
 
-  def run(code, year_month) do
+  def run(code, year, month) do
+    short_code = Calendar.strftime(Date.new!(year, month, 1), "%y%m")
+
     folder =
       case code do
         "MB" -> "UMB"
@@ -13,18 +15,35 @@ defmodule Mgp.Sync.Ledger do
 
     {bank, program} =
       [
-        "/home/hvaria/backup/MGP20/FIT#{year_month}.dbf"
+        "/home/hvaria/backup/MGP20/FIT#{short_code}.dbf"
       ]
       |> Enum.flat_map(fn x -> parse_dbf(x, code) end)
       |> combine_cash_splits(code)
       # |> Enum.sort_by(& &1.date, Date)
       |> Enum.into(%{}, fn x -> {x.id, x} end)
       |> compare_entries(
-        bank_csv("/home/hvaria/Downloads/Bank/#{folder}/20#{year_month}.csv", code),
+        bank_csv("/home/hvaria/Downloads/Bank/#{folder}/20#{short_code}.csv", code),
         []
       )
 
-    {rm_contras(bank), csv(Map.to_list(program))}
+    prev_month = Calendar.strftime(Date.new!(year, month - 1, 1), "%y%m")
+
+    {_, p} =
+      [
+        "/home/hvaria/backup/MGP20/FIT#{prev_month}.dbf"
+      ]
+      |> Enum.flat_map(fn x -> parse_dbf(x, code) end)
+      |> combine_cash_splits(code)
+      # |> Enum.sort_by(& &1.date, Date)
+      |> Enum.into(%{}, fn x -> {x.id, x} end)
+      |> compare_entries(
+        bank_csv("/home/hvaria/Downloads/Bank/#{folder}/20#{prev_month}.csv", code),
+        []
+      )
+
+    cur = {rm_contras(bank), csv(Map.to_list(program))}
+    prev = {csv(Map.to_list(p))}
+    [prev, cur]
   end
 
   defp csv(map) do
@@ -129,10 +148,23 @@ defmodule Mgp.Sync.Ledger do
 
     if debit === "" do
       # Credit Entry
-      r =
-        Enum.find(program, :not_found, fn {_id, m} ->
+      temp =
+        Enum.filter(program, fn {_id, m} ->
           m.drcr === "C" and Decimal.compare(m.amount, credit) === :eq
         end)
+
+      r =
+        if length(temp) > 1 do
+          Enum.sort_by(temp, fn {_id, m} -> m.date end, Date)
+          |> hd
+
+          # Enum.min_by(temp, fn {_id, m} -> Date.diff(date, m.date) end)
+        else
+          case temp do
+            [] -> :not_found
+            _ -> hd(temp)
+          end
+        end
 
       if r !== :not_found do
         {id, _} = r
@@ -173,7 +205,7 @@ defmodule Mgp.Sync.Ledger do
 
           [
             bank_date(date),
-            String.slice(desc, 0, 40),
+            String.slice(desc, 0, 50),
             zero_to_empty(debit),
             zero_to_empty(credit)
           ]
@@ -184,11 +216,11 @@ defmodule Mgp.Sync.Ledger do
           [d, m, y] =
             date |> String.slice(0, 10) |> String.split("/") |> Enum.map(&String.to_integer(&1))
 
-          [Date.new!(y, m, d), String.slice(desc, 69, 40), debit, credit]
+          [Date.new!(y, m, d), String.slice(desc, 0, 50), debit, credit]
 
         "GB" ->
           [date, desc, _value, debit, credit, _bal] = String.split(x, ",")
-          [bank_date(date), String.slice(desc, 69, 40), debit, credit]
+          [bank_date(date), String.slice(desc, 0, 50), debit, credit]
       end
     end)
   end
