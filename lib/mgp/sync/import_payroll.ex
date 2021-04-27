@@ -180,7 +180,7 @@ defmodule Mgp.Sync.ImportPayroll do
 
     tax_ded = gra_income_tax(taxable_income, tax_year)
 
-    overtime_tax = gra_overtime_tax(emp.overtime_earned, earned_salary)
+    overtime_tax = gra_overtime_tax(emp.overtime_earned, emp.base_salary)
 
     total_tax = Decimal.add(tax_ded, overtime_tax)
 

@@ -26,24 +26,26 @@ defmodule Mgp.Sync.Ledger do
         []
       )
 
-    prev_month = Calendar.strftime(Date.new!(year, month - 1, 1), "%y%m")
+    # prev_month = Calendar.strftime(Date.new!(year, month - 1, 1), "%y%m")
 
-    {_, p} =
-      [
-        "/home/hvaria/backup/MGP20/FIT#{prev_month}.dbf"
-      ]
-      |> Enum.flat_map(fn x -> parse_dbf(x, code) end)
-      |> combine_cash_splits(code)
-      # |> Enum.sort_by(& &1.date, Date)
-      |> Enum.into(%{}, fn x -> {x.id, x} end)
-      |> compare_entries(
-        bank_csv("/home/hvaria/Downloads/Bank/#{folder}/20#{prev_month}.csv", code),
-        []
-      )
+    # {_, prev} =
+    #   [
+    #     "/home/hvaria/backup/MGP20/FIT#{prev_month}.dbf"
+    #   ]
+    #   |> Enum.flat_map(fn x -> parse_dbf(x, code) end)
+    #   |> combine_cash_splits(code)
+    #   # |> Enum.sort_by(& &1.date, Date)
+    #   |> Enum.into(%{}, fn x -> {x.id, x} end)
+    #   |> compare_entries(
+    #     bank_csv("/home/hvaria/Downloads/Bank/#{folder}/20#{prev_month}.csv", code),
+    #     []
+    #   )
 
-    cur = {rm_contras(bank), csv(Map.to_list(program))}
-    prev = {csv(Map.to_list(p))}
-    [prev, cur]
+    # {cur, uncleared} = {rm_contras(bank), csv(Map.to_list(program))}
+    # {cur, uncleared} = {rm_contras(bank), program}
+    # {compare_entries(prev, cur, []), uncleared}
+    # {rm_contras(bank), csv(Map.to_list(program))}
+    {rm_contras(bank), program}
   end
 
   defp csv(map) do
@@ -105,6 +107,10 @@ defmodule Mgp.Sync.Ledger do
     end
   end
 
+  defp combine_cash_splits(p, "GB") do
+    combine_cash_splits(p, "EB")
+  end
+
   defp combine_cash_splits(p, "EB") do
     Enum.group_by(p, & &1.tx_code)
     |> Enum.map(fn {id, [h | t] = x} ->
@@ -142,7 +148,10 @@ defmodule Mgp.Sync.Ledger do
   end
 
   def compare_entries(program, [], result), do: {:lists.reverse(result), program}
-
+  # take map of program entries like %{ id => {id, date, desc, debit, credit}, ...}
+  # 2nd arg is list of entries like [[date, desc, debit, credit], ...]
+  # Loop throught 2nd arg and remove matches entries from 1st arg, also dropping from 2nd arg
+  # and not_found entries are pushed to result array
   def compare_entries(program, [h | t], result) do
     [date, _desc, debit, credit] = h
 
@@ -219,8 +228,8 @@ defmodule Mgp.Sync.Ledger do
           [Date.new!(y, m, d), String.slice(desc, 0, 50), debit, credit]
 
         "GB" ->
-          [date, desc, _value, debit, credit, _bal] = String.split(x, ",")
-          [bank_date(date), String.slice(desc, 0, 50), debit, credit]
+          [date, _ref, _value, debit, credit, _bal] = String.split(x, ",")
+          [bank_date(date, "-"), "", debit, credit]
       end
     end)
   end
@@ -228,8 +237,8 @@ defmodule Mgp.Sync.Ledger do
   defp zero_to_empty("0"), do: ""
   defp zero_to_empty(string), do: string
 
-  defp bank_date(date) do
-    [d, m, y] = String.split(date, " ")
+  defp bank_date(date, split_on \\ " ") do
+    [d, m, y] = String.split(date, split_on)
 
     if String.length(y) > 2 do
       Date.new!(String.to_integer(y), month_to_num(m), String.to_integer(d))
