@@ -26,26 +26,26 @@ defmodule Mgp.Sync.Ledger do
         []
       )
 
-    # prev_month = Calendar.strftime(Date.new!(year, month - 1, 1), "%y%m")
+    prev_month = Calendar.strftime(Date.new!(year, month - 1, 1), "%y%m")
 
-    # {_, prev} =
-    #   [
-    #     "/home/hvaria/backup/MGP20/FIT#{prev_month}.dbf"
-    #   ]
-    #   |> Enum.flat_map(fn x -> parse_dbf(x, code) end)
-    #   |> combine_cash_splits(code)
-    #   # |> Enum.sort_by(& &1.date, Date)
-    #   |> Enum.into(%{}, fn x -> {x.id, x} end)
-    #   |> compare_entries(
-    #     bank_csv("/home/hvaria/Downloads/Bank/#{folder}/20#{prev_month}.csv", code),
-    #     []
-    #   )
+    {_, prev} =
+      [
+        "/home/hvaria/backup/MGP20/FIT#{prev_month}.dbf"
+      ]
+      |> Enum.flat_map(fn x -> parse_dbf(x, code) end)
+      |> combine_cash_splits(code)
+      # |> Enum.sort_by(& &1.date, Date)
+      |> Enum.into(%{}, fn x -> {x.id, x} end)
+      |> compare_entries(
+        bank_csv("/home/hvaria/Downloads/Bank/#{folder}/20#{prev_month}.csv", code),
+        []
+      )
 
-    # {cur, uncleared} = {rm_contras(bank), csv(Map.to_list(program))}
+    {cur, uncleared} = {rm_contras(bank), csv(Map.to_list(program))}
     # {cur, uncleared} = {rm_contras(bank), program}
-    # {compare_entries(prev, cur, []), uncleared}
+    {compare_entries(prev, cur, []), uncleared}
     # {rm_contras(bank), csv(Map.to_list(program))}
-    {rm_contras(bank), program}
+    # {rm_contras(bank), program}
   end
 
   defp csv(map) do
@@ -54,9 +54,9 @@ defmodule Mgp.Sync.Ledger do
     |> Enum.sort_by(& &1.date, Date)
     |> Enum.map(fn x ->
       if x.drcr === "D" do
-        [x.date, "#{x.desc} #{x.post_desc}", x.amount, ""]
+        [x.id, "#{x.desc} #{x.post_desc}", x.amount, ""]
       else
-        [x.date, "#{x.desc} #{x.post_desc}", "", x.amount]
+        [x.id, "#{x.desc} #{x.post_desc}", "", x.amount]
       end
 
       # IO.puts([
@@ -105,6 +105,10 @@ defmodule Mgp.Sync.Ledger do
     else
       find_contra(position, amount, t, found, [h | acc])
     end
+  end
+
+  defp combine_cash_splits(p, "BB") do
+    combine_cash_splits(p, "EB")
   end
 
   defp combine_cash_splits(p, "GB") do
@@ -228,8 +232,8 @@ defmodule Mgp.Sync.Ledger do
           [Date.new!(y, m, d), String.slice(desc, 0, 50), debit, credit]
 
         "GB" ->
-          [date, _ref, _value, debit, credit, _bal] = String.split(x, ",")
-          [bank_date(date, "-"), "", debit, credit]
+          [date, _ref, _value, debit, credit, _bal, _, desc] = String.split(x, ",")
+          [bank_date(date, "-"), desc, debit, credit]
       end
     end)
   end
