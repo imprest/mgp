@@ -10,9 +10,15 @@
 <section class="wrapper">
   <div class="tabs">
     <ul class="flex gap-2 text-lg">
-      <li class:text-red-600={tab === 'daily'} on:click="{() => tab = 'daily'}">Daily</li>
-      <li class:text-red-600={tab === 'monthly'} on:click="{() => tab = 'monthly'}">Monthly</li>
-      <li class:text-red-600={tab === 'yearly'} on:click="{() => tab = 'yearly'}">Yearly</li>
+      <li class:is-active={tab === 'daily'} on:click="{() => tab = 'daily'}">
+        <a>Daily</a>
+      </li>
+      <li class:is-active={tab === 'monthly'} on:click="{() => tab = 'monthly'}">
+        <a>Monthly</a>
+      </li>
+      <li class:is-active={tab === 'yearly'} on:click="{() => tab = 'yearly'}">
+        <a>Yearly</a>
+      </li>
     </ul>
   </div>
 </section>
