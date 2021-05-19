@@ -66,7 +66,7 @@
   }
 </script>
 <section class="wrapper">
-  <div class="flex justify-end gap-2 items-baseline">
+  <div class="flex justify-end gap-2 items-baseline mb-4">
     <label for="date" class="label">Date:</label>
     <input class="input" type="date" id="date" bind:value={date} on:change="{dateChanged}">
   </div>

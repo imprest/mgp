@@ -34,7 +34,7 @@
 </script>
 
 <section class="wrapper">
-  <div class="flex justify-end gap-2 items-baseline">
+  <div class="flex justify-end gap-2 items-baseline mb-4">
     <label for="year" class="label">Year:</label>
     <select id="year" bind:value={year} on:blur="{yearChanged}">
       {#each CUR_YEARS as y}

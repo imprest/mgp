@@ -36,7 +36,7 @@
 </script>
 
 <section class="wrapper">
-  <div class="flex justify-end gap-2 items-baseline">
+  <div class="flex justify-end gap-2 items-baseline mb-4">
     <label for="month" class="label">Month:</label>
     <select id="month" bind:value={month} on:blur="{monthChanged}">
       {#each MONTHS as m}

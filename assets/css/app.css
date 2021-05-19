@@ -43,8 +43,13 @@
   }
 
   .wrapper {
-    @apply px-2 max-w-7xl mx-auto
+    @apply px-2 max-w-7xl mx-auto;
   }
+
+  .wrapper:not(:last-child) {
+    @apply mb-4;
+  }
+
 
   .btn {
     @apply inline-block font-semibold py-2 px-4;

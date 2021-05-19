@@ -11,13 +11,13 @@
   <div class="tabs">
     <ul class="flex gap-2 text-lg">
       <li class:is-active={tab === 'daily'} on:click="{() => tab = 'daily'}">
-        <a>Daily</a>
+        <a href="#/sales/daily">Daily</a>
       </li>
       <li class:is-active={tab === 'monthly'} on:click="{() => tab = 'monthly'}">
-        <a>Monthly</a>
+        <a href="#/sales/monthly">Monthly</a>
       </li>
       <li class:is-active={tab === 'yearly'} on:click="{() => tab = 'yearly'}">
-        <a>Yearly</a>
+        <a href="#/sales/yearly">Yearly</a>
       </li>
     </ul>
   </div>
