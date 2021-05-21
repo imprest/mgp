@@ -43,11 +43,11 @@
       bind:value={text}
       on:select={handleSelect}
       data={customers} let:item={item}>
-      <div class="flex flex-start p-4">
-        <div class="flex-auto sm:overflow-x-auto">
+      <div class="flex flex-start px-4 py-2">
+        <div class="flex-auto text-sm sm:overflow-x-auto">
           { item.description }
           <br>
-          <small>
+          <small class="text-xs pt">
             <b>{ item.id }</b>,
             <b>{ item.region }</b>,
             <b>{ item.is_gov }</b>

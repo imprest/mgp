@@ -73,9 +73,9 @@
     class="flex-grow"
     type="search"
     placeholder={placeholder}>
-    <div class="block min-w-full max-w-full left-0 top-full pt-px absolute z-20"
+    <div class="block min-w-full max-w-full left-0 top-full pt-1 absolute z-20"
       class:hidden={isOpen != true}>
-      <div class="overflow-auto max-h-52 bg-white border-r-2 shadow-md" bind:this={div}>
+      <div class="overflow-auto max-h-52 bg-white rounded-md box-shadow" bind:this={div}>
         {#each data as item, i}
         <a href="{`#${i}`}"
           on:click|preventDefault={ () => { counter = i; isOpen=false; select(); } }
@@ -93,4 +93,7 @@
 
 <style>
 .is-hovered { background: #f5f5f5; color: #0a0a0a; }
+.box-shadow {
+  box-shadow: 0 2px 3px hsla(0,0%,4%,.1),0 0 0 1px hsla(0,0%,4%,.1);
+}
 </style>

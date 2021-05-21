@@ -3,7 +3,7 @@
   import SalesMonthly from './components/SalesMonthly.svelte'
   import SalesYearly from './components/SalesYearly.svelte'
 
-  export let tab = 'yearly'
+  export let tab = 'daily'
   export let pushEvent, handleEvent
 </script>
 
