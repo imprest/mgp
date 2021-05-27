@@ -39,6 +39,8 @@
 <PFView {payroll}/>
 {:else if view === 'Overtime'}
 <OvertimeView {payroll}/>
+{:else if view === 'Bank'}
+<BankView {payroll}/>
 {:else }
 <PayrollView {payroll}/>
 {/if}
@@ -53,10 +55,11 @@
   import SSNITView from './components/SSNITView.svelte'
   import PFView from './components/PFView.svelte'
   import OvertimeView from './components/OvertimeView.svelte'
+  import BankView from './components/BankView.svelte'
 
   let year    = CUR_YEAR
   let month   = CUR_MONTH
-  let views   = ['Default', 'Attendance', 'Advance', 'Loan', 'Pvt Loan', 'SSNIT', 'PF', 'GRA', 'Overtime']
+  let views   = ['Default', 'Attendance', 'Advance', 'Bank', 'Loan', 'Pvt Loan', 'SSNIT', 'PF', 'GRA', 'Overtime']
   let view    = 'Default'
   let payroll = []
   export let pushEvent, handleEvent
