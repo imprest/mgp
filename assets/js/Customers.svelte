@@ -33,6 +33,9 @@
     pushEvent('get_invoice', {id: id})
     isModalOpen = true
   }
+
+  function closeModal(e) { isModalOpen = false }
+
 </script>
 
 <section class="wrapper flex gap-1 items-center">
@@ -98,7 +101,7 @@
         <td class="text-center">{ dateFmt(t.date) }</td>
         <td>
           {#if t.description.startsWith('M ') || t.description.startsWith('C ')}
-          <a on:click="{() => fetchInvoice(t.description)}" href="#{t.description}">
+          <a class="text-blue-600" on:click="{() => fetchInvoice(t.description)}" href="#{t.description}">
             { t.description }
           </a>
           {:else}
@@ -153,6 +156,6 @@
   </table>
 </section>
 {/if}
-<Modal open={isModalOpen}>
+<Modal open={isModalOpen} on:close={closeModal}>
   <Invoice handleEvent={handleEvent}/>
 </Modal>
