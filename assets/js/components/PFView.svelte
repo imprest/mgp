@@ -32,6 +32,7 @@
     <thead>
       <tr>
         <th>ID</th>
+        <th>Fund ID</th>
         <th>Name</th>
         <th>Earned Income</th>
         <th>PF Employee (8%)</th>
@@ -44,6 +45,7 @@
       {#if p.pf_amount > 0}
         <tr>
           <td>                   { p.id                     }</td>
+          <td>                   { p.pf_no                  }</td>
           <td>                   { p.name                   }</td>
           <td class="text-right">{ moneyFmt(p.earned_salary ) }</td>
           <td class="text-right">{ moneyFmt(p.pf_amount     ) }</td>
@@ -55,6 +57,7 @@
     </tbody>
     <tfoot>
       <tr>
+        <th></th>
         <th></th>
         <th></th>
         <th class="text-right">{ moneyFmt(summary.earned_salary ) }</th>

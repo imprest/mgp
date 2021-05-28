@@ -29,7 +29,17 @@ defmodule Mgp.Sync.ImportPayroll do
   def parse_employee_master(dbf_file) do
     DbaseParser.parse(
       dbf_file,
-      ["EMP_NO", "EMP_NM", "EMP_JOINDT", "EMP_DISCDT", "EMP_RTBASE", "EMP_SSNO", "EMP_FNO1"],
+      [
+        "EMP_NO",
+        "EMP_NM",
+        "EMP_JOINDT",
+        "EMP_DISCDT",
+        "EMP_RTBASE",
+        "EMP_SSNO",
+        "EMP_FNO1",
+        "EMP_FNO2",
+        "EMP_FNO3"
+      ],
       fn x ->
         %{
           id: x["EMP_NO"],
@@ -38,7 +48,9 @@ defmodule Mgp.Sync.ImportPayroll do
           end_date: parse_date(x["EMP_DISCDT"]),
           is_terminated: parse_terminated(x["EMP_RTBASE"]),
           ssnit_no: x["EMP_SSNO"],
-          tin_no: x["EMP_FNO1"]
+          tin_no: x["EMP_FNO1"],
+          ssnit_t2: x["EMP_FNO2"],
+          pf_no: x["EMP_FNO3"]
         }
       end
     )
