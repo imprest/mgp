@@ -5,10 +5,84 @@ defmodule Mgp.Sync.ImportPayroll do
   alias Mgp.Sync.DbaseParser
 
   @root_folder "/home/hvaria/backup/HPMG18/"
+  @expat_salary "/home/hvaria/backup/salary.csv"
   @employee_master "H1EMP.DBF"
   @calculated_payroll "H1DETPAY.DBF"
 
   @decimal_50 Decimal.new("50")
+
+  def get_management_payroll(month), do: get_management_pay(determine_management_month(month))
+  defp get_management_pay(nil), do: []
+
+  defp get_management_pay(m) do
+    File.read!(@expat_salary)
+    |> String.trim()
+    |> String.split("\n")
+    |> Enum.drop(1)
+    |> Enum.map(fn x ->
+      [
+        month,
+        id,
+        tin_no,
+        name,
+        position,
+        salary,
+        living_percent,
+        vehicle,
+        non_cash_percent,
+        ssnit_ded
+      ] = String.split(x, ",")
+
+      if month === m do
+        earned_salary = salary
+        living = Decimal.mult(earned_salary, string_to_percent(living_percent))
+        non_cash = Decimal.mult(earned_salary, string_to_percent(non_cash_percent))
+        total_additions = Decimal.add(Decimal.add(living, non_cash), vehicle)
+        ssnit_amount = Decimal.mult(earned_salary, string_to_percent(ssnit_ded))
+        taxable_income = Decimal.sub(Decimal.add(earned_salary, total_additions), ssnit_amount)
+        tax_ded = gra_income_tax(taxable_income, determine_tax_year(month))
+
+        %{
+          month: month,
+          id: id,
+          tin_no: tin_no,
+          name: name,
+          gra_category: position,
+          base_salary: earned_salary,
+          earned_salary: String.to_integer(earned_salary),
+          living_percent: string_to_percent(living_percent),
+          living: living,
+          vehicle: vehicle,
+          non_cash_percent: string_to_percent(non_cash_percent),
+          non_cash: non_cash,
+          total_additions: Decimal.to_float(total_additions),
+          ssnit_ded: string_to_percent(ssnit_ded),
+          ssnit_amount: Decimal.to_float(ssnit_amount),
+          pf_amount: 0,
+          total_cash: 0,
+          taxable_income: Decimal.to_float(taxable_income),
+          tax_ded: Decimal.to_float(tax_ded),
+          net_pay:
+            Decimal.to_float(Decimal.sub(Decimal.sub(earned_salary, tax_ded), ssnit_amount))
+        }
+      else
+        []
+      end
+    end)
+    |> :lists.flatten()
+  end
+
+  defp string_to_percent(t), do: Decimal.div(Decimal.new(t), 100)
+
+  def determine_management_month(month) do
+    File.read!(@expat_salary)
+    |> String.trim()
+    |> String.split("\n")
+    |> Enum.drop(1)
+    |> Enum.map(fn x -> hd(String.split(x, ",")) end)
+    |> Enum.uniq()
+    |> Enum.find(fn x -> x <= month end)
+  end
 
   def import_month(folder \\ @root_folder, month) do
     files = generate_file_paths(folder)
@@ -59,13 +133,16 @@ defmodule Mgp.Sync.ImportPayroll do
     end)
   end
 
+  defp determine_tax_year(month) do
+    cond do
+      month > "1912M" -> 2020
+      month > "1812M" -> 2019
+      month <= "1812M" -> 2018
+    end
+  end
+
   defp parse_and_calculate_monthly_payroll(dbf_file, month, employees) do
-    tax_year =
-      cond do
-        month > "1912M" -> 2020
-        month > "1812M" -> 2019
-        month <= "1812M" -> 2018
-      end
+    tax_year = determine_tax_year(month)
 
     DbaseParser.parse(
       dbf_file,
@@ -330,6 +407,7 @@ defmodule Mgp.Sync.ImportPayroll do
 
   defp parse_terminated("M"), do: false
   defp parse_terminated("X"), do: true
+  defp parse_terminated("D"), do: true
 
   defp parse_cash("C"), do: true
   defp parse_cash("B"), do: false

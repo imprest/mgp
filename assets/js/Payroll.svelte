@@ -41,6 +41,10 @@
 <OvertimeView {payroll}/>
 {:else if view === 'Bank'}
 <BankView {payroll}/>
+{:else if view === 'Management'}
+<ManagementView {management}/>
+{:else if view === 'GRA'}
+<GRAView {payroll}/>
 {:else }
 <PayrollView {payroll}/>
 {/if}
@@ -56,16 +60,19 @@
   import PFView from './components/PFView.svelte'
   import OvertimeView from './components/OvertimeView.svelte'
   import BankView from './components/BankView.svelte'
+  import ManagementView from './components/Payroll/ManagementView.svelte'
+  import GRAView from './components/Payroll/GRAView.svelte'
 
   let year    = CUR_YEAR
   let month   = CUR_MONTH
-  let views   = ['Default', 'Attendance', 'Advance', 'Bank', 'Loan', 'Pvt Loan', 'SSNIT', 'PF', 'GRA', 'Overtime']
-  let view    = 'Default'
+  let views   = ['Default', 'Attendance', 'Advance', 'Bank', 'Loan', 'Management', 'Pvt Loan', 'SSNIT', 'PF', 'GRA', 'Overtime']
+  let view    = 'GRA'
   let payroll = []
+  let management = []
   export let pushEvent, handleEvent
 
   onMount(() => { getMonthlyPayroll(CUR_YEAR, CUR_MONTH) })
-  handleEvent('get_monthly_payroll', (p) => payroll = p.payroll)
+  handleEvent('get_monthly_payroll', (p) => { management = p.management; payroll = p.payroll })
 
   function yearChanged() {
     getMonthlyPayroll(year, month)
