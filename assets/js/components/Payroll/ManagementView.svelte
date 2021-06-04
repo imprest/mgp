@@ -16,12 +16,12 @@
       net_pay: 0
     }
     management.forEach(x => {
-      summary.salary_total += x.earned_salary
-      summary.total_additions += x.total_additions
-      summary.ssnit_amount += x.ssnit_amount
-      summary.taxable_income += x.taxable_income
-      summary.tax_ded += x.tax_ded
-      summary.net_pay += x.net_pay
+      summary.salary_total += Number.parseFloat(x.earned_salary)
+      summary.total_additions += Number.parseFloat(x.total_additions)
+      summary.ssnit_amount += Number.parseFloat(x.ssnit_amount)
+      summary.taxable_income += Number.parseFloat(x.taxable_income)
+      summary.tax_ded += Number.parseFloat(x.tax_ded)
+      summary.net_pay += Number.parseFloat(x.net_pay)
     })
   }
 </script>

@@ -44,7 +44,7 @@
 {:else if view === 'Management'}
 <ManagementView {management}/>
 {:else if view === 'GRA'}
-<GRAView {payroll}/>
+<GRAView {payroll} {management}/>
 {:else }
 <PayrollView {payroll}/>
 {/if}

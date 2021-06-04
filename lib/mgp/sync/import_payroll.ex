@@ -35,10 +35,14 @@ defmodule Mgp.Sync.ImportPayroll do
 
       if month === m do
         earned_salary = salary
+        tax_year = 2020
+
+        {ssnit_amount, ssnit_emp_contrib, ssnit_total, ssnit_tier_1, ssnit_tier_2} =
+          ssnit_computations(tax_year, id, earned_salary, ssnit_ded)
+
         living = Decimal.mult(earned_salary, string_to_percent(living_percent))
         non_cash = Decimal.mult(earned_salary, string_to_percent(non_cash_percent))
         total_additions = Decimal.add(Decimal.add(living, non_cash), vehicle)
-        ssnit_amount = Decimal.mult(earned_salary, string_to_percent(ssnit_ded))
         taxable_income = Decimal.sub(Decimal.add(earned_salary, total_additions), ssnit_amount)
         tax_ded = gra_income_tax(taxable_income, determine_tax_year(month))
 
@@ -50,20 +54,29 @@ defmodule Mgp.Sync.ImportPayroll do
           gra_category: position,
           base_salary: earned_salary,
           earned_salary: String.to_integer(earned_salary),
+          cash_allowance: 0,
+          total_cash: earned_salary,
+          ssnit_ded: string_to_percent(ssnit_ded),
+          ssnit_amount: ssnit_amount,
+          ssnit_emp_contrib: ssnit_emp_contrib,
+          ssnit_total: ssnit_total,
+          ssnit_tier_1: ssnit_tier_1,
+          ssnit_tier_2: ssnit_tier_2,
+          pf_amount: 0,
           living_percent: string_to_percent(living_percent),
           living: living,
           vehicle: vehicle,
           non_cash_percent: string_to_percent(non_cash_percent),
           non_cash: non_cash,
-          total_additions: Decimal.to_float(total_additions),
-          ssnit_ded: string_to_percent(ssnit_ded),
-          ssnit_amount: Decimal.to_float(ssnit_amount),
-          pf_amount: 0,
-          total_cash: 0,
-          taxable_income: Decimal.to_float(taxable_income),
-          tax_ded: Decimal.to_float(tax_ded),
-          net_pay:
-            Decimal.to_float(Decimal.sub(Decimal.sub(earned_salary, tax_ded), ssnit_amount))
+          total_additions: total_additions,
+          total_gra_income: Decimal.add(earned_salary, total_additions),
+          total_relief: ssnit_amount,
+          taxable_income: taxable_income,
+          tax_ded: tax_ded,
+          overtime_earned: 0,
+          overtime_tax: 0,
+          total_tax: tax_ded,
+          net_pay: Decimal.sub(Decimal.sub(earned_salary, tax_ded), ssnit_amount)
         }
       else
         []
@@ -214,50 +227,8 @@ defmodule Mgp.Sync.ImportPayroll do
     earned_salary =
       Decimal.round(Decimal.mult(emp.base_salary, Decimal.div(emp.days_worked, 27)), 2)
 
-    ssnit_amount =
-      if emp.id === "E0053" do
-        if tax_year < 2020 do
-          Decimal.round(Decimal.mult(Decimal.div(emp.ssnit_ded, 100), earned_salary), 2)
-        else
-          Decimal.new(0)
-        end
-      else
-        Decimal.round(Decimal.mult(Decimal.div(emp.ssnit_ded, 100), earned_salary), 2)
-      end
-
-    {ssnit_emp_contrib, ssnit_total, ssnit_tier_1, ssnit_tier_2} =
-      case emp.id === "E0053" do
-        true ->
-          if tax_year < 2020 do
-            # 12.5 div 5
-            ssnit_emp_contrib =
-              Decimal.round(Decimal.mult(Decimal.from_float(2.5), ssnit_amount), 2)
-
-            ssnit_total = Decimal.add(ssnit_amount, ssnit_emp_contrib)
-            ssnit_tier_1 = ssnit_total
-            ssnit_tier_2 = Decimal.new(0)
-            {ssnit_emp_contrib, ssnit_total, ssnit_tier_1, ssnit_tier_2}
-          else
-            ssnit_emp_contrib = Decimal.new(0)
-            ssnit_total = Decimal.new(0)
-            ssnit_tier_1 = Decimal.new(0)
-            ssnit_tier_2 = Decimal.new(0)
-            {ssnit_emp_contrib, ssnit_total, ssnit_tier_1, ssnit_tier_2}
-          end
-
-        false ->
-          # 13 div 5.5
-          ssnit_emp_contrib =
-            Decimal.round(Decimal.mult(Decimal.from_float(2.363636364), ssnit_amount), 2)
-
-          ssnit_total = Decimal.add(ssnit_amount, ssnit_emp_contrib)
-
-          ssnit_tier_1 =
-            Decimal.round(Decimal.mult(Decimal.from_float(0.72972973), ssnit_total), 2)
-
-          ssnit_tier_2 = Decimal.sub(ssnit_total, ssnit_tier_1)
-          {ssnit_emp_contrib, ssnit_total, ssnit_tier_1, ssnit_tier_2}
-      end
+    {ssnit_amount, ssnit_emp_contrib, ssnit_total, ssnit_tier_1, ssnit_tier_2} =
+      ssnit_computations(tax_year, emp.id, earned_salary, emp.ssnit_ded)
 
     pf_amount = Decimal.round(Decimal.mult(Decimal.div(emp.pf_ded, 100), earned_salary), 2)
 
@@ -313,6 +284,55 @@ defmodule Mgp.Sync.ImportPayroll do
         }
       )
     )
+  end
+
+  defp ssnit_computations(tax_year, emp_id, earned_salary, ssnit_ded) do
+    ssnit_amount =
+      if emp_id === "E0053" do
+        if tax_year < 2020 do
+          Decimal.round(Decimal.mult(Decimal.div(ssnit_ded, 100), earned_salary), 2)
+        else
+          Decimal.new(0)
+        end
+      else
+        Decimal.round(Decimal.mult(Decimal.div(ssnit_ded, 100), earned_salary), 2)
+      end
+
+    {ssnit_emp_contrib, ssnit_total, ssnit_tier_1, ssnit_tier_2} =
+      case emp_id === "E0053" do
+        true ->
+          if tax_year < 2020 do
+            # 12.5 div 5
+            ssnit_emp_contrib =
+              Decimal.round(Decimal.mult(Decimal.from_float(2.5), ssnit_amount), 2)
+
+            ssnit_total = Decimal.add(ssnit_amount, ssnit_emp_contrib)
+            ssnit_tier_1 = ssnit_total
+            ssnit_tier_2 = Decimal.new(0)
+            {ssnit_emp_contrib, ssnit_total, ssnit_tier_1, ssnit_tier_2}
+          else
+            ssnit_emp_contrib = Decimal.new(0)
+            ssnit_total = Decimal.new(0)
+            ssnit_tier_1 = Decimal.new(0)
+            ssnit_tier_2 = Decimal.new(0)
+            {ssnit_emp_contrib, ssnit_total, ssnit_tier_1, ssnit_tier_2}
+          end
+
+        false ->
+          # 13 div 5.5
+          ssnit_emp_contrib =
+            Decimal.round(Decimal.mult(Decimal.from_float(2.363636364), ssnit_amount), 2)
+
+          ssnit_total = Decimal.add(ssnit_amount, ssnit_emp_contrib)
+
+          ssnit_tier_1 =
+            Decimal.round(Decimal.mult(Decimal.from_float(0.72972973), ssnit_total), 2)
+
+          ssnit_tier_2 = Decimal.sub(ssnit_total, ssnit_tier_1)
+          {ssnit_emp_contrib, ssnit_total, ssnit_tier_1, ssnit_tier_2}
+      end
+
+    {ssnit_amount, ssnit_emp_contrib, ssnit_total, ssnit_tier_1, ssnit_tier_2}
   end
 
   defp gra_overtime_tax(o, earned_salary) do
