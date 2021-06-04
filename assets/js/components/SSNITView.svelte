@@ -2,10 +2,11 @@
   import { moneyFmt } from '../utils.js'
 
   export let payroll = []
+  export let management = []
 
   let summary = {}
 
-  $: if (payroll) {
+  $: if (payroll || management) {
     summary = {
       earned_salary: 0,
       ssnit_emp_contrib: 0,
@@ -23,7 +24,19 @@
       summary.ssnit_tier_1 += Number.parseFloat(x.ssnit_tier_1)
       summary.ssnit_tier_2 += Number.parseFloat(x.ssnit_tier_2)
     })
+    management.forEach(x => {
+      if (x.ssnit_amount == '0.00') return
+      summary.earned_salary += Number.parseFloat(x.earned_salary)
+      summary.ssnit_emp_contrib += Number.parseFloat(x.ssnit_emp_contrib)
+      summary.ssnit_amount += Number.parseFloat(x.ssnit_amount)
+      summary.ssnit_total  += Number.parseFloat(x.ssnit_total)
+      summary.ssnit_tier_1 += Number.parseFloat(x.ssnit_tier_1)
+      summary.ssnit_tier_2 += Number.parseFloat(x.ssnit_tier_2)
+    })
+
+
   }
+
 </script>
 
 <section class="wrapper">
@@ -43,6 +56,21 @@
       </thead>
       <tbody>
         {#each payroll as p}
+        {#if p.ssnit_amount > 0}
+          <tr>
+            <td>                    { p.id                }</td>
+            <td>                    { p.name              }</td>
+            <td class="text-right"> { moneyFmt(p.earned_salary    ) }</td>
+            <td class="text-center">{ p.ssnit_no          }</td>
+            <td class="text-right"> { moneyFmt(p.ssnit_emp_contrib) }</td>
+            <td class="text-right"> { moneyFmt(p.ssnit_amount     ) }</td>
+            <td class="text-right"> { moneyFmt(p.ssnit_total      ) }</td>
+            <td class="text-right"> { moneyFmt(p.ssnit_tier_1     ) }</td>
+            <td class="text-right"> { moneyFmt(p.ssnit_tier_2     ) }</td>
+          </tr>
+        {/if}
+        {/each}
+        {#each management as p}
         {#if p.ssnit_amount > 0}
           <tr>
             <td>                    { p.id                }</td>

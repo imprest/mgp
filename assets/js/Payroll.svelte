@@ -34,7 +34,7 @@
 {:else if view === 'Pvt Loan'}
 <PayrollFilterView {payroll} key={"pvt_loan"} header={"Pvt Loan"} />
 {:else if view === 'SSNIT'}
-<SSNITView {payroll}/>
+<SSNITView {payroll} {management}/>
 {:else if view === 'PF'}
 <PFView {payroll}/>
 {:else if view === 'Overtime'}
