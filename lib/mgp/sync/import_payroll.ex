@@ -30,7 +30,8 @@ defmodule Mgp.Sync.ImportPayroll do
         living_percent,
         vehicle,
         non_cash_percent,
-        ssnit_ded
+        ssnit_ded,
+        ssnit_no
       ] = String.split(x, ",")
 
       if month === m do
@@ -50,6 +51,7 @@ defmodule Mgp.Sync.ImportPayroll do
           month: month,
           id: id,
           tin_no: tin_no,
+          ssnit_no: ssnit_no,
           name: name,
           gra_category: position,
           base_salary: earned_salary,

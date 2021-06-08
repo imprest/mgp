@@ -66,7 +66,7 @@
   let year    = CUR_YEAR
   let month   = CUR_MONTH
   let views   = ['Default', 'Attendance', 'Advance', 'Bank', 'Loan', 'Management', 'Pvt Loan', 'SSNIT', 'PF', 'GRA', 'Overtime']
-  let view    = 'GRA'
+  let view    = 'Default'
   let payroll = []
   let management = []
   export let pushEvent, handleEvent
