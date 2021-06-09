@@ -632,22 +632,27 @@ defmodule Mgp.Sync.ImportData do
              ]}
 
           false ->
-            {[
-               %{
-                 invoice_id: x.invoice_id,
-                 sr_no: x.sr_no,
-                 product_id: x.product_id,
-                 description: x.description,
-                 sub_qty: x.sub_qty,
-                 qty: x.qty,
-                 rate: x.rate,
-                 total: x.total,
-                 tax_rate: x.tax_rate,
-                 lmu: x.lmu,
-                 lmt: x.lmt
-               }
-               | invoice_details
-             ], stock_transfers}
+            # Drop any invoice that has an empty id due to bug in dbase allowing empty rows
+            if x.invoice_id === "" do
+              {invoice_details, stock_transfers}
+            else
+              {[
+                 %{
+                   invoice_id: x.invoice_id,
+                   sr_no: x.sr_no,
+                   product_id: x.product_id,
+                   description: x.description,
+                   sub_qty: x.sub_qty,
+                   qty: x.qty,
+                   rate: x.rate,
+                   total: x.total,
+                   tax_rate: x.tax_rate,
+                   lmu: x.lmu,
+                   lmt: x.lmt
+                 }
+                 | invoice_details
+               ], stock_transfers}
+            end
         end
       end)
 
