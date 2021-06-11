@@ -202,7 +202,7 @@ defmodule Mgp.Sync.Ledger do
     end
   end
 
-  defp bank_csv(file, code) do
+  def bank_csv(file, code) do
     File.read!(file)
     |> String.trim()
     |> String.split("\n")
@@ -216,12 +216,21 @@ defmodule Mgp.Sync.Ledger do
           [date, _value, _ref, desc, debit, credit, _bal] =
             Regex.split(~r/,(?=(?:[^\"]*\"[^\"]*\")*(?![^\"]*\"))/, x)
 
-          [
-            bank_date(date),
-            String.slice(desc, 0, 50),
-            zero_to_empty(debit),
-            zero_to_empty(credit)
-          ]
+          if String.starts_with?(credit, "-") do
+            [
+              bank_date(date),
+              String.slice(desc, 0, 50),
+              zero_to_empty(String.trim_leading(credit, "-")),
+              zero_to_empty(debit)
+            ]
+          else
+            [
+              bank_date(date),
+              String.slice(desc, 0, 50),
+              zero_to_empty(debit),
+              zero_to_empty(credit)
+            ]
+          end
 
         "BB" ->
           [date, _value, _ref, desc, _chq, debit, credit, _bal] = String.split(x, ",")
