@@ -5,6 +5,7 @@
 
   export let tab = 'daily'
   export let pushEvent, handleEvent
+  let invoice = {}
 </script>
 
 <section class="wrapper">

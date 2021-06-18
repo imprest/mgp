@@ -7,7 +7,18 @@ defmodule MgpWeb.InvoicesLive do
   @impl true
   def render(assigns) do
     ~L'''
+    <%= live_svelte_component "Invoices", %{}, id: "invoices" %>
     '''
+  end
+
+  @impl true
+  def handle_event("get_invoices", %{"query" => query}, socket) do
+    invoices =
+      query
+      |> Sales.get_invoices()
+      |> Enum.map(fn x -> Map.take(x, [:id, :date, :customer_id]) end)
+
+    {:noreply, push_event(socket, "get_invoices", %{invoices: invoices})}
   end
 
   @impl true

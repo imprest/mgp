@@ -12,6 +12,7 @@
   let isModalOpen = false
   let customers, postings = []
   let invoice_id = null
+  let invoice = {}
 
   $: if (text.length >= 2 && text.length <= 12) { pushEvent('get_customers', {query: text}) }
 
@@ -33,8 +34,7 @@
     pushEvent('get_invoice', {id: id})
     isModalOpen = true
   }
-
-  function closeModal(e) { isModalOpen = false }
+  handleEvent('get_invoice', (payload) => { invoice = payload.invoice })
 
 </script>
 
@@ -157,5 +157,5 @@
 </section>
 {/if}
 <Modal open={isModalOpen} on:close={closeModal}>
-  <Invoice handleEvent={handleEvent}/>
+  <Invoice {invoice}/>
 </Modal>

@@ -1,10 +1,12 @@
 <script>
   import { moneyFmt, CUR_DATE } from '../utils.js'
   import { onMount } from 'svelte'
+  import Modal from './Modal.svelte'
+  import Invoice from './Invoice.svelte'
 
   export let sales
   export let pushEvent, handleEvent
-
+  let invoice = {}
   let date    = CUR_DATE
   let summary = {
     m_cash  : 0,
@@ -19,6 +21,7 @@
     local   : [],
     imported: []
   }
+  let isModalOpen = false
 
   $: if (sales) {
     summary = {
@@ -64,6 +67,12 @@
   function isDate(d) {
     return (new Date(d) !== "Invalid Date" && !isNaN(new Date(date)) ) ? true : false
   }
+
+  function fetchInvoice(id) {
+    pushEvent('get_invoice', {id: id})
+    isModalOpen = true
+  }
+  handleEvent('get_invoice', (payload) => { invoice = payload.invoice })
 </script>
 <section class="wrapper">
   <div class="flex justify-end gap-2 items-baseline mb-4">
@@ -86,7 +95,7 @@
     {#each summary.local as s }
     <tr>
       <td class="text-center">
-        <a on:click="{() => console.log("get_invoice")}" href="#{s.id}">
+        <a class="text-blue-600" on:click="{() => fetchInvoice(s.id)}" href="#{s.id}">
           { s.id }
         </a>
       </td>
@@ -136,7 +145,7 @@
     {#each summary.imported as s }
     <tr>
       <td class="text-centered">
-        <a on:click="{() => console.log('get_invoice')}" href="#{s.id}">
+        <a class="text-blue-600" on:click="{() => fetchInvoice(s.id)}" href="#{s.id}">
           { s.id }
         </a>
       </td>
@@ -191,4 +200,7 @@
     </tr>
   </tfoot>
   </table>
+<Modal open={isModalOpen} on:close={() => isModalOpen = false}>
+  <Invoice {invoice}/>
+</Modal>
 </section>
