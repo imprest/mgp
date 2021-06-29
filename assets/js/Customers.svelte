@@ -156,6 +156,6 @@
   </table>
 </section>
 {/if}
-<Modal open={isModalOpen} on:close={closeModal}>
+<Modal open={isModalOpen} on:close={() => isModalOpen=false } >
   <Invoice {invoice}/>
 </Modal>
