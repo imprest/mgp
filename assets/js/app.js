@@ -16,7 +16,6 @@ import "phoenix_html"
 import {Socket} from "phoenix"
 import NProgress from "nprogress"
 import {LiveSocket} from "phoenix_live_view"
-import Alpine from 'alpinejs'
 import hooks from "./hooks"
 
 window.addEventListener('phx:hook:svelte', (e) => {
@@ -26,12 +25,6 @@ window.addEventListener('phx:hook:svelte', (e) => {
 
 let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 let liveSocket = new LiveSocket("/live", Socket, {
-  dom: {
-    // make LiveView work nicely with alpinejs
-    onBeforeElUpdated(from, to) {
-      if (from.__x) { Alpine.clone(from.__x, to) }
-    }
-  },
   hooks,
   params: {_csrf_token: csrfToken},
   /* metadata: {
