@@ -7,37 +7,16 @@
 
   function close() { dispatch('close') }
 </script>
-<div class:hidden={!open} class="fixed z-10 inset-0 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-  <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-    <!--
-      Background overlay, show/hide based on modal state.
-
-      Entering: "ease-out duration-300"
-        From: "opacity-0"
-        To: "opacity-100"
-      Leaving: "ease-in duration-200"
-        From: "opacity-100"
-        To: "opacity-0"
-    -->
-    <div on:click={close} class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
-
-    <!-- This element is to trick the browser into centering the modal contents. -->
-    <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-
-    <!--
-      Modal panel, show/hide based on modal state.
-
-      Entering: "ease-out duration-300"
-        From: "opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-        To: "opacity-100 translate-y-0 sm:scale-100"
-      Leaving: "ease-in duration-200"
-        From: "opacity-100 translate-y-0 sm:scale-100"
-        To: "opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-    -->
-    <div class="inline-block align-bottom bg-white text-left h-5/6 overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-      <div class="bg-white p-2">
-        <slot></slot>
-      </div>
-    </div>
+<div class="modal fixed flex flex-col inset-0 items-center justify-center overflow-hidden z-40" class:hidden={!open}>
+  <div class="modal-background fixed inset-0 bg-gray-700 opacity-90"
+    on:click="{close}"
+  ></div>
+  <div class="modal-content bg-white relative mx-5 overscroll-auto w-full md:max-w-3xl py-2 px-4">
+    <slot></slot>
   </div>
+  <button on:click={close} class="modal-close fixed top-5 right-5 text-white z-50" aria-label="close">
+  <svg xmlns="http://www.w3.org/2000/svg"
+    class="h-10 w-10" viewBox="0 0 20 20" fill="currentColor">
+    <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+  </svg></button>
 </div>
