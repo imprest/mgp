@@ -21,12 +21,17 @@ config :mgp, MgpWeb.Endpoint,
   code_reloader: true,
   check_origin: false,
   watchers: [
-    node: [
-      "node_modules/webpack/bin/webpack.js",
-      "--mode",
-      "development",
-      "--watch",
-      "--watch-options-stdin",
+    # node: [
+    #   "node_modules/webpack/bin/webpack.js",
+    #   "--mode",
+    #   "development",
+    #   "--watch",
+    #   "--watch-options-stdin",
+    #   cd: Path.expand("../assets", __DIR__)
+    # ]
+    npm: [
+      "run",
+      "watch",
       cd: Path.expand("../assets", __DIR__)
     ]
   ]
