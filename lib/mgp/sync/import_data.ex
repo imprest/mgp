@@ -748,7 +748,7 @@ defmodule Mgp.Sync.ImportData do
               date: to_date(x["PDC_DATE"]),
               customer_id: x["PDC_SLCD"],
               amount: x["PDC_AMTC"],
-              cheque: x["PDC_CHQ"],
+              cheque: clean_string(x["PDC_CHQ"]),
               adjusted: nil?(x["PDC_ADJ"]),
               lmu: nil?(x["PDC_LMU"]),
               lmt: to_timestamp(x["PDC_LMD"], x["PDC_LMT"])
