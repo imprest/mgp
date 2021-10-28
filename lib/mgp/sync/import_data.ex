@@ -26,12 +26,12 @@ defmodule Mgp.Sync.ImportData do
   @op_stocks_dbf "SIITMB.DBF"
   @stock_receipts_dbf "SIDETRCT.DBF"
   @prices_dbf "SIITMPLD.DBF"
+  @gl_dbf "FIGLMST.DBF"
   @customers_dbf "FISLMST.DBF"
   @invoices_dbf "SIINV.DBF"
   @invoice_details_dbf "SIDETINV.DBF"
   @pdcs_dbf "FIPDC.DBF"
   # Extra dbf files to rsynced but not importing into our postgres db
-  @gl_dbf "FIGLMST.DBF"
   @fi_codes_dbf "FICODE.DBF"
   @tax_codes_dbf "FISMMST.DBF"
 
@@ -140,6 +140,8 @@ defmodule Mgp.Sync.ImportData do
              f.stock_receipts_dbf,
              dbf_was_rsynced?(diff, f.stock_receipts_dbf)
            ),
+         {:ok, ctx} <-
+           import_op_gl(ctx, f.gl_dbf, dbf_was_rsynced?(diff, f.gl_dbf)),
          {:ok, ctx} <-
            import_customers(ctx, f.customers_dbf, dbf_was_rsynced?(diff, f.customers_dbf)),
          {:ok, ctx} <-
@@ -400,6 +402,52 @@ defmodule Mgp.Sync.ImportData do
     {:ok, %{ctx | upserted: Map.put(ctx.upserted, :stock_receipts, rows)}}
   end
 
+  # OPENING GL & SL BALANCES
+  defp import_op_gl(ctx, _dbf, false), do: {:ok, ctx}
+
+  defp import_op_gl(ctx, dbf, true) do
+    y = ctx.year
+
+    records =
+      DbaseParser.parse(
+        dbf,
+        [
+          "GL_CODE",
+          "GL_DESC",
+          "GL_OPBAL",
+          "GL_LMU",
+          "GL_LMD",
+          "GL_LMT"
+        ],
+        fn x ->
+            %{
+              year: y,
+              gl_code: x["GL_CODE"],
+              sl_code: "",
+              desc: x["GL_DESC"],
+              op_bal: x["GL_OPBAL"],
+              lmu: nil?(x["GL_LMU"]),
+              lmt: to_timestamp(x["GL_LMD"], x["GL_LMT"])
+            }
+        end
+      )
+
+    upsert_query =
+      OpBalance
+      |> where(fragment("o0.lmt < EXCLUDED.lmt OR o0.op_bal <> EXCLUDED.op_bal"))
+      |> custom_on_conflict_update_replace_all()
+
+    rows =
+      upsert_records(
+        OpBalance,
+        records,
+        upsert_query,
+        {:unsafe_fragment, "ON CONSTRAINT opbal_gl_sl_year_key"}
+      )
+
+    {:ok, %{ctx | upserted: Map.put(ctx.upserted, :op_gl_bals, rows)}}
+  end
+
   # CUSTOMERS
   defp import_customers(ctx, _dbf, false), do: {:ok, ctx}
 
@@ -472,7 +520,7 @@ defmodule Mgp.Sync.ImportData do
            | customers
          ],
          [
-           %{customer_id: x.id, op_bal: x.op_bal, year: y, lmu: x.lmu, lmt: x.lmt}
+           %{gl_code: "203000", sl_code: x.id, op_bal: x.op_bal, year: y, lmu: x.lmu, lmt: x.lmt}
            | op_bals
          ]}
       end)
@@ -496,7 +544,7 @@ defmodule Mgp.Sync.ImportData do
         OpBalance,
         op_bals,
         upsert_query,
-        {:unsafe_fragment, "ON CONSTRAINT opbal_customer_id_year_key"}
+        {:unsafe_fragment, "ON CONSTRAINT opbal_gl_sl_year_key"}
       )
 
     {:ok, %{ctx | upserted: Map.put(ctx.upserted, :op_bals, rows)}}
@@ -793,64 +841,64 @@ defmodule Mgp.Sync.ImportData do
           "TR_REF",
           "TR_AMT",
           "TR_DESC",
+          "TR_QTY",
           "TR_LMU",
           "TR_LMD",
           "TR_LMT"
         ],
         fn x ->
-          if x["TR_GLCD"] === "203000" do
-            case {x["TR_DRCR"], x["TR_REF"]} do
-              {"D", ""} ->
-                %{
-                  id:
-                    posting_id(
-                      x["TR_DATE"],
-                      x["TR_TYPE"],
-                      x["TR_CODE"],
-                      x["TR_NOC"],
-                      x["TR_NON"],
-                      x["TR_SRNO"]
-                    ),
-                  date: to_date(x["TR_DATE"]),
-                  customer_id: x["TR_SLCD"],
-                  description: x["TR_DESC"],
-                  amount: x["TR_AMT"],
-                  lmu: nil?(x["TR_LMU"]),
-                  lmt: to_timestamp(x["TR_LMD"], x["TR_LMT"])
-                }
+          case {x["TR_DRCR"], x["TR_REF"]} do
+            {"D", ""} ->
+              %{
+                id:
+                  posting_id(
+                    x["TR_DATE"],
+                    x["TR_TYPE"],
+                    x["TR_CODE"],
+                    x["TR_NOC"],
+                    x["TR_NON"],
+                    x["TR_SRNO"]
+                  ),
+                date: to_date(x["TR_DATE"]),
+                gl_code: x["TR_GLCD"],
+                sl_code: x["TR_SLCD"],
+                desc: posting_desc(x["TR_REF"], x["TR_DESC"], x["TR_QTY"]),
+                amount: x["TR_AMT"],
+                lmu: nil?(x["TR_LMU"]),
+                lmt: to_timestamp(x["TR_LMD"], x["TR_LMT"])
+              }
 
-              {"D", _} ->
-                %{
-                  id: x["TR_REF"],
-                  date: to_date(x["TR_DATE"]),
-                  customer_id: x["TR_SLCD"],
-                  description: String.slice(x["TR_REF"], 4..14),
-                  amount: x["TR_AMT"],
-                  lmu: nil?(x["TR_LMU"]),
-                  lmt: to_timestamp(x["TR_LMD"], x["TR_LMT"])
-                }
+            {"D", _} ->
+              %{
+                id: x["TR_REF"],
+                date: to_date(x["TR_DATE"]),
+                gl_code: x["TR_GLCD"],
+                sl_code: x["TR_SLCD"],
+                desc: posting_desc(x["TR_REF"], x["TR_DESC"], x["TR_QTY"]),
+                amount: x["TR_AMT"],
+                lmu: nil?(x["TR_LMU"]),
+                lmt: to_timestamp(x["TR_LMD"], x["TR_LMT"])
+              }
 
-              _ ->
-                %{
-                  id:
-                    posting_id(
-                      x["TR_DATE"],
-                      x["TR_TYPE"],
-                      x["TR_CODE"],
-                      x["TR_NOC"],
-                      x["TR_NON"],
-                      x["TR_SRNO"]
-                    ),
-                  date: to_date(x["TR_DATE"]),
-                  customer_id: x["TR_SLCD"],
-                  description: x["TR_DESC"],
-                  amount: Decimal.mult(x["TR_AMT"], -1),
-                  lmu: nil?(x["TR_LMU"]),
-                  lmt: to_timestamp(x["TR_LMD"], x["TR_LMT"])
-                }
-            end
-          else
-            nil
+            _ ->
+              %{
+                id:
+                  posting_id(
+                    x["TR_DATE"],
+                    x["TR_TYPE"],
+                    x["TR_CODE"],
+                    x["TR_NOC"],
+                    x["TR_NON"],
+                    x["TR_SRNO"]
+                  ),
+                date: to_date(x["TR_DATE"]),
+                gl_code: x["TR_GLCD"],
+                sl_code: x["TR_SLCD"],
+                desc: posting_desc(x["TR_REF"], x["TR_DESC"], x["TR_QTY"]),
+                amount: Decimal.mult(x["TR_AMT"], -1),
+                lmu: nil?(x["TR_LMU"]),
+                lmt: to_timestamp(x["TR_LMD"], x["TR_LMT"])
+              }
           end
         end
       )
@@ -882,6 +930,20 @@ defmodule Mgp.Sync.ImportData do
 
     {:ok, %{ctx | upserted: Map.put(ctx.upserted, Path.basename(dbf, ".dbf"), rows)}}
   end
+
+  defp posting_desc(ref, desc, posting_desc) do
+    case String.slice(ref, 0, 2) do
+      "SA" -> String.slice(ref, 4..14)
+      "SB" -> String.slice(ref, 4..14)
+      _ ->
+          case {String.trim(desc), String.trim(posting_desc)} do
+            {desc, ""} -> "#{clean_string(desc)}"
+            {"", posting_desc} -> "#{clean_string(posting_desc)}"
+            _ -> "#{clean_string(desc)} | #{clean_string(posting_desc)}"
+          end
+    end
+  end
+
 
   defp is_record_for_today_onwards(record_date, date) do
     case Date.compare(record_date, date) do

@@ -83,15 +83,15 @@ defmodule Mgp.Fin do
         WITH op_bal AS (
           SELECT op_bal
           FROM op_balances
-          WHERE customer_id = $1::text and year = $2::int
+          WHERE sl_code = $1::text and year = $2::int
         ),
         tx AS (
-          SELECT p.id, p.date, p.description,
+          SELECT p.id, p.date, p.desc,
           CASE WHEN amount >= 0 THEN amount ELSE NULL END AS debit,
           CASE WHEN amount <  0 THEN ABS(amount) ELSE NULL END AS credit,
           o.op_bal + (SUM(amount) OVER (ORDER BY date, id)) AS bal
           FROM postings p, op_bal o
-          WHERE customer_id = $1::text
+          WHERE sl_code = $1::text
             AND date >= $3::date and date < ($3 + interval '1 year')
           ORDER BY date, id
         ),

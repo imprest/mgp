@@ -4,22 +4,22 @@ defmodule Mgp.Fin.Posting do
   use Ecto.Schema
   import Ecto.Changeset
   alias Mgp.Fin.Posting
-  alias Mgp.Sales.Customer
 
   @primary_key {:id, :string, []}
   schema "postings" do
+    field :gl_code, :string
+    field :sl_code, :string
     field :amount, :decimal
     field :date, :date
-    field :description, :string
+    field :desc, :string
     field :lmt, :naive_datetime
     field :lmu, :string
-    belongs_to :customer, Customer, type: :string
   end
 
   @doc false
   def changeset(%Posting{} = posting, attrs) do
     posting
-    |> cast(attrs, [:date, :description, :amount, :lmu, :lmt])
-    |> validate_required([:date, :description, :amount, :lmu, :lmt])
+    |> cast(attrs, [:date, :gl_code, :sl_code, :desc, :amount, :lmu, :lmt])
+    |> validate_required([:date, :gl_code, :sl_code, :desc, :amount, :lmu, :lmt])
   end
 end

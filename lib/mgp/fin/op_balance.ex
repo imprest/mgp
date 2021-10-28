@@ -4,21 +4,22 @@ defmodule Mgp.Fin.OpBalance do
   use Ecto.Schema
   import Ecto.Changeset
   alias Mgp.Fin.OpBalance
-  alias Mgp.Sales.Customer
 
   @primary_key false
   schema "op_balances" do
-    field :op_bal, :decimal
     field :year, :integer
+    field :gl_code, :string
+    field :sl_code, :string
+    field :op_bal, :decimal
     field :lmt, :naive_datetime
     field :lmu, :string
-    belongs_to :customer, Customer, type: :string
+    field :desc, :string
   end
 
   @doc false
   def changeset(%OpBalance{} = op_balance, attrs) do
     op_balance
-    |> cast(attrs, [:year, :op_bal, :lmt, :lmu])
-    |> validate_required([:year, :op_bal, :lmt, :lmu])
+    |> cast(attrs, [:year, :code, :op_bal, :lmt, :lmu, :desc])
+    |> validate_required([:year, :code, :op_bal, :lmt, :lmu, :desc])
   end
 end

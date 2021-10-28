@@ -100,12 +100,12 @@
         </td>
         <td class="text-center">{ dateFmt(t.date) }</td>
         <td>
-          {#if t.description.startsWith('M ') || t.description.startsWith('C ')}
-          <a class="text-blue-600" on:click="{() => fetchInvoice(t.description)}" href="#{t.description}">
-            { t.description }
+          {#if t.desc.startsWith('M ') || t.desc.startsWith('C ')}
+          <a class="text-blue-600" on:click="{() => fetchInvoice(t.desc)}" href="#{t.desc}">
+            { t.desc }
           </a>
           {:else}
-          { t.description }
+          { t.desc }
           {/if}
         </td>
         <td class="text-right">{ moneyFmt(t.debit) }</td>
