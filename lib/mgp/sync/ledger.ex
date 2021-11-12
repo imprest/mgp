@@ -2,8 +2,22 @@ defmodule Mgp.Sync.Ledger do
   alias Mgp.Sync.DbaseParser
   alias Mgp.Utils
 
+  defp data_folder(year, month) do
+    cur_y = String.slice(Integer.to_string(year), 2..3)
+    prev_y = String.slice(Integer.to_string(year - 1), 2..3)
+
+    case month do
+      10 -> ["MGP#{cur_y}", "MGP#{prev_y}"]
+      11 -> ["MGP#{cur_y}", "MGP#{cur_y}"]
+      12 -> ["MGP#{cur_y}", "MGP#{cur_y}"]
+      _ -> ["MGP#{prev_y}", "MGP#{prev_y}"]
+    end
+  end
+
   def run(code, year, month) do
     short_code = Calendar.strftime(Date.new!(year, month, 1), "%y%m")
+
+    [data_cur_y, data_prev_y] = data_folder(year, month)
 
     folder =
       case code do
@@ -15,7 +29,7 @@ defmodule Mgp.Sync.Ledger do
 
     {bank, program} =
       [
-        "/home/hvaria/backup/MGP20/FIT#{short_code}.dbf"
+        "/home/hvaria/backup/#{data_cur_y}/FIT#{short_code}.dbf"
       ]
       |> Enum.flat_map(fn x -> parse_dbf(x, code) end)
       |> combine_cash_splits(code)
@@ -30,7 +44,7 @@ defmodule Mgp.Sync.Ledger do
 
     {_, prev} =
       [
-        "/home/hvaria/backup/MGP20/FIT#{prev_month}.dbf"
+        "/home/hvaria/backup/#{data_prev_y}/FIT#{prev_month}.dbf"
       ]
       |> Enum.flat_map(fn x -> parse_dbf(x, code) end)
       |> combine_cash_splits(code)
@@ -372,10 +386,14 @@ defmodule Mgp.Sync.Ledger do
   def print_to_console(x) do
     case x[:drcr] do
       "D" ->
-        IO.puts("#{x[:date]} \t #{String.pad_leading(Decimal.to_string(x[:amount]), 10)} \t\t\t #{x[:desc]} - #{x[:post_desc]}")
-      "C" ->
-        IO.puts("#{x[:date]} \t #{String.pad_leading(Decimal.to_string(x[:amount]), 22)} \t #{x[:desc]} - #{x[:post_desc]}")
-      end
-  end
+        IO.puts(
+          "#{x[:date]} \t #{String.pad_leading(Decimal.to_string(x[:amount]), 10)} \t\t\t #{x[:desc]} - #{x[:post_desc]}"
+        )
 
+      "C" ->
+        IO.puts(
+          "#{x[:date]} \t #{String.pad_leading(Decimal.to_string(x[:amount]), 22)} \t #{x[:desc]} - #{x[:post_desc]}"
+        )
+    end
+  end
 end
