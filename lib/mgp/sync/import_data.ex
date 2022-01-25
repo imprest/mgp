@@ -420,15 +420,15 @@ defmodule Mgp.Sync.ImportData do
           "GL_LMT"
         ],
         fn x ->
-            %{
-              year: y,
-              gl_code: x["GL_CODE"],
-              sl_code: "",
-              desc: x["GL_DESC"],
-              op_bal: x["GL_OPBAL"],
-              lmu: nil?(x["GL_LMU"]),
-              lmt: to_timestamp(x["GL_LMD"], x["GL_LMT"])
-            }
+          %{
+            year: y,
+            gl_code: x["GL_CODE"],
+            sl_code: "",
+            desc: x["GL_DESC"],
+            op_bal: x["GL_OPBAL"],
+            lmu: nil?(x["GL_LMU"]),
+            lmt: to_timestamp(x["GL_LMD"], x["GL_LMT"])
+          }
         end
       )
 
@@ -933,17 +933,20 @@ defmodule Mgp.Sync.ImportData do
 
   defp posting_desc(ref, desc, posting_desc) do
     case String.slice(ref, 0, 2) do
-      "SA" -> String.slice(ref, 4..14)
-      "SB" -> String.slice(ref, 4..14)
+      "SA" ->
+        String.slice(ref, 4..14)
+
+      "SB" ->
+        String.slice(ref, 4..14)
+
       _ ->
-          case {String.trim(desc), String.trim(posting_desc)} do
-            {desc, ""} -> "#{clean_string(desc)}"
-            {"", posting_desc} -> "#{clean_string(posting_desc)}"
-            _ -> "#{clean_string(desc)} | #{clean_string(posting_desc)}"
-          end
+        case {String.trim(desc), String.trim(posting_desc)} do
+          {desc, ""} -> "#{clean_string(desc)}"
+          {"", posting_desc} -> "#{clean_string(posting_desc)}"
+          _ -> "#{clean_string(desc)} | #{clean_string(posting_desc)}"
+        end
     end
   end
-
 
   defp is_record_for_today_onwards(record_date, date) do
     case Date.compare(record_date, date) do

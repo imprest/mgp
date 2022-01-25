@@ -74,11 +74,11 @@ defmodule Mgp.Sync do
     Map.merge(files, posts)
   end
 
-  defp rsync_payroll_dbf_files() do
+  def rsync_payroll_dbf_files() do
     args =
       Enum.concat(["--timeout=60", "-av"], [
-        "/mnt/scl/HPMG18/H1EMP.DBF",
-        "/mnt/scl/HPMG18/H1DETPAY.DBF"
+        "/mnt/scl/HPMG22/H1EMP.DBF",
+        "/mnt/scl/HPMG22/H1DETPAY.DBF"
       ])
 
     cmd = Enum.concat(args, [Path.join(ImportData.root_folder(), "/HPMG18")])

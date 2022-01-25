@@ -4,7 +4,7 @@ defmodule Mgp.Sync.ImportPayroll do
   import Mgp.Utils, only: [to_date: 1, to_time: 1]
   alias Mgp.Sync.DbaseParser
 
-  @root_folder "/home/hvaria/backup/HPMG18/"
+  @root_folder "/home/hvaria/backup/HPMG22/"
   @expat_salary "/home/hvaria/backup/salary.csv"
   @employee_master "H1EMP.DBF"
   @calculated_payroll "H1DETPAY.DBF"
@@ -150,6 +150,7 @@ defmodule Mgp.Sync.ImportPayroll do
 
   defp determine_tax_year(month) do
     cond do
+      month > "2112M" -> 2022
       month > "1912M" -> 2020
       month > "1812M" -> 2019
       month <= "1812M" -> 2018
@@ -364,6 +365,20 @@ defmodule Mgp.Sync.ImportPayroll do
     else
       compute_tax(income, t, tax_bracket)
     end
+  end
+
+  defp gra_income_tax(taxable_income, 2022) do
+    tax_table = [
+      # [Chargeable income, % rate, cumulative tax]
+      [Decimal.new(365), Decimal.new(0), Decimal.new(0)],
+      [Decimal.new(475), Decimal.new("0.050"), Decimal.new(0)],
+      [Decimal.new(605), Decimal.new("0.100"), Decimal.new("5.5")],
+      [Decimal.new(3605), Decimal.new("0.175"), Decimal.new("18.5")],
+      [Decimal.new(20000), Decimal.new("0.250"), Decimal.new("543.5")],
+      [%Decimal{coef: :inf}, Decimal.new("0.300"), Decimal.new("4642.25")]
+    ]
+
+    compute_tax(taxable_income, tax_table, Decimal.new(0))
   end
 
   defp gra_income_tax(taxable_income, 2020) do
