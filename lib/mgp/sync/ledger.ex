@@ -40,7 +40,11 @@ defmodule Mgp.Sync.Ledger do
         []
       )
 
-    prev_month = Calendar.strftime(Date.new!(year, month - 1, 1), "%y%m")
+    prev_month =
+      case month do
+        1 -> Calendar.strftime(Date.new!(year - 1, 12, 1), "%y%m")
+        _ -> Calendar.strftime(Date.new!(year, month - 1, 1), "%y%m")
+      end
 
     {_, prev} =
       [
