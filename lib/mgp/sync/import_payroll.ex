@@ -9,8 +9,6 @@ defmodule Mgp.Sync.ImportPayroll do
   @employee_master "H1EMP.DBF"
   @calculated_payroll "H1DETPAY.DBF"
 
-  @decimal_50 Decimal.new("50")
-
   def get_management_payroll(month), do: get_management_pay(determine_management_month(month))
   defp get_management_pay(nil), do: []
 
@@ -243,7 +241,7 @@ defmodule Mgp.Sync.ImportPayroll do
 
     tax_ded = gra_income_tax(taxable_income, tax_year)
 
-    overtime_tax = gra_overtime_tax(emp.overtime_earned, emp.base_salary)
+    overtime_tax = gra_overtime_tax(emp.overtime_earned, earned_salary)
 
     total_tax = Decimal.add(tax_ded, overtime_tax)
 
@@ -339,11 +337,16 @@ defmodule Mgp.Sync.ImportPayroll do
   end
 
   defp gra_overtime_tax(o, earned_salary) do
-    percent = Decimal.mult(Decimal.div(o, earned_salary), 100)
+    half_earned_salary = Decimal.div(earned_salary, 2)
 
-    case Decimal.compare(percent, @decimal_50) do
+    case Decimal.compare(o, half_earned_salary) do
       :gt ->
-        Decimal.round(Decimal.mult(o, Decimal.new("0.1")), 2)
+        excess_tax = Decimal.mult(Decimal.sub(o, half_earned_salary), Decimal.new("0.1"))
+
+        Decimal.round(
+          Decimal.add(excess_tax, Decimal.mult(half_earned_salary, Decimal.new("0.05"))),
+          2
+        )
 
       _ ->
         Decimal.round(Decimal.mult(o, Decimal.new("0.05")), 2)
