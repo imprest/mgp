@@ -20,7 +20,7 @@ defmodule Mgp.Sync.ImportData do
   alias Mgp.Fin.Posting
   alias Mgp.Fin.Pdc
 
-  @root_folder "/home/hvaria/backup"
+  @root_folder "/home/hvaria/Documents/backup"
   @folder_prefix "MGP"
   @products_dbf "SIITM.DBF"
   @op_stocks_dbf "SIITMB.DBF"
