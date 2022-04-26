@@ -81,7 +81,7 @@ defmodule Mgp.Sync do
         "/mnt/scl/HPMG22/H1DETPAY.DBF"
       ])
 
-    cmd = Enum.concat(args, [Path.join(ImportData.root_folder(), "/HPMG18")])
+    cmd = Enum.concat(args, [Path.join(ImportData.root_folder(), "/HPMG22")])
     System.cmd("rsync", cmd)
   end
 end

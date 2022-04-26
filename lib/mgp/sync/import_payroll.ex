@@ -4,8 +4,8 @@ defmodule Mgp.Sync.ImportPayroll do
   import Mgp.Utils, only: [to_date: 1, to_time: 1]
   alias Mgp.Sync.DbaseParser
 
-  @root_folder "/home/hvaria/backup/HPMG22/"
-  @expat_salary "/home/hvaria/backup/salary.csv"
+  @root_folder "/home/hvaria/Documents/backup/HPMG22/"
+  @expat_salary "/home/hvaria/Documents/backup/salary.csv"
   @employee_master "H1EMP.DBF"
   @calculated_payroll "H1DETPAY.DBF"
 
