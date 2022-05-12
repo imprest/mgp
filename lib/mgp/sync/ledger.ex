@@ -29,14 +29,14 @@ defmodule Mgp.Sync.Ledger do
 
     {bank, program} =
       [
-        "/home/hvaria/backup/#{data_cur_y}/FIT#{short_code}.dbf"
+        "/home/hvaria/Documents/backup/#{data_cur_y}/FIT#{short_code}.dbf"
       ]
       |> Enum.flat_map(fn x -> parse_dbf(x, code) end)
       |> combine_cash_splits(code)
       # |> Enum.sort_by(& &1.date, Date)
       |> Enum.into(%{}, fn x -> {x.id, x} end)
       |> compare_entries(
-        bank_csv("/home/hvaria/Downloads/Bank/#{folder}/20#{short_code}.csv", code),
+        bank_csv("/home/hvaria/Documents/Accounts/#{folder}/20#{short_code}.csv", code),
         []
       )
 
@@ -48,14 +48,14 @@ defmodule Mgp.Sync.Ledger do
 
     {_, prev} =
       [
-        "/home/hvaria/backup/#{data_prev_y}/FIT#{prev_month}.dbf"
+        "/home/hvaria/Documents/backup/#{data_prev_y}/FIT#{prev_month}.dbf"
       ]
       |> Enum.flat_map(fn x -> parse_dbf(x, code) end)
       |> combine_cash_splits(code)
       # |> Enum.sort_by(& &1.date, Date)
       |> Enum.into(%{}, fn x -> {x.id, x} end)
       |> compare_entries(
-        bank_csv("/home/hvaria/Downloads/Bank/#{folder}/20#{prev_month}.csv", code),
+        bank_csv("/home/hvaria/Documents/Accounts/#{folder}/20#{prev_month}.csv", code),
         []
       )
 
