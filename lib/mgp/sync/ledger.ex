@@ -224,6 +224,7 @@ defmodule Mgp.Sync.Ledger do
     File.read!(file)
     |> String.trim()
     |> String.split("\n")
+    |> Enum.drop(1)
     |> Enum.map(fn x ->
       case code do
         "MB" ->
