@@ -148,6 +148,7 @@ defmodule Mgp.Sync.ImportPayroll do
 
   defp determine_tax_year(month) do
     cond do
+      month > "2201M" -> 2022
       month > "2212M" -> 2023
       month > "2112M" -> 2022
       month > "1912M" -> 2020
