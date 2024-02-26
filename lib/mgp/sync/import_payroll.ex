@@ -148,6 +148,7 @@ defmodule Mgp.Sync.ImportPayroll do
 
   defp determine_tax_year(month) do
     cond do
+      month > "2312M" -> 2024
       month > "2204M" -> 2023
       month > "2201M" -> 2022
       month > "2212M" -> 2023
@@ -373,6 +374,21 @@ defmodule Mgp.Sync.ImportPayroll do
     end
   end
 
+  defp gra_income_tax(taxable_income, 2024) do
+    tax_table = [
+      # [Chargeable income, % rate, cumulative tax]
+      [Decimal.new(490), Decimal.new(0), Decimal.new(0)],
+      [Decimal.new(600), Decimal.new("0.050"), Decimal.new(0)],
+      [Decimal.new(730), Decimal.new("0.100"), Decimal.new("5.5")],
+      [Decimal.new("3896.67"), Decimal.new("0.175"), Decimal.new("18.5")],
+      [Decimal.new("19896.67"), Decimal.new("0.250"), Decimal.new("572.67")],
+      [Decimal.new("50416.67"), Decimal.new("0.300"), Decimal.new("4572.67")],
+      [%Decimal{coef: :inf}, Decimal.new("0.350"), Decimal.new("13728.67")]
+    ]
+
+    compute_tax(taxable_income, tax_table, Decimal.new(0))
+  end
+
   defp gra_income_tax(taxable_income, 2023) do
     tax_table = [
       # [Chargeable income, % rate, cumulative tax]
@@ -380,8 +396,8 @@ defmodule Mgp.Sync.ImportPayroll do
       [Decimal.new(512), Decimal.new("0.050"), Decimal.new(0)],
       [Decimal.new(642), Decimal.new("0.100"), Decimal.new("5.5")],
       [Decimal.new(3642), Decimal.new("0.175"), Decimal.new("18.5")],
-      [Decimal.new(20037), Decimal.new("0.250"), Decimal.new("543.5")],
-      [Decimal.new(50000), Decimal.new("0.300"), Decimal.new("4642.25")],
+      [Decimal.new(20_037), Decimal.new("0.250"), Decimal.new("543.5")],
+      [Decimal.new(50_000), Decimal.new("0.300"), Decimal.new("4642.25")],
       [%Decimal{coef: :inf}, Decimal.new("0.350"), Decimal.new("13631.15")]
     ]
 
